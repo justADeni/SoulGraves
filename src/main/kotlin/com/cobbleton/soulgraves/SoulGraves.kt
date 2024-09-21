@@ -4,6 +4,7 @@ import com.cobbleton.soulgraves.listeners.*
 import com.cobbleton.soulgraves.tasks.*
 import com.cobbleton.soulgraves.utils.*
 import com.jeff_media.morepersistentdatatypes.DataType
+import org.bstats.bukkit.Metrics
 import org.bukkit.Bukkit
 import org.bukkit.Chunk
 import org.bukkit.NamespacedKey
@@ -38,6 +39,10 @@ class SoulGraves : JavaPlugin() {
 		SoulRenderTask().runTaskTimer(this, 0, 1)
 		SoulStateTask().runTaskTimer(this, 0, 20)
 		SoulSoundTask().runTaskTimer(this, 0, 50)
+
+		// SET UP BSTATS
+		val pluginId = 23436
+		val metrics = Metrics(this, pluginId)
 
 		logger.info("Enabled!")
 	}

@@ -54,7 +54,11 @@
 					<relocations>
 						<relocation>
 							<pattern>com.jeff_media.morepersistentdatatypes</pattern>
-							<shadedPattern>YOUR.PACKAGE.morepersistentdatatypes</shadedPattern>
+							<shadedPattern>com.cobbleton.soulgraves.libs.morepersistentdatatypes</shadedPattern>
+						</relocation>
+						<relocation>
+							<pattern>org.bstats</pattern>
+							<shadedPattern>com.cobbleton.soulgraves.libs.bstats</shadedPattern>
 						</relocation>
 					</relocations>
 				</configuration>
@@ -95,6 +99,12 @@
 			<groupId>com.jeff-media</groupId>
 			<artifactId>MorePersistentDataTypes</artifactId>
 			<version>2.4.0</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.bstats</groupId>
+			<artifactId>bstats-bukkit</artifactId>
+			<version>3.0.2</version>
 			<scope>compile</scope>
 		</dependency>
 	</dependencies>
