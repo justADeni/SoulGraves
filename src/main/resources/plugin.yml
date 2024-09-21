@@ -1,0 +1,8 @@
+name: SoulGraves
+version: '1.0'
+main: com.cobbleton.soulgraves.SoulGraves
+api-version: '1.21'
+prefix: SoulGraves
+authors: [ MoMoe0 ]
+description: A unique graves plugin where players collect their souls to retrieve their belongings
+website: https://cobbleton.com
