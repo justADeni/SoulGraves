@@ -53,10 +53,7 @@ class PlayerDeathListener() : Listener {
 		entity.persistentDataContainer.set(soulXpKey, DataType.INTEGER, xp)
 
 		// MANAGE TIME LEFT
-		var timeLeft = 600
-		if (e.player.world.name == "world") {
-			timeLeft = 300
-		}
+		var timeLeft = 300
 		entity.persistentDataContainer.set(soulTimeLeftKey, DataType.INTEGER, timeLeft)
 
 		// CREATE SOUL DATA
