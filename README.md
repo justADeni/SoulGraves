@@ -39,4 +39,4 @@ A destabilizing soul that bursts and drops its contents:
 - [Vanilla Refresh](https://modrinth.com/datapack/vanilla-refresh) - Based on their idea of "Soul Links"
 - [B's Ghost Graves](https://github.com/Bpetiii/B_s_GhostGrave) - Taught me how make a similar soul entity
 - [KeepSlots](https://github.com/cometcake575/KeepSlots) - Taught me how to make sure items get to their proper slots when picked up
-- [MorePersistentDataTypes]([https://github.com/cometcake575/KeepSlots](https://github.com/mfnalex/MorePersistentDataTypes)) - Great library to save me time
+- [MorePersistentDataTypes](https://github.com/mfnalex/MorePersistentDataTypes) - Great library to save me time
