@@ -24,11 +24,11 @@ A unique graves plugin where players collect their souls to retrieve their belon
 ## GIFs
 A stable soul waiting to be collected:
 
-![](https://media.discordapp.net/attachments/1250198278457397350/1287021876899479633/javaw_YOdJmrwlg5.gif?ex=66f00807&is=66eeb687&hm=9a75613e470fbfc1d9c372ea75e1394ceded4347537d87650156fce94f3c4894&=)
+![javaw_YOdJmrwlg5](https://github.com/user-attachments/assets/0131abd3-e1da-4db4-ae97-826624ccee8f)
 
 A destabilizing soul that bursts and drops its contents:
 
-![](https://cdn.discordapp.com/attachments/1250198278457397350/1287021877528891462/Animation.gif?ex=66f00807&is=66eeb687&hm=3b3956823d563a87778a0ab1a88c453292aef61d1e4885afe6336c39c445a24e&)
+![Animation](https://github.com/user-attachments/assets/8ddf0d00-c7b7-4504-8fff-234f4f7af3dc)
 
 ## Roadmap
 * Timer customization
