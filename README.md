@@ -37,5 +37,5 @@ A destabilizing soul that bursts and drops its contents:
 
 ## Acknowledgements
 - [Vanilla Refresh](https://modrinth.com/datapack/vanilla-refresh) - Based on their idea of "Soul Links"
-- [B's Ghost Graves](https://github.com/Bpetiii/B_s_GhostGrave) - Similar plugin inspired by Hollow Knight. They shared their source so I could learn from it, huge thanks!
+- [B's Ghost Graves](https://modrinth.com/plugin/bs-ghostgrave) - Similar plugin inspired by Hollow Knight. They shared their source so I could learn from it, huge thanks!
 - [MorePersistentDataTypes](https://github.com/mfnalex/MorePersistentDataTypes) - Great PDC library
