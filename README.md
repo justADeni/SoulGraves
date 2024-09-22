@@ -5,8 +5,8 @@
 [![Static Badge](https://img.shields.io/badge/paper-1.21.x-skyblue)](https://papermc.org)
 [![Static Badge](https://img.shields.io/badge/jdk-21-plum)]()
 [![Static Badge](https://img.shields.io/badge/smp-Cobbleton%20Forever-gold)](https://cobbleton.com)
-[![Static Badge](https://img.shields.io/badge/downloads-Modrinth-forestgreen)]()
-[![Static Badge](https://img.shields.io/badge/downloads-Hangar-blue)]()
+[![Static Badge](https://img.shields.io/badge/downloads-Modrinth-forestgreen)](https://modrinth.com/plugin/soul-graves)
+[![Static Badge](https://img.shields.io/badge/downloads-Hangar-blue)](https://hangar.papermc.io/Faulty/SoulGraves)
 
 A unique graves plugin where players collect their souls to retrieve their belongings when they die. A soul will spawn at your death location that provides audio and visual feedback for your death location. Once you find it you can retrieve your items by walking into your soul. Be careful though, wait too long and your soul wil burst dropping all your items!
 
