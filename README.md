@@ -33,6 +33,7 @@ A destabilizing soul that bursts and drops its contents:
 
 ![Animation](https://github.com/user-attachments/assets/8ddf0d00-c7b7-4504-8fff-234f4f7af3dc)
 
+## Configuration
 <details>
 <summary>config.yml</summary>
 
