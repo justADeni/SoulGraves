@@ -6,7 +6,7 @@
 
 	<groupId>com.cobbleton</groupId>
 	<artifactId>soulgraves</artifactId>
-	<version>0.1-BETA</version>
+	<version>1.0.0</version>
 	<packaging>jar</packaging>
 
 	<name>soulgraves</name>
@@ -87,7 +87,7 @@
 		<dependency>
 			<groupId>io.papermc.paper</groupId>
 			<artifactId>paper-api</artifactId>
-			<version>1.21.1-R0.1-SNAPSHOT</version>
+			<version>1.21.3-R0.1-SNAPSHOT</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>

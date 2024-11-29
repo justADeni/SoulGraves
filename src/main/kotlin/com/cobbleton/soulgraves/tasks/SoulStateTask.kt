@@ -1,6 +1,7 @@
 package com.cobbleton.soulgraves.tasks
 
 import com.cobbleton.soulgraves.SoulGraves
+import com.cobbleton.soulgraves.managers.ConfigManager
 import com.cobbleton.soulgraves.soulTimeLeftKey
 import com.cobbleton.soulgraves.utils.SoulState
 import com.jeff_media.morepersistentdatatypes.DataType
@@ -10,11 +11,15 @@ import org.bukkit.scheduler.BukkitRunnable
 class SoulStateTask : BukkitRunnable() {
 	override fun run() {
 		for (soul in SoulGraves.soulList) {
-			when (soul.timeLeft) {
-				in 60..Int.MAX_VALUE -> soul.state = SoulState.NORMAL
-				in 1..59 -> soul.state = SoulState.PANIC
-				else -> soul.state = SoulState.EXPLODING
+			// SET STATES
+			if (soul.timeLeft > ConfigManager.timeUnstable) {
+				soul.state = SoulState.NORMAL
+			} else if (soul.timeLeft <= ConfigManager.timeUnstable && soul.timeLeft > 0) {
+				soul.state = SoulState.PANIC
+			} else {
+				soul.state = SoulState.EXPLODING
 			}
+
 			soul.timeLeft -= 1
 
 			// LOAD CHUNK & GRAB ENTITY

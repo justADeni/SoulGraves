@@ -2,6 +2,8 @@ package com.cobbleton.soulgraves.tasks
 
 import org.bukkit.scheduler.BukkitRunnable
 import com.cobbleton.soulgraves.SoulGraves
+import com.cobbleton.soulgraves.managers.ConfigManager
+import com.cobbleton.soulgraves.managers.MessageManager
 import com.cobbleton.soulgraves.soulChunksKey
 import com.cobbleton.soulgraves.soulKey
 import com.cobbleton.soulgraves.utils.SoulState
@@ -23,6 +25,9 @@ class SoulPickupTask : BukkitRunnable() {
 
 			for (player in soul.location.getNearbyPlayers(0.5)) {
 				if (!player.isDead) {
+					// CHECK IF PLAYER NEEDS TO BE OWNER
+					if (ConfigManager.ownerLocked && (player.uniqueId != soul.ownerUUID)) { continue }
+
 					val soulEntity: Marker = soul.location.world.getEntity(soul.entityUUID) as Marker
 
 					// HANDLE INVENTORY
@@ -42,8 +47,8 @@ class SoulPickupTask : BukkitRunnable() {
 					}
 
 					// HANDLE XP
-					val owner: Player? = Bukkit.getPlayer(soul.ownerUUID)
-					val xpMultiplier = if (player.uniqueId == owner?.uniqueId) 0.5 else 0.2
+					val owner: Player? = Bukkit.getPlayer(soul.ownerUUID) // Not needed?
+					val xpMultiplier = if (player.uniqueId == owner?.uniqueId) ConfigManager.xpPercentageOwner else ConfigManager.xpPercentageOthers
 					player.giveExp((soul.xp * xpMultiplier).toInt())
 
 					// PLAY SOUNDS
@@ -54,6 +59,15 @@ class SoulPickupTask : BukkitRunnable() {
 					// SPAWN PARTICLES
 					player.world.spawnParticle(Particle.END_ROD, soul.location, 200, 1.0, 1.0, 1.0, 0.5)
 					player.world.spawnParticle(Particle.FIREWORK, soul.location, 50, 1.0, 1.0, 1.0, 0.1)
+
+					// SEND MESSAGE TO PLAYER
+					player.sendMessage(MessageManager.soulCollectComponent)
+
+					// SEND MESSAGE TO OWNER IF NEEDED
+					if (player.uniqueId != soul.ownerUUID) {
+						owner?.sendMessage(MessageManager.soulCollectOtherComponent)
+						owner?.playSound(owner.location, Sound.BLOCK_BEACON_DEACTIVATE, 1.0f, 0.5f)
+					}
 
 					// REMOVE CHUNK FOR LOAD LIST IF POSSIBLE
 					var removeChunk = true

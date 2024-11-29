@@ -1,0 +1,38 @@
+# Time in seconds for how long a soul remains in its stable state before becoming unstable
+time-stable: 240
+
+# Time in seconds for how long a soul will show the unstable animation for before bursting
+# The total time the soul is available to collect is time-stable + time-unstable
+time-unstable: 60
+
+# Whether to notify nearby players when a soul bursts
+notify-nearby-players: true
+
+# The radius in blocks to alert nearby players when a soul bursts
+notify-radius: 128
+
+# The percentage of the soul's XP to give to the owner of the soul when it is collected by the owner
+xp-percentage-owner: 0.5
+
+# The percentage of the soul's XP to give to a player who isn't the owner when the soul is collected by that player
+xp-percentage-others: 0.2
+
+# The percentage of the soul's XP to drop when the soul bursts
+xp-percentage-burst: 0.2
+
+# Whether souls are only collectible by their owners
+owner-locked: false
+
+# Whether souls will drop items when they burst
+souls-drop-items: true
+
+# Whether souls will drop XP when they burst
+souls-drop-xp: true
+
+# What worlds to disable spawning a soul in
+# If none, leave a blank array
+# Usage:
+#disabled-worlds:
+#  - world_nether
+#  - world_the_end
+disabled-worlds: []

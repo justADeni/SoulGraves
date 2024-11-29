@@ -1,6 +1,7 @@
 package com.cobbleton.soulgraves.listeners
 
 import com.cobbleton.soulgraves.*
+import com.cobbleton.soulgraves.managers.ConfigManager
 import com.cobbleton.soulgraves.utils.Soul
 import com.jeff_media.morepersistentdatatypes.DataType
 import org.bukkit.Location
@@ -17,6 +18,11 @@ import org.bukkit.inventory.ItemStack
 class PlayerDeathListener() : Listener {
 	@EventHandler(priority = EventPriority.NORMAL)
 	fun onPlayerDeathEvent(e: PlayerDeathEvent) {
+		// CHECK TO MAKE SURE WE ARE IN AN ENABLED WORLD
+		if (ConfigManager.disabledWorlds.contains(e.player.world.name)) {
+			return
+		}
+
 		// SPAWN & DEFINE ENTITY
 		val entity: Marker = e.player.world.spawnEntity(findSafeLocation(e.player.location), EntityType.MARKER) as Marker
 		entity.isPersistent = true
@@ -53,7 +59,7 @@ class PlayerDeathListener() : Listener {
 		entity.persistentDataContainer.set(soulXpKey, DataType.INTEGER, xp)
 
 		// MANAGE TIME LEFT
-		var timeLeft = 300
+		val timeLeft = ConfigManager.timeStable + ConfigManager.timeUnstable
 		entity.persistentDataContainer.set(soulTimeLeftKey, DataType.INTEGER, timeLeft)
 
 		// CREATE SOUL DATA

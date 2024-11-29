@@ -1,6 +1,9 @@
 package com.cobbleton.soulgraves
 
+import com.cobbleton.soulgraves.commands.ReloadCommand
 import com.cobbleton.soulgraves.listeners.*
+import com.cobbleton.soulgraves.managers.ConfigManager
+import com.cobbleton.soulgraves.managers.MessageManager
 import com.cobbleton.soulgraves.tasks.*
 import com.cobbleton.soulgraves.utils.*
 import com.jeff_media.morepersistentdatatypes.DataType
@@ -28,10 +31,18 @@ class SoulGraves : JavaPlugin() {
 	override fun onEnable() {
 		plugin = this
 
+		// LOAD CONFIG
+		ConfigManager.loadConfig()
+		MessageManager.loadMessages()
+
 		initSouls()
 
 		// LISTENERS
 		server.pluginManager.registerEvents(PlayerDeathListener(), this)
+
+		// COMMANDS
+		getCommand("soulgraves")?.setExecutor(ReloadCommand())
+		getCommand("soulgraves")?.tabCompleter = ReloadCommand()
 
 		// TASKS
 		SoulExplodeTask().runTaskTimer(this, 0, 20)
