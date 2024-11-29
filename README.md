@@ -1,10 +1,9 @@
 
 # 🪦Soul Graves🪦
-[![Static Badge](https://img.shields.io/badge/release-0.1--BETA-bisque)]()
+[![Static Badge](https://img.shields.io/badge/release-1.0.0-bisque)]()
 [![Static Badge](https://img.shields.io/badge/license-MIT-plum)](https://github.com/FaultyFunctions/SoulGraves/blob/main/LICENSE.md)
-[![Static Badge](https://img.shields.io/badge/paper-1.21.x-skyblue)](https://papermc.org)
+[![Static Badge](https://img.shields.io/badge/paper-1.20.6%20--%201.21.x-skyblue)](https://papermc.org)
 [![Static Badge](https://img.shields.io/badge/jdk-21-plum)]()
-[![Static Badge](https://img.shields.io/badge/smp-Cobbleton%20Forever-gold)](https://cobbleton.com)
 [![Static Badge](https://img.shields.io/badge/downloads-Modrinth-forestgreen)](https://modrinth.com/plugin/soul-graves)
 [![Static Badge](https://img.shields.io/badge/downloads-Hangar-blue)](https://hangar.papermc.io/Faulty/SoulGraves)
 
