@@ -1,4 +1,4 @@
-package com.cobbleton.soulgraves.utils
+package dev.faultyfunctions.soulgraves.utils
 
 import org.bukkit.Location
 import org.bukkit.inventory.ItemStack
@@ -8,7 +8,7 @@ enum class SoulState {
 	NORMAL, PANIC, EXPLODING
 }
 
-data class Soul(val ownerUUID: UUID, val entityUUID: UUID, val location: Location, val inventory:MutableList<ItemStack?>, val xp: Int, var timeLeft: Int) {
+data class Soul(val ownerUUID: UUID, val markerUUID: UUID, val location: Location, val inventory:MutableList<ItemStack?>, val xp: Int, var timeLeft: Int) {
 	var state: Enum<SoulState> = SoulState.NORMAL
 	var implosion: Boolean = false
 }

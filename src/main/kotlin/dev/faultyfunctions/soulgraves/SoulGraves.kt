@@ -1,12 +1,14 @@
-package com.cobbleton.soulgraves
+package dev.faultyfunctions.soulgraves
 
-import com.cobbleton.soulgraves.commands.ReloadCommand
-import com.cobbleton.soulgraves.listeners.*
-import com.cobbleton.soulgraves.managers.ConfigManager
-import com.cobbleton.soulgraves.managers.MessageManager
-import com.cobbleton.soulgraves.tasks.*
-import com.cobbleton.soulgraves.utils.*
+import dev.faultyfunctions.soulgraves.commands.ReloadCommand
+import dev.faultyfunctions.soulgraves.managers.ConfigManager
+import dev.faultyfunctions.soulgraves.managers.MessageManager
 import com.jeff_media.morepersistentdatatypes.DataType
+import dev.faultyfunctions.soulgraves.listeners.PlayerDeathListener
+import dev.faultyfunctions.soulgraves.tasks.*
+import dev.faultyfunctions.soulgraves.utils.Soul
+import dev.faultyfunctions.soulgraves.utils.SpigotCompatUtils
+import net.kyori.adventure.platform.bukkit.BukkitAudiences
 import org.bstats.bukkit.Metrics
 import org.bukkit.Bukkit
 import org.bukkit.Chunk
@@ -14,6 +16,7 @@ import org.bukkit.NamespacedKey
 import org.bukkit.entity.Marker
 import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.java.JavaPlugin
+import javax.annotation.Nonnull
 
 val soulChunksKey = NamespacedKey(SoulGraves.plugin, "soul-chunks")
 val soulKey = NamespacedKey(SoulGraves.plugin, "soul")
@@ -26,10 +29,18 @@ class SoulGraves : JavaPlugin() {
 	companion object {
 		lateinit var plugin: SoulGraves
 		var soulList: MutableList<Soul> = mutableListOf()
+		val compat = SpigotCompatUtils
+	}
+
+	private lateinit var adventure: BukkitAudiences
+	@Nonnull
+	fun adventure(): BukkitAudiences {
+		return this.adventure
 	}
 
 	override fun onEnable() {
 		plugin = this
+		plugin.adventure = BukkitAudiences.create(plugin)
 
 		// LOAD CONFIG
 		ConfigManager.loadConfig()
@@ -59,6 +70,8 @@ class SoulGraves : JavaPlugin() {
 	}
 
 	override fun onDisable() {
+		this.adventure.close()
+
 		logger.info("Disabled!")
 	}
 
@@ -74,7 +87,7 @@ class SoulGraves : JavaPlugin() {
 
 				if (chunkKeyList != null) {
 					for (chunkKey in chunkKeyList) {
-						val chunk: Chunk = world.getChunkAt(chunkKey)
+						val chunk: Chunk = compat.getChunkAt(chunkKey, world)
 						for (entity in chunk.entities) {
 							if (entity.persistentDataContainer.has(soulKey)) {
 								val markerEntity = entity as Marker

@@ -1,6 +1,6 @@
-package com.cobbleton.soulgraves.managers
+package dev.faultyfunctions.soulgraves.managers
 
-import com.cobbleton.soulgraves.SoulGraves
+import dev.faultyfunctions.soulgraves.SoulGraves
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
 import org.bukkit.configuration.file.YamlConfiguration

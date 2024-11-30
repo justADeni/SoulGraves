@@ -1,12 +1,12 @@
-package com.cobbleton.soulgraves.tasks
+package dev.faultyfunctions.soulgraves.tasks
 
 import org.bukkit.scheduler.BukkitRunnable
-import com.cobbleton.soulgraves.SoulGraves
-import com.cobbleton.soulgraves.managers.ConfigManager
-import com.cobbleton.soulgraves.managers.MessageManager
-import com.cobbleton.soulgraves.soulChunksKey
-import com.cobbleton.soulgraves.soulKey
-import com.cobbleton.soulgraves.utils.SoulState
+import dev.faultyfunctions.soulgraves.SoulGraves
+import dev.faultyfunctions.soulgraves.managers.ConfigManager
+import dev.faultyfunctions.soulgraves.managers.MessageManager
+import dev.faultyfunctions.soulgraves.soulChunksKey
+import dev.faultyfunctions.soulgraves.soulKey
+import dev.faultyfunctions.soulgraves.utils.SoulState
 import com.jeff_media.morepersistentdatatypes.DataType
 import org.bukkit.Bukkit
 import org.bukkit.Particle
@@ -21,14 +21,17 @@ class SoulPickupTask : BukkitRunnable() {
 		while (soulIterator.hasNext()) {
 			val soul = soulIterator.next()
 
-			if (!soul.location.isChunkLoaded || soul.state == SoulState.EXPLODING) { continue }
+			if (!soul.location.world?.isChunkLoaded(soul.location.chunk)!! || soul.state == SoulState.EXPLODING) { continue }
 
-			for (player in soul.location.getNearbyPlayers(0.5)) {
+			val marker: Marker = Bukkit.getEntity(soul.markerUUID) as Marker
+
+			for (entity in marker.getNearbyEntities(0.5, 0.5, 0.5)) {
+				if (entity !is Player) { continue }
+
+				val player: Player = entity
 				if (!player.isDead) {
 					// CHECK IF PLAYER NEEDS TO BE OWNER
 					if (ConfigManager.ownerLocked && (player.uniqueId != soul.ownerUUID)) { continue }
-
-					val soulEntity: Marker = soul.location.world.getEntity(soul.entityUUID) as Marker
 
 					// HANDLE INVENTORY
 					val missedItems: MutableList<ItemStack> = mutableListOf()
@@ -43,11 +46,11 @@ class SoulPickupTask : BukkitRunnable() {
 					}
 					val missHashMap = player.inventory.addItem(*missedItems.toTypedArray())
 					missHashMap.forEach { (_, item) ->
-						soul.location.world.dropItem(soul.location, item)
+						soul.location.world!!.dropItem(soul.location, item)
 					}
 
 					// HANDLE XP
-					val owner: Player? = Bukkit.getPlayer(soul.ownerUUID) // Not needed?
+					val owner: Player? = Bukkit.getPlayer(soul.ownerUUID)
 					val xpMultiplier = if (player.uniqueId == owner?.uniqueId) ConfigManager.xpPercentageOwner else ConfigManager.xpPercentageOthers
 					player.giveExp((soul.xp * xpMultiplier).toInt())
 
@@ -61,32 +64,32 @@ class SoulPickupTask : BukkitRunnable() {
 					player.world.spawnParticle(Particle.FIREWORK, soul.location, 50, 1.0, 1.0, 1.0, 0.1)
 
 					// SEND MESSAGE TO PLAYER
-					player.sendMessage(MessageManager.soulCollectComponent)
+					SoulGraves.plugin.adventure().player(player).sendMessage(MessageManager.soulCollectComponent)
 
 					// SEND MESSAGE TO OWNER IF NEEDED
-					if (player.uniqueId != soul.ownerUUID) {
-						owner?.sendMessage(MessageManager.soulCollectOtherComponent)
-						owner?.playSound(owner.location, Sound.BLOCK_BEACON_DEACTIVATE, 1.0f, 0.5f)
+					if (player.uniqueId != soul.ownerUUID && owner != null) {
+						SoulGraves.plugin.adventure().player(owner.uniqueId).sendMessage(MessageManager.soulCollectOtherComponent)
+						owner.playSound(owner.location, Sound.BLOCK_BEACON_DEACTIVATE, 1.0f, 0.5f)
 					}
 
-					// REMOVE CHUNK FOR LOAD LIST IF POSSIBLE
+					// REMOVE CHUNK FROM LOAD LIST IF POSSIBLE
 					var removeChunk = true
-					for (entity in soul.location.chunk.entities) {
-						if (entity.persistentDataContainer.has(soulKey) && soul.entityUUID != entity.uniqueId) {
+					for (entityInChunk in soul.location.chunk.entities) {
+						if (entityInChunk.persistentDataContainer.has(soulKey) && soul.markerUUID != entityInChunk.uniqueId) {
 							removeChunk = false
 							break
 						}
 					}
 					if (removeChunk) {
-						val chunkList: MutableList<Long>? = soul.location.world.persistentDataContainer.get(soulChunksKey, DataType.asList(DataType.LONG))
+						val chunkList: MutableList<Long>? = soul.location.world?.persistentDataContainer?.get(soulChunksKey, DataType.asList(DataType.LONG))
 						if (chunkList != null) {
-							chunkList.remove(soul.location.chunk.chunkKey)
-							soul.location.world.persistentDataContainer.set(soulChunksKey, DataType.asList(DataType.LONG), chunkList)
+							chunkList.remove(SoulGraves.compat.getChunkKey(soul.location.chunk))
+							soul.location.world?.persistentDataContainer?.set(soulChunksKey, DataType.asList(DataType.LONG), chunkList)
 						}
 					}
 
 					// REMOVE SOUL
-					soulEntity.remove()
+					marker.remove()
 					soulIterator.remove()
 				}
 			}

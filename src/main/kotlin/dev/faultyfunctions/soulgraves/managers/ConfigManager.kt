@@ -1,6 +1,6 @@
-package com.cobbleton.soulgraves.managers
+package dev.faultyfunctions.soulgraves.managers
 
-import com.cobbleton.soulgraves.SoulGraves
+import dev.faultyfunctions.soulgraves.SoulGraves
 import org.bukkit.configuration.file.YamlConfiguration
 import java.io.File
 import kotlin.properties.Delegates
