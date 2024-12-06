@@ -9,6 +9,7 @@ import dev.faultyfunctions.soulgraves.soulKey
 import dev.faultyfunctions.soulgraves.utils.SoulState
 import com.jeff_media.morepersistentdatatypes.DataType
 import org.bukkit.Bukkit
+import org.bukkit.GameMode
 import org.bukkit.Particle
 import org.bukkit.Sound
 import org.bukkit.entity.Marker
@@ -29,7 +30,7 @@ class SoulPickupTask : BukkitRunnable() {
 				if (entity !is Player) { continue }
 
 				val player: Player = entity
-				if (!player.isDead) {
+				if (!player.isDead && player.gameMode != GameMode.SPECTATOR) {
 					// CHECK IF PLAYER NEEDS TO BE OWNER
 					if (ConfigManager.ownerLocked && (player.uniqueId != soul.ownerUUID)) { continue }
 
