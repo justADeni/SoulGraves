@@ -1,6 +1,6 @@
 
 # 🪦Soul Graves🪦
-[![Static Badge](https://img.shields.io/badge/release-1.1.1-bisque)]()
+[![Static Badge](https://img.shields.io/badge/release-1.2.0-bisque)]()
 [![Static Badge](https://img.shields.io/badge/license-MIT-plum)](https://github.com/FaultyFunctions/SoulGraves/blob/main/LICENSE.md)
 [![Static Badge](https://img.shields.io/badge/paper-1.20.6%20--%201.21.x-skyblue)](https://papermc.org)
 [![Static Badge](https://img.shields.io/badge/purpur-1.20.6%20--%201.21.x-e533ff)](https://purpurmc.org)
@@ -24,6 +24,7 @@ A unique graves plugin where players collect their souls to retrieve their belon
 - Option to make it so souls destroy items or XP when they burst
 - Customizable XP return percentages
 - Customizable messages
+- Customizable sounds
 - Minimessage support
 
 ## GIFs
@@ -47,11 +48,17 @@ time-stable: 240
 # The total time the soul is available to collect is time-stable + time-unstable
 time-unstable: 60
 
+# Whether to freeze the timer when the owner of the soul is offline
+offline-owner-timer-freeze: false
+
 # Whether to notify nearby players when a soul bursts
 notify-nearby-players: true
 
 # The radius in blocks to alert nearby players when a soul bursts
 notify-radius: 128
+
+# Whether to notify the owner of a soul when it is collected by another player
+notify-owner-pickup: true
 
 # The percentage of the soul's XP to give to the owner of the soul when it is collected by the owner
 xp-percentage-owner: 0.5
@@ -70,6 +77,51 @@ souls-drop-items: true
 
 # Whether souls will drop XP when they burst
 souls-drop-xp: true
+
+# What sounds to play when a soul is collected
+# The format is 'soundEvent, volume, pitch'
+# The soundKey can be found at https://minecraft.wiki/w/Sounds.json#Java_Edition_values under the 'Sound Event' column
+pickup-sound:
+  enabled: true
+  sounds:
+    - 'minecraft:block.amethyst_block.break, 1.0, 0.5'
+    - 'minecraft:entity.player.levelup, 1.0, 2.0'
+    - 'minecraft:block.amethyst_block.resonate, 1.0, 0.5'
+
+# What sounds to play when a soul bursts
+# The format is 'soundEvent, volume, pitch'
+# The soundKey can be found at https://minecraft.wiki/w/Sounds.json#Java_Edition_values under the 'Sound Event' column
+burst-sound:
+  enabled: true
+  sounds:
+    - 'minecraft:block.glass.break, 3.0, 1.0'
+    - 'minecraft:entity.vex.death, 3.0, 0.5'
+    - 'minecraft:entity.allay.death, 3.0, 0.5'
+    - 'minecraft:entity.warden.sonic_boom, 3.0, 0.5'
+
+# What sounds to play to notify nearby players when a soul bursts
+# The format is 'soundEvent, volume, pitch'
+# The soundKey can be found at https://minecraft.wiki/w/Sounds.json#Java_Edition_values under the 'Sound Event' column
+notify-nearby-sound:
+  enabled: true
+  sounds:
+    - 'minecraft:block.amethyst_block.resonate, 1.0, 1.0'
+
+# What sounds to play to the owner when their soul bursts
+# The format is 'soundEvent, volume, pitch'
+# The soundKey can be found at https://minecraft.wiki/w/Sounds.json#Java_Edition_values under the 'Sound Event' column
+notify-owner-burst-sound:
+  enabled: true
+  sounds:
+    - 'minecraft:block.amethyst_block.break, 1.0, 0.5'
+
+# What sounds to play to the owner when their soul is collected by another player
+# The format is 'soundEvent, volume, pitch'
+# The soundKey can be found at https://minecraft.wiki/w/Sounds.json#Java_Edition_values under the 'Sound Event' column
+notify-owner-pickup-sound:
+  enabled: true
+  sounds:
+    - 'minecraft:block.beacon.deactivate, 1.0, 0.5'
 
 # What worlds to disable spawning a soul in
 # If none, leave a blank array
