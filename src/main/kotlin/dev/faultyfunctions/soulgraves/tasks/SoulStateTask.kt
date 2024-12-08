@@ -12,6 +12,8 @@ import org.bukkit.scheduler.BukkitRunnable
 class SoulStateTask : BukkitRunnable() {
 	override fun run() {
 		for (soul in SoulGraves.soulList) {
+			if (ConfigManager.offlineOwnerTimerFreeze && Bukkit.getPlayer(soul.ownerUUID) == null) { continue }
+
 			// SET STATES
 			if (soul.timeLeft > ConfigManager.timeUnstable) {
 				soul.state = SoulState.NORMAL

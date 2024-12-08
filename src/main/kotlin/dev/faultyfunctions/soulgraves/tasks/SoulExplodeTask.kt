@@ -9,7 +9,6 @@ import dev.faultyfunctions.soulgraves.utils.SoulState
 import com.jeff_media.morepersistentdatatypes.DataType
 import org.bukkit.Bukkit
 import org.bukkit.Particle
-import org.bukkit.Sound
 import org.bukkit.entity.ExperienceOrb
 import org.bukkit.entity.Marker
 import org.bukkit.entity.Player
@@ -40,11 +39,17 @@ class SoulExplodeTask : BukkitRunnable() {
 				val owner: Player? = Bukkit.getPlayer(soul.ownerUUID)
 
 				// PLAY SOUNDS
-				soul.location.world?.playSound(soul.location, Sound.BLOCK_GLASS_BREAK, 3.0f, 1.0f)
-				soul.location.world?.playSound(soul.location, Sound.ENTITY_VEX_DEATH, 3.0f, 0.5f)
-				soul.location.world?.playSound(soul.location, Sound.ENTITY_ALLAY_DEATH, 3.0f, 0.5f)
-				soul.location.world?.playSound(soul.location, Sound.ENTITY_WARDEN_SONIC_BOOM, 3.0f, 0.5f)
-				owner?.playSound(owner.location, Sound.BLOCK_AMETHYST_BLOCK_BREAK, 1.0f, 0.5f)
+				if (ConfigManager.burstSound.enabled) {
+					ConfigManager.burstSound.sounds.forEachIndexed { index, soundKey ->
+						soul.location.world?.playSound(soul.location, soundKey, ConfigManager.burstSound.volumes[index], ConfigManager.burstSound.pitches[index])
+					}
+				}
+
+				if (ConfigManager.notifyOwnerBurstSound.enabled) {
+					ConfigManager.notifyOwnerBurstSound.sounds.forEachIndexed { index, soundKey ->
+						owner?.playSound(owner.location, soundKey, ConfigManager.notifyOwnerBurstSound.volumes[index], ConfigManager.notifyOwnerBurstSound.pitches[index])
+					}
+				}
 
 				// SPAWN PARTICLES
 				soul.location.world?.spawnParticle(Particle.POOF, soul.location.clone().add(0.0, 1.0, 0.0), 50, 0.0, 0.0, 0.0, 0.1, null, true)
@@ -64,7 +69,11 @@ class SoulExplodeTask : BukkitRunnable() {
 					for (player in marker.getNearbyEntities(radii, radii, radii)) {
 						if (player.uniqueId != soul.ownerUUID) {
 							SoulGraves.plugin.adventure().player(player.uniqueId).sendMessage(MessageManager.soulBurstNearbyComponent)
-							Bukkit.getPlayer(player.uniqueId)?.playSound(player.location, Sound.BLOCK_AMETHYST_BLOCK_RESONATE, 1.0f, 1.0f)
+							if (ConfigManager.notifyNearbySound.enabled) {
+								ConfigManager.notifyNearbySound.sounds.forEachIndexed { index, soundKey ->
+									Bukkit.getPlayer(player.uniqueId)?.playSound(player.location, soundKey, ConfigManager.notifyNearbySound.volumes[index], ConfigManager.notifyNearbySound.pitches[index])
+								}
+							}
 						}
 					}
 				}

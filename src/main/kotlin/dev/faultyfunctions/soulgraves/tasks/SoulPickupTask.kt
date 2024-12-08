@@ -11,7 +11,6 @@ import com.jeff_media.morepersistentdatatypes.DataType
 import org.bukkit.Bukkit
 import org.bukkit.GameMode
 import org.bukkit.Particle
-import org.bukkit.Sound
 import org.bukkit.entity.Marker
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
@@ -56,9 +55,11 @@ class SoulPickupTask : BukkitRunnable() {
 					player.giveExp((soul.xp * xpMultiplier).toInt())
 
 					// PLAY SOUNDS
-					player.playSound(player.location, Sound.BLOCK_AMETHYST_BLOCK_BREAK, 1.0f, 0.5f)
-					player.playSound(player.location, Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 2.0f)
-					player.playSound(player.location, Sound.BLOCK_AMETHYST_BLOCK_RESONATE, 1.0f, 0.5f)
+					if (ConfigManager.pickupSound.enabled) {
+						ConfigManager.pickupSound.sounds.forEachIndexed { index, soundKey ->
+							player.playSound(player.location, soundKey, ConfigManager.pickupSound.volumes[index], ConfigManager.pickupSound.pitches[index])
+						}
+					}
 
 					// SPAWN PARTICLES
 					player.world.spawnParticle(Particle.END_ROD, soul.location, 200, 1.0, 1.0, 1.0, 0.5)
@@ -69,8 +70,15 @@ class SoulPickupTask : BukkitRunnable() {
 
 					// SEND MESSAGE TO OWNER IF NEEDED
 					if (player.uniqueId != soul.ownerUUID && owner != null) {
-						SoulGraves.plugin.adventure().player(owner.uniqueId).sendMessage(MessageManager.soulCollectOtherComponent)
-						owner.playSound(owner.location, Sound.BLOCK_BEACON_DEACTIVATE, 1.0f, 0.5f)
+						if (ConfigManager.notifyOwnerPickup) {
+							SoulGraves.plugin.adventure().player(owner.uniqueId).sendMessage(MessageManager.soulCollectOtherComponent)
+
+							if (ConfigManager.notifyOwnerPickupSound.enabled) {
+								ConfigManager.notifyOwnerPickupSound.sounds.forEachIndexed { index, soundKey ->
+									owner.playSound(owner.location, soundKey, ConfigManager.notifyOwnerPickupSound.volumes[index], ConfigManager.notifyOwnerPickupSound.pitches[index])
+								}
+							}
+						}
 					}
 
 					// REMOVE CHUNK FROM LOAD LIST IF POSSIBLE
