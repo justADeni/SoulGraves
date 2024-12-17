@@ -48,8 +48,17 @@ class PlayerDeathListener() : Listener {
 
 		// CREATE INVENTORY
 		val inventory: MutableList<ItemStack?> = mutableListOf()
-		player.inventory.forEach { item ->
+		val soulboundInventory: MutableList<ItemStack?> = mutableListOf()
+		player.inventory.forEach items@ { item ->
 			if (item != null) {
+				// SKIP IF ITEM IS SOULBOUND
+				item.enchantments.forEach { enchantment ->
+					if (enchantment.key.key.toString() == "vane_enchantments:soulbound") {
+						soulboundInventory.add(item)
+						inventory.add(null)
+						return@items
+					}
+				}
 				inventory.add(item)
 			} else {
 				inventory.add(null)
@@ -71,6 +80,7 @@ class PlayerDeathListener() : Listener {
 
 		// CANCEL DROPS
 		e.drops.clear()
+		e.drops.addAll(soulboundInventory)
 		e.droppedExp = 0
 	}
 
