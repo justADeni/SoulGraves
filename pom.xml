@@ -6,7 +6,7 @@
 
 	<groupId>dev.faultyfunctions</groupId>
 	<artifactId>soulgraves</artifactId>
-	<version>1.2.0</version>
+	<version>1.2.1</version>
 	<packaging>jar</packaging>
 
 	<name>soulgraves</name>
@@ -51,6 +51,16 @@
 					</execution>
 				</executions>
 				<configuration>
+					<filters>
+						<filter>
+							<artifact>*:*</artifact>
+							<excludes>
+								<exclude>META-INF/*</exclude>
+								<exclude>**/annotations/**</exclude>
+								<exclude>**/module-info.class</exclude>
+							</excludes>
+						</filter>
+					</filters>
 					<relocations>
 						<relocation>
 							<pattern>com.jeff_media.morepersistentdatatypes</pattern>

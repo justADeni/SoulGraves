@@ -1,7 +1,10 @@
 package dev.faultyfunctions.soulgraves.utils
 
+import com.google.common.math.IntMath.pow
 import org.bukkit.Chunk
 import org.bukkit.World
+import kotlin.math.floor
+import kotlin.math.sqrt
 
 object SpigotCompatUtils {
 	fun getChunkKey(chunk: Chunk): Long {
@@ -13,5 +16,13 @@ object SpigotCompatUtils {
 		val z: Int = (chunkKey shr 32).toInt()
 
 		return world.getChunkAt(x, z)
+	}
+
+	fun calculateTotalExperiencePoints(level: Int): Int {
+		return when {
+			(level <= 16) -> (level * level) + (6 * level)
+			(level <= 31) -> (2.5 * level * level - 40.5 * level + 360).toInt()
+			else -> (4.5 * level * level - 162.5 * level + 2220).toInt()
+		}
 	}
 }

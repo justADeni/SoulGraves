@@ -4,6 +4,7 @@ import dev.faultyfunctions.soulgraves.managers.ConfigManager
 import dev.faultyfunctions.soulgraves.utils.Soul
 import com.jeff_media.morepersistentdatatypes.DataType
 import dev.faultyfunctions.soulgraves.*
+import dev.faultyfunctions.soulgraves.utils.SpigotCompatUtils
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.block.Block
@@ -67,7 +68,7 @@ class PlayerDeathListener() : Listener {
 		marker.persistentDataContainer.set(soulInvKey, DataType.ITEM_STACK_ARRAY, inventory.toTypedArray())
 
 		// MANAGE XP
-		val xp: Int = player.totalExperience
+		val xp: Int = SpigotCompatUtils.calculateTotalExperiencePoints(player.level)
 		marker.persistentDataContainer.set(soulXpKey, DataType.INTEGER, xp)
 
 		// MANAGE TIME LEFT
