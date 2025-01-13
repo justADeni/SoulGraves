@@ -7,6 +7,7 @@ import dev.faultyfunctions.soulgraves.soulChunksKey
 import dev.faultyfunctions.soulgraves.soulKey
 import dev.faultyfunctions.soulgraves.utils.SoulState
 import com.jeff_media.morepersistentdatatypes.DataType
+import dev.faultyfunctions.soulgraves.api.event.SoulExplodeEvent
 import org.bukkit.Bukkit
 import org.bukkit.Particle
 import org.bukkit.entity.ExperienceOrb
@@ -21,6 +22,11 @@ class SoulExplodeTask : BukkitRunnable() {
 			val soul = soulIterator.next()
 			if (soul.state == SoulState.EXPLODING) {
 				soul.location.world?.loadChunk(soul.location.chunk)
+
+				// CALL EVENT
+				val soulSpawnEvent = SoulExplodeEvent(soul)
+				Bukkit.getPluginManager().callEvent(soulSpawnEvent)
+				if (soulSpawnEvent.isCancelled) { continue }
 
 				// DROP ITEMS
 				if (ConfigManager.soulsDropItems) {

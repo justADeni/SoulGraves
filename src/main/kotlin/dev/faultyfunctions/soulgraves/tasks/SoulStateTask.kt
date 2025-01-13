@@ -14,13 +14,14 @@ class SoulStateTask : BukkitRunnable() {
 		for (soul in SoulGraves.soulList) {
 			if (ConfigManager.offlineOwnerTimerFreeze && Bukkit.getPlayer(soul.ownerUUID) == null) { continue }
 
-			// SET STATES
-			if (soul.timeLeft > ConfigManager.timeUnstable) {
-				soul.state = SoulState.NORMAL
-			} else if (soul.timeLeft <= ConfigManager.timeUnstable && soul.timeLeft > 0) {
-				soul.state = SoulState.PANIC
-			} else {
-				soul.state = SoulState.EXPLODING
+			// SET STATE , IF STATE IS EXPLODING MEAN MAYBE SOMEONE MAKE SOUL INSTANTLY EXPLOSION BY API
+			if (soul.state != SoulState.EXPLODING) {
+				if (soul.timeLeft > ConfigManager.timeUnstable)
+					soul.state = SoulState.NORMAL
+				else if (soul.timeLeft <= ConfigManager.timeUnstable && soul.timeLeft > 0)
+					soul.state = SoulState.PANIC
+				else
+					soul.state = SoulState.EXPLODING
 			}
 
 			soul.timeLeft -= 1

@@ -4,7 +4,11 @@ import dev.faultyfunctions.soulgraves.managers.ConfigManager
 import dev.faultyfunctions.soulgraves.utils.Soul
 import com.jeff_media.morepersistentdatatypes.DataType
 import dev.faultyfunctions.soulgraves.*
+import dev.faultyfunctions.soulgraves.api.event.SoulPreSpawnEvent
+import dev.faultyfunctions.soulgraves.api.event.SoulSpawnEvent
 import dev.faultyfunctions.soulgraves.utils.SpigotCompatUtils
+import org.bukkit.Bukkit
+import org.bukkit.GameRule
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.block.Block
@@ -24,9 +28,18 @@ class PlayerDeathListener() : Listener {
 		val player: Player = e.entity
 		
 		// CHECK TO MAKE SURE WE ARE IN AN ENABLED WORLD
-		if (ConfigManager.disabledWorlds.contains(player.world.name)) {
-			return
-		}
+		if (ConfigManager.disabledWorlds.contains(player.world.name)) return
+
+		// CHECK PLAYER IS NOT KEEP INVENTORY
+		if (e.keepInventory) return
+
+		// CHECK WORLD GAME RULE
+		if (player.world.getGameRuleValue(GameRule.KEEP_INVENTORY) == true) return
+
+		// CALL EVENT
+		val soulPreSpawnEvent = SoulPreSpawnEvent(player, e)
+		Bukkit.getPluginManager().callEvent(soulPreSpawnEvent)
+		if (soulPreSpawnEvent.isCancelled) return
 
 		// SPAWN & DEFINE ENTITY
 		val marker: Marker = player.world.spawnEntity(findSafeLocation(player.location), EntityType.MARKER) as Marker
@@ -83,6 +96,10 @@ class PlayerDeathListener() : Listener {
 		e.drops.clear()
 		e.drops.addAll(soulboundInventory)
 		e.droppedExp = 0
+
+		// CALL EVENT
+		val soulSpawnEvent = SoulSpawnEvent(player, soul)
+		Bukkit.getPluginManager().callEvent(soulSpawnEvent)
 	}
 
 	private fun findSafeLocation(locationToCheck: Location): Location {
