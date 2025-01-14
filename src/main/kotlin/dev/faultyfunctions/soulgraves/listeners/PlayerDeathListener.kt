@@ -7,10 +7,7 @@ import dev.faultyfunctions.soulgraves.*
 import dev.faultyfunctions.soulgraves.api.event.SoulPreSpawnEvent
 import dev.faultyfunctions.soulgraves.api.event.SoulSpawnEvent
 import dev.faultyfunctions.soulgraves.utils.SpigotCompatUtils
-import org.bukkit.Bukkit
-import org.bukkit.GameRule
-import org.bukkit.Location
-import org.bukkit.Material
+import org.bukkit.*
 import org.bukkit.block.Block
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.Marker
@@ -65,21 +62,8 @@ class PlayerDeathListener() : Listener {
 
 		// CREATE INVENTORY
 		val inventory: MutableList<ItemStack?> = mutableListOf()
-		val soulboundInventory: MutableList<ItemStack?> = mutableListOf()
 		e.drops.forEach items@ { item ->
-			if (item != null) {
-				// SKIP IF ITEM IS SOULBOUND
-				item.enchantments.forEach { enchantment ->
-					if (enchantment.key.key.toString() == "vane_enchantments:soulbound") {
-						soulboundInventory.add(item)
-						inventory.add(null)
-						return@items
-					}
-				}
-				inventory.add(item)
-			} else {
-				inventory.add(null)
-			}
+			if (item != null) inventory.add(item)
 		}
 		marker.persistentDataContainer.set(soulInvKey, DataType.ITEM_STACK_ARRAY, inventory.toTypedArray())
 
@@ -97,7 +81,6 @@ class PlayerDeathListener() : Listener {
 
 		// CANCEL DROPS
 		e.drops.clear()
-		e.drops.addAll(soulboundInventory)
 		e.droppedExp = 0
 
 		// CALL EVENT
@@ -109,7 +92,20 @@ class PlayerDeathListener() : Listener {
 		val safeLocation: Location = locationToCheck
 		var block: Block = safeLocation.block
 
+		// CHECK IF ABOVE THE MAX HEIGHT!!!
+		val environment = locationToCheck.world!!.getEnvironment()
 		while (block.type.isSolid || block.isLiquid || block.type == Material.VOID_AIR) {
+			// NETHER
+			if (environment == World.Environment.NETHER) {
+				if (locationToCheck.y < 128 && safeLocation.y >= 127) {
+					return safeLocation
+				} else if (locationToCheck.y >= 128 && safeLocation.y >= 254) {
+					return safeLocation
+				}
+			}
+
+			// NORMAL
+			if (safeLocation.y >= 319) return safeLocation
 			safeLocation.add(0.0, 1.0, 0.0)
 			block = safeLocation.block
 		}
