@@ -36,6 +36,9 @@ class PlayerDeathListener() : Listener {
 		// CHECK WORLD GAME RULE
 		if (player.world.getGameRuleValue(GameRule.KEEP_INVENTORY) == true) return
 
+		// CHECK PLAYER HAVE ITEMS OR XP
+		if (player.level == 0 && e.drops.isEmpty()) return
+
 		// CALL EVENT
 		val soulPreSpawnEvent = SoulPreSpawnEvent(player, e)
 		Bukkit.getPluginManager().callEvent(soulPreSpawnEvent)
@@ -63,7 +66,7 @@ class PlayerDeathListener() : Listener {
 		// CREATE INVENTORY
 		val inventory: MutableList<ItemStack?> = mutableListOf()
 		val soulboundInventory: MutableList<ItemStack?> = mutableListOf()
-		player.inventory.forEach items@ { item ->
+		e.drops.forEach items@ { item ->
 			if (item != null) {
 				// SKIP IF ITEM IS SOULBOUND
 				item.enchantments.forEach { enchantment ->
