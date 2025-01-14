@@ -72,12 +72,12 @@ class SoulPickupTask : BukkitRunnable() {
 					player.world.spawnParticle(Particle.FIREWORK, soul.location, 50, 1.0, 1.0, 1.0, 0.1)
 
 					// SEND MESSAGE TO PLAYER
-					SoulGraves.plugin.adventure().player(player).sendMessage(MessageManager.soulCollectComponent)
+					if (MessageManager.soulCollectComponent != null) SoulGraves.plugin.adventure().player(player).sendMessage(MessageManager.soulCollectComponent!!)
 
 					// SEND MESSAGE TO OWNER IF NEEDED
 					if (player.uniqueId != soul.ownerUUID && owner != null) {
 						if (ConfigManager.notifyOwnerPickup) {
-							SoulGraves.plugin.adventure().player(owner.uniqueId).sendMessage(MessageManager.soulCollectOtherComponent)
+							if (MessageManager.soulCollectOtherComponent != null) SoulGraves.plugin.adventure().player(owner.uniqueId).sendMessage(MessageManager.soulCollectOtherComponent!!)
 
 							if (ConfigManager.notifyOwnerPickupSound.enabled) {
 								ConfigManager.notifyOwnerPickupSound.sounds.forEachIndexed { index, soundKey ->

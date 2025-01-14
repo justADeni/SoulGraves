@@ -64,8 +64,12 @@ class SoulExplodeTask : BukkitRunnable() {
 
 				// SEND PLAYER MESSAGE
 				if (owner != null) {
-					SoulGraves.plugin.adventure().player(owner).sendMessage(MessageManager.soulBurstComponent)
-					SoulGraves.plugin.adventure().player(owner).sendMessage(if (ConfigManager.soulsDropItems) { MessageManager.soulBurstDropItemsComponent } else { MessageManager.soulBurstLoseItemsComponent })
+					if (MessageManager.soulBurstComponent != null)
+						SoulGraves.plugin.adventure().player(owner).sendMessage(MessageManager.soulBurstComponent!!)
+					if (ConfigManager.soulsDropItems && MessageManager.soulBurstDropItemsComponent != null)
+						SoulGraves.plugin.adventure().player(owner).sendMessage(MessageManager.soulBurstDropItemsComponent!!)
+					else if (MessageManager.soulBurstLoseItemsComponent != null)
+						SoulGraves.plugin.adventure().player(owner).sendMessage(MessageManager.soulBurstLoseItemsComponent!!)
 				}
 
 				// SEND NEARBY PLAYERS A MESSAGE
@@ -74,7 +78,7 @@ class SoulExplodeTask : BukkitRunnable() {
 					val radii: Double = ConfigManager.notifyRadius.toDouble()
 					for (player in marker.getNearbyEntities(radii, radii, radii)) {
 						if (player.uniqueId != soul.ownerUUID) {
-							SoulGraves.plugin.adventure().player(player.uniqueId).sendMessage(MessageManager.soulBurstNearbyComponent)
+							if (MessageManager.soulBurstNearbyComponent != null) SoulGraves.plugin.adventure().player(player.uniqueId).sendMessage(MessageManager.soulBurstNearbyComponent!!)
 							if (ConfigManager.notifyNearbySound.enabled) {
 								ConfigManager.notifyNearbySound.sounds.forEachIndexed { index, soundKey ->
 									Bukkit.getPlayer(player.uniqueId)?.playSound(player.location, soundKey, ConfigManager.notifyNearbySound.volumes[index], ConfigManager.notifyNearbySound.pitches[index])

@@ -11,12 +11,12 @@ object MessageManager {
 	private val config: YamlConfiguration = YamlConfiguration()
 
 	// MESSAGE VALUES
-	lateinit var soulBurstComponent: Component
-	lateinit var soulBurstDropItemsComponent: Component
-	lateinit var soulBurstLoseItemsComponent: Component
-	lateinit var soulBurstNearbyComponent: Component
-	lateinit var soulCollectComponent: Component
-	lateinit var soulCollectOtherComponent: Component
+	var soulBurstComponent: Component? = null
+	var soulBurstDropItemsComponent: Component? = null
+	var soulBurstLoseItemsComponent: Component? = null
+	var soulBurstNearbyComponent: Component? = null
+	var soulCollectComponent: Component? = null
+	var soulCollectOtherComponent: Component? = null
 
 	fun loadMessages() {
 		// GRAB FILE
@@ -40,11 +40,17 @@ object MessageManager {
 		val miniMessage = MiniMessage.miniMessage()
 
 		// LOAD VALUES
-		soulBurstComponent = miniMessage.deserialize(config.getString("soul-burst").toString())
-		soulBurstDropItemsComponent = miniMessage.deserialize(config.getString("soul-burst-drop-items").toString())
-		soulBurstLoseItemsComponent = miniMessage.deserialize(config.getString("soul-burst-lose-items").toString())
-		soulBurstNearbyComponent = miniMessage.deserialize(config.getString("soul-burst-nearby").toString())
-		soulCollectComponent = miniMessage.deserialize(config.getString("soul-collect").toString())
-		soulCollectOtherComponent = miniMessage.deserialize(config.getString("soul-collect-other").toString())
+		if (config.getString("soul-burst") != "")
+			soulBurstComponent = miniMessage.deserialize(config.getString("soul-burst").toString())
+		if (config.getString("soul-burst-drop-items") != "")
+			soulBurstDropItemsComponent = miniMessage.deserialize(config.getString("soul-burst-drop-items").toString())
+		if (config.getString("soul-burst-lose-items") != "")
+			soulBurstLoseItemsComponent = miniMessage.deserialize(config.getString("soul-burst-lose-items").toString())
+		if (config.getString("soul-burst-nearby") != "")
+			soulBurstNearbyComponent = miniMessage.deserialize(config.getString("soul-burst-nearby").toString())
+		if (config.getString("soul-collect") != "")
+			soulCollectComponent = miniMessage.deserialize(config.getString("soul-collect").toString())
+		if (config.getString("soul-collect-other") != "")
+			soulCollectOtherComponent = miniMessage.deserialize(config.getString("soul-collect-other").toString())
 	}
 }

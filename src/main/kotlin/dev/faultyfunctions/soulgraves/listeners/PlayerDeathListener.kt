@@ -28,10 +28,7 @@ class PlayerDeathListener() : Listener {
 		if (ConfigManager.disabledWorlds.contains(player.world.name)) return
 
 		// CHECK PLAYER IS NOT KEEP INVENTORY
-		if (e.keepInventory) return
-
-		// CHECK WORLD GAME RULE
-		if (player.world.getGameRuleValue(GameRule.KEEP_INVENTORY) == true) return
+		if (e.keepInventory || player.world.getGameRuleValue(GameRule.KEEP_INVENTORY) == true) return
 
 		// CHECK PLAYER HAVE ITEMS OR XP
 		if (player.level == 0 && e.drops.isEmpty()) return
