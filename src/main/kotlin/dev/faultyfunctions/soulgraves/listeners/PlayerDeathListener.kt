@@ -23,7 +23,10 @@ class PlayerDeathListener() : Listener {
 	fun onPlayerDeathEvent(e: PlayerDeathEvent) {
 		// READABILITY VARIABLES
 		val player: Player = e.entity
-		
+
+		// CHECK PLAYER HAS PERMISSION
+		if (ConfigManager.permissionRequired && !player.hasPermission("soulgraves.spawn")) return
+
 		// CHECK TO MAKE SURE WE ARE IN AN ENABLED WORLD
 		if (ConfigManager.disabledWorlds.contains(player.world.name)) return
 
