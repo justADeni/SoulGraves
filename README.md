@@ -43,6 +43,12 @@ A destabilizing soul that bursts and drops its contents:
 <summary>config.yml</summary>
 
 ```yml
+# DO NOT EDIT file-version DIRECTLY
+file-version: 1
+
+# If set true, players will require "soulgraves.spawn" permission to spawn a soul upon death
+permission-required: false
+
 # Time in seconds for how long a soul remains in its stable state before becoming unstable
 time-stable: 240
 
@@ -140,6 +146,9 @@ disabled-worlds: []
 <summary>messages.yml</summary>
 
 ```yml
+# DO NOT EDIT file-version DIRECTLY
+file-version: 1
+
 # Message to send to the owner when their soul bursts
 soul-burst: "<dark_aqua>☠ Your soul has burst!"
 # Message to send to the owner when their soul bursts and souls-drop-items is true
