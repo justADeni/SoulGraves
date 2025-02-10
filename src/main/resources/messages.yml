@@ -1,3 +1,6 @@
+# DO NOT EDIT file-version DIRECTLY
+file-version: 1
+
 # Message to send to the owner when their soul bursts
 soul-burst: "<dark_aqua>☠ Your soul has burst!"
 # Message to send to the owner when their soul bursts and souls-drop-items is true
