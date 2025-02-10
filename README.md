@@ -12,6 +12,8 @@
 
 A unique graves plugin where players collect their souls to retrieve their belongings when they die. A soul will spawn at your death location that provides audio and visual feedback to help you locate it. Once you find it you can retrieve your items by walking into your soul. Be careful though, wait too long and your soul will burst dropping all your items!
 
+Special thanks to [Catnies](https://github.com/killertuling) for their contributions to the project!
+
 ## Features
 - Additional Minecraft death mechanics
 - Fun particle effects
@@ -21,11 +23,11 @@ A unique graves plugin where players collect their souls to retrieve their belon
 - Soul Graves will avoid spawning a soul in liquids, the void, and non-solid blocks
 - Players can have multiple souls possible at the same time
 - Option to only let owners retrieve their souls
-- Option to make it so souls destroy items or XP when they burst
+- Option to toggle if souls drop items or xp when they burst
 - Customizable XP return percentages
-- Customizable messages
+- Customizable messages with MiniMessage support
 - Customizable sounds
-- Minimessage support
+- Custom Event API
 
 ## GIFs
 A stable soul waiting to be collected:
@@ -159,5 +161,6 @@ soul-collect-other: "<light_purple>⚑ Someone else has collected your soul!"
 
 ## Acknowledgements
 - [Vanilla Refresh](https://modrinth.com/datapack/vanilla-refresh) - Based on their idea of "Soul Links"
-- [B's Ghost Graves](https://modrinth.com/plugin/bs-ghostgrave) - Similar plugin inspired by Hollow Knight. They shared their source so I could learn from it, huge thanks!
+- [B's Ghost Graves](https://modrinth.com/plugin/bs-ghostgrave) - Similar plugin inspired by Hollow Knight. They shared their source, so I could learn from it, huge thanks!
 - [MorePersistentDataTypes](https://github.com/mfnalex/MorePersistentDataTypes) - Great PDC library
+- [BoostedYAML](https://github.com/dejvokep/boosted-yaml) - YAML configuration library
