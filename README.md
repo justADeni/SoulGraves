@@ -165,6 +165,15 @@ soul-collect-other: "<light_purple>⚑ Someone else has collected your soul!"
 
 </details>
 
+<details>
+<summary>permissions</summary>
+
+```yml
+soulgraves.command: Allows for the reload and main command
+soulgraves.spawn: Whether or not a soul grave will spawn for the player
+```
+</details>
+
 ## Roadmap
 * [Make a suggestion!](https://github.com/FaultyFunctions/SoulGraves/issues)
 
