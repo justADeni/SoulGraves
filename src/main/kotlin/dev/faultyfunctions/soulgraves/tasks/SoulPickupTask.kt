@@ -8,6 +8,7 @@ import dev.faultyfunctions.soulgraves.soulChunksKey
 import dev.faultyfunctions.soulgraves.soulKey
 import dev.faultyfunctions.soulgraves.utils.SoulState
 import com.jeff_media.morepersistentdatatypes.DataType
+import dev.faultyfunctions.soulgraves.api.event.SoulPickupEvent
 import org.bukkit.Bukkit
 import org.bukkit.GameMode
 import org.bukkit.Particle
@@ -32,6 +33,11 @@ class SoulPickupTask : BukkitRunnable() {
 				if (!player.isDead && player.gameMode != GameMode.SPECTATOR) {
 					// CHECK IF PLAYER NEEDS TO BE OWNER
 					if (ConfigManager.ownerLocked && (player.uniqueId != soul.ownerUUID)) { continue }
+
+					// CALL EVENT
+					val soulPickupEvent = SoulPickupEvent(player, soul)
+					Bukkit.getPluginManager().callEvent(soulPickupEvent)
+					if (soulPickupEvent.isCancelled) { continue }
 
 					// HANDLE INVENTORY
 					val missedItems: MutableList<ItemStack> = mutableListOf()
@@ -66,12 +72,12 @@ class SoulPickupTask : BukkitRunnable() {
 					player.world.spawnParticle(Particle.FIREWORK, soul.location, 50, 1.0, 1.0, 1.0, 0.1)
 
 					// SEND MESSAGE TO PLAYER
-					SoulGraves.plugin.adventure().player(player).sendMessage(MessageManager.soulCollectComponent)
+					if (MessageManager.soulCollectComponent != null) SoulGraves.plugin.adventure().player(player).sendMessage(MessageManager.soulCollectComponent!!)
 
 					// SEND MESSAGE TO OWNER IF NEEDED
 					if (player.uniqueId != soul.ownerUUID && owner != null) {
 						if (ConfigManager.notifyOwnerPickup) {
-							SoulGraves.plugin.adventure().player(owner.uniqueId).sendMessage(MessageManager.soulCollectOtherComponent)
+							if (MessageManager.soulCollectOtherComponent != null) SoulGraves.plugin.adventure().player(owner.uniqueId).sendMessage(MessageManager.soulCollectOtherComponent!!)
 
 							if (ConfigManager.notifyOwnerPickupSound.enabled) {
 								ConfigManager.notifyOwnerPickupSound.sounds.forEachIndexed { index, soundKey ->

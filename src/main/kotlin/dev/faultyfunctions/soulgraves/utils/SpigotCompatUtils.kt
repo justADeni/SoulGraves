@@ -1,10 +1,7 @@
 package dev.faultyfunctions.soulgraves.utils
 
-import com.google.common.math.IntMath.pow
 import org.bukkit.Chunk
 import org.bukkit.World
-import kotlin.math.floor
-import kotlin.math.sqrt
 
 object SpigotCompatUtils {
 	fun getChunkKey(chunk: Chunk): Long {

@@ -7,6 +7,7 @@ import dev.faultyfunctions.soulgraves.soulChunksKey
 import dev.faultyfunctions.soulgraves.soulKey
 import dev.faultyfunctions.soulgraves.utils.SoulState
 import com.jeff_media.morepersistentdatatypes.DataType
+import dev.faultyfunctions.soulgraves.api.event.SoulExplodeEvent
 import org.bukkit.Bukkit
 import org.bukkit.Particle
 import org.bukkit.entity.ExperienceOrb
@@ -21,6 +22,11 @@ class SoulExplodeTask : BukkitRunnable() {
 			val soul = soulIterator.next()
 			if (soul.state == SoulState.EXPLODING) {
 				soul.location.world?.loadChunk(soul.location.chunk)
+
+				// CALL EVENT
+				val soulSpawnEvent = SoulExplodeEvent(soul)
+				Bukkit.getPluginManager().callEvent(soulSpawnEvent)
+				if (soulSpawnEvent.isCancelled) { continue }
 
 				// DROP ITEMS
 				if (ConfigManager.soulsDropItems) {
@@ -58,8 +64,12 @@ class SoulExplodeTask : BukkitRunnable() {
 
 				// SEND PLAYER MESSAGE
 				if (owner != null) {
-					SoulGraves.plugin.adventure().player(owner).sendMessage(MessageManager.soulBurstComponent)
-					SoulGraves.plugin.adventure().player(owner).sendMessage(if (ConfigManager.soulsDropItems) { MessageManager.soulBurstDropItemsComponent } else { MessageManager.soulBurstLoseItemsComponent })
+					if (MessageManager.soulBurstComponent != null)
+						SoulGraves.plugin.adventure().player(owner).sendMessage(MessageManager.soulBurstComponent!!)
+					if (ConfigManager.soulsDropItems && MessageManager.soulBurstDropItemsComponent != null)
+						SoulGraves.plugin.adventure().player(owner).sendMessage(MessageManager.soulBurstDropItemsComponent!!)
+					else if (MessageManager.soulBurstLoseItemsComponent != null)
+						SoulGraves.plugin.adventure().player(owner).sendMessage(MessageManager.soulBurstLoseItemsComponent!!)
 				}
 
 				// SEND NEARBY PLAYERS A MESSAGE
@@ -68,7 +78,7 @@ class SoulExplodeTask : BukkitRunnable() {
 					val radii: Double = ConfigManager.notifyRadius.toDouble()
 					for (player in marker.getNearbyEntities(radii, radii, radii)) {
 						if (player.uniqueId != soul.ownerUUID) {
-							SoulGraves.plugin.adventure().player(player.uniqueId).sendMessage(MessageManager.soulBurstNearbyComponent)
+							if (MessageManager.soulBurstNearbyComponent != null) SoulGraves.plugin.adventure().player(player.uniqueId).sendMessage(MessageManager.soulBurstNearbyComponent!!)
 							if (ConfigManager.notifyNearbySound.enabled) {
 								ConfigManager.notifyNearbySound.sounds.forEachIndexed { index, soundKey ->
 									Bukkit.getPlayer(player.uniqueId)?.playSound(player.location, soundKey, ConfigManager.notifyNearbySound.volumes[index], ConfigManager.notifyNearbySound.pitches[index])

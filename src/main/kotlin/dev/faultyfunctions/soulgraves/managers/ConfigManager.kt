@@ -17,6 +17,7 @@ object ConfigManager {
 	private val config: YamlConfiguration = YamlConfiguration()
 
 	// CONFIG VALUES
+	var permissionRequired by Delegates.notNull<Boolean>()
 	var timeStable by Delegates.notNull<Int>()
 	var timeUnstable by Delegates.notNull<Int>()
 	var offlineOwnerTimerFreeze by Delegates.notNull<Boolean>()
@@ -56,6 +57,7 @@ object ConfigManager {
 		}
 
 		// LOAD VALUES
+		permissionRequired = config.getBoolean("permission-required")
 		timeStable = config.getInt("time-stable")
 		timeUnstable = config.getInt("time-unstable")
 		offlineOwnerTimerFreeze = config.getBoolean("offline-owner-timer-freeze")

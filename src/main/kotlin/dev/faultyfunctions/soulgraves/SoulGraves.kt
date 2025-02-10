@@ -16,7 +16,6 @@ import org.bukkit.NamespacedKey
 import org.bukkit.entity.Marker
 import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.java.JavaPlugin
-import javax.annotation.Nonnull
 
 val soulChunksKey = NamespacedKey(SoulGraves.plugin, "soul-chunks")
 val soulKey = NamespacedKey(SoulGraves.plugin, "soul")
@@ -33,7 +32,6 @@ class SoulGraves : JavaPlugin() {
 	}
 
 	private lateinit var adventure: BukkitAudiences
-	@Nonnull
 	fun adventure(): BukkitAudiences {
 		return this.adventure
 	}

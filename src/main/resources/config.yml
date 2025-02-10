@@ -1,3 +1,6 @@
+# If set true, players will require "soulgraves.spawn" permission to spawn a soul upon death
+permission-required: false
+
 # Time in seconds for how long a soul remains in its stable state before becoming unstable
 time-stable: 240
 
