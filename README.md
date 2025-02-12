@@ -188,7 +188,7 @@ soulgraves.spawn: Whether or not a soul grave will spawn for the player
 	<dependency>
 	    <groupId>com.github.FaultyFunctions</groupId>
 	    <artifactId>SoulGraves</artifactId>
-	    <version>{VERSION}</version>
+	    <version>v{VERSION}</version>
 	</dependency>
 ```
 #### Gradle
@@ -203,7 +203,7 @@ soulgraves.spawn: Whether or not a soul grave will spawn for the player
 ```
 ```groovy
 	dependencies {
-	implementation 'com.github.FaultyFunctions:SoulGraves:{VERSION}'
+	implementation 'com.github.FaultyFunctions:SoulGraves:v{VERSION}'
 }
 ```
 
