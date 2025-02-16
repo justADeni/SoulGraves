@@ -207,8 +207,8 @@ soulgraves.spawn: Whether or not a soul grave will spawn for the player
 }
 ```
 
-## Roadmap
-* [Make a suggestion!](https://github.com/FaultyFunctions/SoulGraves/issues)
+## Third-Party Addons
+- [SoulGravesPlus](https://github.com/JosTheDude/SoulGravesPlus) by [@JosTheDude](https://github.com/JosTheDude)
 
 ## Acknowledgements
 - [Vanilla Refresh](https://modrinth.com/datapack/vanilla-refresh) - Based on their idea of "Soul Links"
