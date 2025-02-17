@@ -1,12 +1,14 @@
 package dev.faultyfunctions.soulgraves.utils
 
-import dev.faultyfunctions.soulgraves.SoulGraves
+import com.jeff_media.morepersistentdatatypes.DataType
+import dev.faultyfunctions.soulgraves.*
 import dev.faultyfunctions.soulgraves.database.MySQLDatabase
 import dev.faultyfunctions.soulgraves.managers.ConfigManager
 import dev.faultyfunctions.soulgraves.managers.DatabaseManager
 import dev.faultyfunctions.soulgraves.tasks.*
 import org.bukkit.Bukkit
 import org.bukkit.Location
+import org.bukkit.entity.EntityType
 import org.bukkit.entity.Marker
 import org.bukkit.inventory.ItemStack
 import java.util.UUID
@@ -35,16 +37,47 @@ class Soul(
 	private val pickupTask: SoulPickupTask = SoulPickupTask(this)
 	private val explodeTask: SoulExplodeTask = SoulExplodeTask(this)
 
-	// Start to Run Tasks
+	/**
+	 * Start Soul Tasks.
+	 */
 	fun start() {
 		stateTask.runTaskTimer(SoulGraves.plugin, 0, 20)
 		soundTask.runTaskTimer(SoulGraves.plugin, 0, 50)
-		renderTask.runTaskTimer(SoulGraves.plugin, 0, 2)
-		pickupTask.runTaskTimer(SoulGraves.plugin, 0, 5)
+		renderTask.runTaskTimer(SoulGraves.plugin, 0, 1)
+		pickupTask.runTaskTimer(SoulGraves.plugin, 0, 4)
 		explodeTask.runTaskTimer(SoulGraves.plugin, 0, 20)
 	}
 
-	// Delete
+	/**
+	 * Spawn a Marker Entity upon Soul Created.
+	 */
+	fun spawnMaker() {
+		val entity = markerUUID?.let { Bukkit.getEntity(it) }
+		if (entity == null && location.world != null) {
+			val marker = location.world!!.spawnEntity(location, EntityType.MARKER) as Marker
+			marker.isPersistent = true
+			marker.isSilent = true
+			marker.isInvulnerable = true
+			// STORE DATA
+			marker.persistentDataContainer.set(soulKey, DataType.BOOLEAN, true)
+			marker.persistentDataContainer.set(soulOwnerKey, DataType.UUID, ownerUUID)
+			marker.persistentDataContainer.set(soulInvKey, DataType.ITEM_STACK_ARRAY, inventory.toTypedArray())
+			marker.persistentDataContainer.set(soulXpKey, DataType.INTEGER, xp)
+			marker.persistentDataContainer.set(soulTimeLeftKey, DataType.INTEGER, timeLeft)
+		}
+	}
+
+	/**
+	 * Make Soul Explode Now, Will Drop Exp And Items.
+	 */
+	fun explodeNow() {
+		this.state = SoulState.EXPLODING
+		this.implosion = true
+	}
+
+	/**
+	 * Delete Soul, Stop All Task of Soul, Will Drop Nothing.
+	 */
 	fun delete() {
 		stateTask.cancel()
 		soundTask.cancel()
@@ -52,27 +85,8 @@ class Soul(
 		pickupTask.cancel()
 		explodeTask.cancel()
 		(Bukkit.getEntity(markerUUID) as Marker).remove()
+		SoulGraves.soulList.remove(this)
 		MySQLDatabase.instance.deleteSoul(this)
 	}
-
-	// Explode Now
-	fun explode() {
-		this.state = SoulState.EXPLODING
-		this.implosion = true
-	}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 }

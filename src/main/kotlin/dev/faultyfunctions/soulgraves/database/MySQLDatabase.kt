@@ -1,5 +1,6 @@
 package dev.faultyfunctions.soulgraves.database
 
+import com.saicone.rtag.item.ItemTagStream
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import dev.faultyfunctions.soulgraves.SoulGraves

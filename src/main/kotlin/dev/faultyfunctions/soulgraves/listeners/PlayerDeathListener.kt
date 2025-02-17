@@ -48,29 +48,17 @@ class PlayerDeathListener() : Listener {
 		marker.isSilent = true
 		marker.isInvulnerable = true
 
-		// STORE SOUL KEY
-		marker.persistentDataContainer.set(soulKey, DataType.BOOLEAN, true)
-
-		// STORE PLAYER UUID
-		marker.persistentDataContainer.set(soulOwnerKey, DataType.UUID, player.uniqueId)
-
-		// STORE INVENTORY
+		// DATA
 		val inventory: MutableList<ItemStack?> = mutableListOf()
 		e.drops.forEach items@ { item ->
 			if (item != null) inventory.add(item)
 		}
-		marker.persistentDataContainer.set(soulInvKey, DataType.ITEM_STACK_ARRAY, inventory.toTypedArray())
-
-		// STORE XP
 		val xp: Int = SpigotCompatUtils.calculateTotalExperiencePoints(player.level)
-		marker.persistentDataContainer.set(soulXpKey, DataType.INTEGER, xp)
-
-		// STORE TIME LEFT
 		val timeLeft = ConfigManager.timeStable + ConfigManager.timeUnstable
-		marker.persistentDataContainer.set(soulTimeLeftKey, DataType.INTEGER, timeLeft)
 
 		// CREATE SOUL DATA
 		val soul = Soul(player.uniqueId, marker.uniqueId, marker.location, inventory, xp, timeLeft)
+		soul.start()
 		SoulGraves.soulList.add(soul)
 		Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable { MySQLDatabase.instance.saveSoul(soul, ConfigManager.serverName) })
 
