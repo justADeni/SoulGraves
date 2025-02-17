@@ -5,7 +5,7 @@ plugins {
 
 
 group = "dev.faultyfunctions"
-version = "1.3.0"
+version = "1.3.1"
 kotlin.jvmToolchain(21)
 
 
@@ -49,8 +49,8 @@ tasks {
         relocate("dev.dejvokep.boostedyaml", "${project.group}.libs.boostedyaml")
         relocate("com.jeff_media.morepersistentdatatypes", "${project.group}.libs.morepersistentdatatypes")
 
-        destinationDirectory.set(file("C:/Users/Catnies/Desktop/FirTown Test Server/plugins"))
-        archiveFileName = "SoulGrave-${version}-all.jar.jar"
+//        destinationDirectory.set(file("C:/Users/Catnies/Desktop/FirTown Test Server/plugins"))
+//        archiveFileName = "SoulGrave-${version}-all.jar.jar"
     }
 }
 

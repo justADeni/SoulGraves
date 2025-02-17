@@ -3,11 +3,11 @@ file-version: 1
 
 # Database For Cross-Server
 MySQL:
-  jdbc-url: "jdbc:mysql://localhost:3306/minecraft?useSSL=false&autoReconnect=true"
+  jdbc-url: "jdbc:mysql://mysql:3306/minecraft?useSSL=false&autoReconnect=true"
   jdbc-class: "com.mysql.cj.jdbc.Driver"
   properties:
     user: "catnies"
     password: "minato"
 
 Redis:
-  uri: "redis://localhost:6379/0"
+  uri: "redis://redis:6379/0"
