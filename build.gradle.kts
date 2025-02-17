@@ -24,6 +24,7 @@ dependencies {
 
     // Database
     compileOnly("com.zaxxer:HikariCP:5.1.0") // Hikari CP
+    compileOnly("io.lettuce:lettuce-core:6.5.3.RELEASE") // Lettuce
 
     // Develop Lib
     implementation("dev.dejvokep:boosted-yaml:1.3.6") // BoostedYaml

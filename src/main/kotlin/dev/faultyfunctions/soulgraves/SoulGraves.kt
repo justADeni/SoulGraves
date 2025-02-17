@@ -4,6 +4,7 @@ import dev.faultyfunctions.soulgraves.commands.ReloadCommand
 import dev.faultyfunctions.soulgraves.managers.ConfigManager
 import dev.faultyfunctions.soulgraves.managers.MessageManager
 import dev.faultyfunctions.soulgraves.database.MySQLDatabase
+import dev.faultyfunctions.soulgraves.database.RedisDatabase
 import dev.faultyfunctions.soulgraves.listeners.PlayerDeathListener
 import dev.faultyfunctions.soulgraves.managers.DatabaseManager
 import dev.faultyfunctions.soulgraves.utils.Soul
@@ -13,7 +14,6 @@ import org.bstats.bukkit.Metrics
 import org.bukkit.NamespacedKey
 import org.bukkit.plugin.java.JavaPlugin
 
-val soulChunksKey = NamespacedKey(SoulGraves.plugin, "soul-chunks")
 val soulKey = NamespacedKey(SoulGraves.plugin, "soul")
 val soulOwnerKey = NamespacedKey(SoulGraves.plugin, "soul-owner")
 val soulInvKey = NamespacedKey(SoulGraves.plugin, "soul-inv")
@@ -40,6 +40,7 @@ class SoulGraves : JavaPlugin() {
 		MessageManager.loadMessages()
 		DatabaseManager.loadConfig()
 		MySQLDatabase.instance
+		RedisDatabase.instance
 
 		// INIT SOULS
 		soulList = MySQLDatabase.instance.readServerSouls(ConfigManager.serverName)

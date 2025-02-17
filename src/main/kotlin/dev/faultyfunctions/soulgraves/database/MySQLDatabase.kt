@@ -59,7 +59,9 @@ class MySQLDatabase private constructor(){
                 "z INT, " +
                 "inventory TEXT, " +
                 "xp INT, " +
-                "expireTime BIGINT)"
+                "expireTime BIGINT, " +
+                "isDeleted BIT(1) DEFAULT 0" +
+                ")"
         val statement = connection.prepareStatement(sql)
         try {
             statement.executeUpdate(sql)
@@ -78,7 +80,7 @@ class MySQLDatabase private constructor(){
     fun saveSoul(soul: Soul, serverName: String) {
         var now = System.currentTimeMillis()
         val connection = dataSource.connection
-        val sql = "INSERT INTO $databaseName (ownerUUID, markerUUID, serverName, world, x, y, z, inventory, xp, expireTime) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        val sql = "INSERT INTO $databaseName (ownerUUID, markerUUID, serverName, world, x, y, z, inventory, xp, expireTime, isDeleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         val statement = connection.prepareStatement(sql)
 
         statement.setString(1, soul.ownerUUID.toString())
@@ -91,8 +93,16 @@ class MySQLDatabase private constructor(){
         statement.setString(8, ItemTagStream.INSTANCE.listToBase64(soul.inventory))
         statement.setInt(9, soul.xp)
         statement.setLong(10, (ConfigManager.timeStable + ConfigManager.timeUnstable) * 1000L + now)
+        statement.setBoolean(11, false)
 
-        statement.executeUpdate()
+        try {
+            statement.executeUpdate()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            statement.close()
+            connection.close()
+        }
     }
 
 
@@ -114,7 +124,9 @@ class MySQLDatabase private constructor(){
                     inventory = ItemTagStream.INSTANCE.listFromBase64(resultSet.getString("inventory")),
                     xp = resultSet.getInt("xp"),
                     location = Location(Bukkit.getWorld(resultSet.getString("world")), resultSet.getDouble("x"), resultSet.getDouble("y"), resultSet.getDouble("z")),
-                    timeLeft = ((resultSet.getLong("expireTime") - System.currentTimeMillis()) / 1000).toInt()
+                    timeLeft = ((resultSet.getLong("expireTime") - System.currentTimeMillis()) / 1000).toInt(),
+                    serverId = resultSet.getString("serverName"),
+                    expireTime = resultSet.getLong("expireTime")
                 )
                 souls.add(soul)
             }
@@ -148,7 +160,12 @@ class MySQLDatabase private constructor(){
                     location = Location(Bukkit.getWorld(resultSet.getString("world")), resultSet.getDouble("x"), resultSet.getDouble("y"), resultSet.getDouble("z")),
                     timeLeft = ((resultSet.getLong("expireTime") - System.currentTimeMillis()) / 1000).toInt()
                 )
-                souls.add(soul)
+                // IF MARKER DELETED, WILL REMOVE.
+                if (resultSet.getBoolean("isDeleted")) {
+                    soul.delete()
+                } else {
+                    souls.add(soul)
+                }
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -160,6 +177,42 @@ class MySQLDatabase private constructor(){
     }
 
 
+    // Mark a Soul Deleted
+    fun markSoulDelete(makerUUID: UUID) {
+        val connection = dataSource.connection
+        val sql = "UPDATE $databaseName SET isDeleted = 1 WHERE markerUUID = ?"
+        val statement = connection.prepareStatement(sql)
+        statement.setString(1, makerUUID.toString())
+
+        try {
+            statement.executeUpdate()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            statement.close()
+            connection.close()
+        }
+    }
+
+
+    // Mark a Soul Explode
+    fun markSoulExplode(makerUUID: UUID) {
+        val connection = dataSource.connection
+        val sql = "UPDATE $databaseName SET expireTime = 1 WHERE markerUUID = ?"
+        val statement = connection.prepareStatement(sql)
+        statement.setString(1, makerUUID.toString())
+
+        try {
+            statement.executeUpdate()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            statement.close()
+            connection.close()
+        }
+    }
+
+
     // Delete Soul From Database
     fun deleteSoul(soul: Soul) {
         val uuid = soul.markerUUID.toString()
@@ -167,7 +220,15 @@ class MySQLDatabase private constructor(){
         val sql = "DELETE FROM $databaseName WHERE markerUUID = ?"
         val statement = connection.prepareStatement(sql)
         statement.setString(1, uuid)
-        statement.executeUpdate()
+
+        try {
+            statement.executeUpdate()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            statement.close()
+            connection.close()
+        }
     }
 
 }

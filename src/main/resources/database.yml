@@ -8,3 +8,6 @@ MySQL:
   properties:
     user: "catnies"
     password: "minato"
+
+Redis:
+  uri: "redis://localhost:6379/0"
