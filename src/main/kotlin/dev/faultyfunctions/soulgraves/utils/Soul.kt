@@ -94,11 +94,13 @@ class Soul(
 	 * Delete Soul, Stop All Task of Soul, Will Drop Nothing.
 	 */
 	fun delete() {
-		stateTask.cancel()
-		soundTask.cancel()
-		renderTask.cancel()
-		pickupTask.cancel()
 		explodeTask.cancel()
+		particleTask.cancel()
+		pickupTask.cancel()
+		renderTask.cancel()
+		soundTask.cancel()
+		stateTask.cancel()
+
 		markerUUID?.let { (Bukkit.getEntity(it) as Marker).remove() }
 		SoulGraves.soulList.remove(this)
 		Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable { MySQLDatabase.instance.deleteSoul(this) })

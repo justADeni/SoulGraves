@@ -35,6 +35,7 @@ class SoulParticleTask(private val soul: Soul) : BukkitRunnable() {
 
         // Validate particle spawning conditions
         if (!targetPlayer.isOnline ||
+            targetPlayer.isDead ||
             targetPlayer.location.distance(soul.location) > ConfigManager.particlesFollowRadius) {
             return
         }
