@@ -73,7 +73,7 @@ class SoulPickupTask(val soul: Soul) : BukkitRunnable() {
 				if (MessageManager.soulCollectComponent != null) SoulGraves.plugin.adventure().player(player).sendMessage(MessageManager.soulCollectComponent!!)
 
 				// SEND MESSAGE TO OWNER IF NEEDED
-				if (player.uniqueId != soul.ownerUUID && owner != null) {
+				if (player.uniqueId != soul.ownerUUID) {
 					if (ConfigManager.notifyOwnerPickup) {
 						RedisDatabase.instance.publish(RedisPacket(DatabaseManager.serverName, MessageAction.NOTIFY_SOUL_OTHER_PICKUP, soul.ownerUUID.toString()))
 					}

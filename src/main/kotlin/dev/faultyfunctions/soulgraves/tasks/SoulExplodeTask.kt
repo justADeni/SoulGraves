@@ -67,7 +67,7 @@ class SoulExplodeTask(val soul: Soul) : BukkitRunnable() {
 			soul.location.world?.spawnParticle(Particle.SCULK_SOUL, soul.location.clone().add(0.0, 1.0, 0.0), 100, 0.0, 0.0, 0.0, 0.1, null, true)
 
 			// SEND PLAYER MESSAGE
-			if (owner != null) RedisDatabase.instance.publish(RedisPacket(DatabaseManager.serverName, MessageAction.NOTIFY_SOUL_EXPLODE, owner.uniqueId.toString()))
+			RedisDatabase.instance.publish(RedisPacket(DatabaseManager.serverName, MessageAction.NOTIFY_SOUL_EXPLODE, soul.ownerUUID.toString()))
 
 			// SEND NEARBY PLAYERS A MESSAGE
 			val marker: Marker = Bukkit.getEntity(soul.markerUUID!!) as Marker

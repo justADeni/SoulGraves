@@ -42,7 +42,6 @@ class RedisDatabase {
             // Create Listener
             pubSubConnection!!.addListener(object : RedisPubSubAdapter<String, String>() {
                 override fun message(channel: String, message: String) {
-                    println("Received message: $message from channel: $channel")
                     if (pluginChannel != channel) return
                     handleMessage(message)
                 }
@@ -71,7 +70,6 @@ class RedisDatabase {
      */
     fun publish(packet: RedisPacket) {
         val message = packet.toJson()
-        println(message)
         val async = connection!!.async()
         async.publish(pluginChannel, message)
     }
