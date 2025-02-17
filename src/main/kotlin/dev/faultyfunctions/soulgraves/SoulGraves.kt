@@ -4,9 +4,9 @@ import dev.faultyfunctions.soulgraves.commands.ReloadCommand
 import dev.faultyfunctions.soulgraves.managers.ConfigManager
 import dev.faultyfunctions.soulgraves.managers.MessageManager
 import com.jeff_media.morepersistentdatatypes.DataType
+import dev.faultyfunctions.soulgraves.database.MySQLDatabase
 import dev.faultyfunctions.soulgraves.listeners.PlayerDeathListener
-import dev.faultyfunctions.soulgraves.managers.CrossServerManager
-import dev.faultyfunctions.soulgraves.tasks.*
+import dev.faultyfunctions.soulgraves.managers.DatabaseManager
 import dev.faultyfunctions.soulgraves.utils.Soul
 import dev.faultyfunctions.soulgraves.utils.SpigotCompatUtils
 import net.kyori.adventure.platform.bukkit.BukkitAudiences
@@ -44,9 +44,14 @@ class SoulGraves : JavaPlugin() {
 		// LOAD CONFIG
 		ConfigManager.loadConfig()
 		MessageManager.loadMessages()
-		CrossServerManager.loadConfig()
+		DatabaseManager.loadConfig()
+		MySQLDatabase.instance
 
-		initSouls()
+		// INIT SOULS
+		soulList = MySQLDatabase.instance.readServerSouls(ConfigManager.serverName)
+		for (soul in soulList) {
+			soul.start()
+		}
 
 		// LISTENERS
 		server.pluginManager.registerEvents(PlayerDeathListener(), this)
@@ -64,37 +69,6 @@ class SoulGraves : JavaPlugin() {
 
 	override fun onDisable() {
 		this.adventure.close()
-
 		logger.info("Disabled!")
-	}
-
-	private fun initSouls() {
-		for (world in Bukkit.getWorlds()) {
-			if (!world.persistentDataContainer.has(soulChunksKey)) {
-				world.persistentDataContainer.set(soulChunksKey, DataType.asList(DataType.LONG), mutableListOf<Long>())
-			} else {
-				// GET CHUNK KEY LIST AND MAKE SURE THEY ARE UNIQUE
-				val chunkKeyList: List<Long>? = world.persistentDataContainer.get(soulChunksKey, DataType.asList(DataType.LONG))?.distinct()
-				// RESET CHUNK LIST IN WORLD PDC
-				world.persistentDataContainer.set(soulChunksKey, DataType.asList(DataType.LONG), mutableListOf<Long>())
-
-				if (chunkKeyList != null) {
-					for (chunkKey in chunkKeyList) {
-						val chunk: Chunk = compat.getChunkAt(chunkKey, world)
-						for (entity in chunk.entities) {
-							if (entity.persistentDataContainer.has(soulKey)) {
-								val markerEntity = entity as Marker
-								val player = markerEntity.persistentDataContainer.get(soulOwnerKey, DataType.UUID)!!
-								val inventory: MutableList<ItemStack?> = (markerEntity.persistentDataContainer.get(soulInvKey, DataType.ITEM_STACK_ARRAY)!!).toMutableList()
-								val xp: Int = markerEntity.persistentDataContainer.get(soulXpKey, DataType.INTEGER)!!
-								val timeLeft: Int = markerEntity.persistentDataContainer.get(soulTimeLeftKey, DataType.INTEGER)!!
-								val soul = Soul(player, markerEntity.uniqueId, markerEntity.location, inventory, xp, timeLeft)
-								soulList.add(soul)
-							}
-						}
-					}
-				}
-			}
-		}
 	}
 }

@@ -1,10 +1,6 @@
 # DO NOT EDIT file-version DIRECTLY
 file-version: 1
 
-# This file should contain the ID of this server as defined in your proxy config.
-# PLEASE DO NOT CHANGE AFTER WORK
-name: lobby
-
 # Database For Cross-Server
 MySQL:
   jdbc-url: "jdbc:mysql://localhost:3306/minecraft?useSSL=false&autoReconnect=true"
@@ -12,7 +8,3 @@ MySQL:
   properties:
     user: "catnies"
     password: "minato"
-
-Redis:
-  uri: "redis://redis:6379/0"
-

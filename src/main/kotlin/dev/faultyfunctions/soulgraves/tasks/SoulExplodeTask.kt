@@ -86,24 +86,8 @@ class SoulExplodeTask(val soul: Soul) : BukkitRunnable() {
 				}
 			}
 
-			// REMOVE CHUNK FOR LOAD LIST IF POSSIBLE
-			var removeChunk = true
-			for (entity in soul.location.chunk.entities) {
-				if (!entity.isDead && entity.persistentDataContainer.has(soulKey) && soul.markerUUID != entity.uniqueId) {
-					removeChunk = false
-					break
-				}
-			}
-			if (removeChunk) {
-				val chunkList: MutableList<Long>? = soul.location.world?.persistentDataContainer?.get(soulChunksKey, DataType.asList(DataType.LONG))
-				if (chunkList != null) {
-					chunkList.remove(SoulGraves.compat.getChunkKey(soul.location.chunk))
-					soul.location.world?.persistentDataContainer?.set(soulChunksKey, DataType.asList(DataType.LONG), chunkList)
-				}
-			}
-
 			// REMOVE SOUL
-			marker.remove()
+			soul.delete()
 
 			// UNLOAD CHUNK
 			soul.location.world?.unloadChunk(soul.location.chunk)

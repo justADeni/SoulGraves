@@ -6,6 +6,7 @@ import com.jeff_media.morepersistentdatatypes.DataType
 import dev.faultyfunctions.soulgraves.*
 import dev.faultyfunctions.soulgraves.api.event.SoulPreSpawnEvent
 import dev.faultyfunctions.soulgraves.api.event.SoulSpawnEvent
+import dev.faultyfunctions.soulgraves.database.MySQLDatabase
 import dev.faultyfunctions.soulgraves.utils.SpigotCompatUtils
 import org.bukkit.*
 import org.bukkit.block.Block
@@ -47,37 +48,31 @@ class PlayerDeathListener() : Listener {
 		marker.isSilent = true
 		marker.isInvulnerable = true
 
-		// STORE CHUNK LOCATION IN WORLD'S PERSISTENT DATA CONTAINER FOR LOADING LATER
-		val chunkList: MutableList<Long>? = marker.world.persistentDataContainer.get(soulChunksKey, DataType.asList(DataType.LONG))
-		if (chunkList != null && !chunkList.contains(SoulGraves.compat.getChunkKey(marker.location.chunk))) {
-			chunkList.add(SoulGraves.compat.getChunkKey(marker.location.chunk))
-			marker.world.persistentDataContainer.set(soulChunksKey, DataType.asList(DataType.LONG), chunkList)
-		}
-
-		// TAG ENTITY WITH SOUL KEY
+		// STORE SOUL KEY
 		marker.persistentDataContainer.set(soulKey, DataType.BOOLEAN, true)
 
 		// STORE PLAYER UUID
 		marker.persistentDataContainer.set(soulOwnerKey, DataType.UUID, player.uniqueId)
 
-		// CREATE INVENTORY
+		// STORE INVENTORY
 		val inventory: MutableList<ItemStack?> = mutableListOf()
 		e.drops.forEach items@ { item ->
 			if (item != null) inventory.add(item)
 		}
 		marker.persistentDataContainer.set(soulInvKey, DataType.ITEM_STACK_ARRAY, inventory.toTypedArray())
 
-		// MANAGE XP
+		// STORE XP
 		val xp: Int = SpigotCompatUtils.calculateTotalExperiencePoints(player.level)
 		marker.persistentDataContainer.set(soulXpKey, DataType.INTEGER, xp)
 
-		// MANAGE TIME LEFT
+		// STORE TIME LEFT
 		val timeLeft = ConfigManager.timeStable + ConfigManager.timeUnstable
 		marker.persistentDataContainer.set(soulTimeLeftKey, DataType.INTEGER, timeLeft)
 
 		// CREATE SOUL DATA
 		val soul = Soul(player.uniqueId, marker.uniqueId, marker.location, inventory, xp, timeLeft)
 		SoulGraves.soulList.add(soul)
+		Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable { MySQLDatabase.instance.saveSoul(soul, ConfigManager.serverName) })
 
 		// CANCEL DROPS
 		e.drops.clear()

@@ -84,24 +84,8 @@ class SoulPickupTask(val soul: Soul) : BukkitRunnable() {
 					}
 				}
 
-				// REMOVE CHUNK FROM LOAD LIST IF POSSIBLE
-				var removeChunk = true
-				for (entityInChunk in soul.location.chunk.entities) {
-					if (entityInChunk.persistentDataContainer.has(soulKey) && soul.markerUUID != entityInChunk.uniqueId) {
-						removeChunk = false
-						break
-					}
-				}
-				if (removeChunk) {
-					val chunkList: MutableList<Long>? = soul.location.world?.persistentDataContainer?.get(soulChunksKey, DataType.asList(DataType.LONG))
-					if (chunkList != null) {
-						chunkList.remove(SoulGraves.compat.getChunkKey(soul.location.chunk))
-						soul.location.world?.persistentDataContainer?.set(soulChunksKey, DataType.asList(DataType.LONG), chunkList)
-					}
-				}
-
 				// REMOVE SOUL
-				marker.remove()
+				soul.delete()
 			}
 		}
 	}

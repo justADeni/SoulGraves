@@ -23,6 +23,7 @@ object ConfigManager {
 	private lateinit var config: YamlDocument
 
 	// CONFIG VALUES
+	var serverName by Delegates.notNull<String>()
 	var permissionRequired by Delegates.notNull<Boolean>()
 	var timeStable by Delegates.notNull<Int>()
 	var timeUnstable by Delegates.notNull<Int>()
@@ -61,6 +62,7 @@ object ConfigManager {
 		}
 
 		// LOAD VALUES
+		serverName = config.getString("server-name")
 		permissionRequired = config.getBoolean("permission-required")
 		timeStable = config.getInt("time-stable")
 		timeUnstable = config.getInt("time-unstable")

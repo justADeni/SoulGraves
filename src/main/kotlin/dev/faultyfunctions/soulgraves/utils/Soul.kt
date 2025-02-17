@@ -1,8 +1,9 @@
 package dev.faultyfunctions.soulgraves.utils
 
 import dev.faultyfunctions.soulgraves.SoulGraves
-import dev.faultyfunctions.soulgraves.managers.CrossServerManager
-import dev.faultyfunctions.soulgraves.soulKey
+import dev.faultyfunctions.soulgraves.database.MySQLDatabase
+import dev.faultyfunctions.soulgraves.managers.ConfigManager
+import dev.faultyfunctions.soulgraves.managers.DatabaseManager
 import dev.faultyfunctions.soulgraves.tasks.*
 import org.bukkit.Bukkit
 import org.bukkit.Location
@@ -23,8 +24,8 @@ class Soul(
 	var xp: Int,
 	var timeLeft: Int
 ) {
-	val serverId: String = CrossServerManager.serverId
-	val createTime: Long = System.currentTimeMillis()
+	val expireTime: Long = System.currentTimeMillis() + ((ConfigManager.timeStable + ConfigManager.timeUnstable) * 1000)
+	val serverId: String = ConfigManager.serverName
 	var state: Enum<SoulState> = SoulState.NORMAL
 	var implosion: Boolean = false
 
@@ -43,11 +44,6 @@ class Soul(
 		explodeTask.runTaskTimer(SoulGraves.plugin, 0, 20)
 	}
 
-	// Freeze
-	fun freeze() {
-		stateTask.cancel()
-	}
-
 	// Delete
 	fun delete() {
 		stateTask.cancel()
@@ -56,6 +52,13 @@ class Soul(
 		pickupTask.cancel()
 		explodeTask.cancel()
 		(Bukkit.getEntity(markerUUID) as Marker).remove()
+		MySQLDatabase.instance.deleteSoul(this)
+	}
+
+	// Explode Now
+	fun explode() {
+		this.state = SoulState.EXPLODING
+		this.implosion = true
 	}
 
 

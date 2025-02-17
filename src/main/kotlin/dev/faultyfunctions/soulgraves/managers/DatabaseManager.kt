@@ -10,37 +10,28 @@ import dev.faultyfunctions.soulgraves.SoulGraves
 import org.bukkit.Bukkit
 import java.io.File
 import java.io.IOException
-import kotlin.properties.Delegates
 
-object CrossServerManager {
+object DatabaseManager {
 
-    private lateinit var crossConfig: YamlDocument
-
-    // CONFIG VALUES
-    var serverId by Delegates.notNull<String>()
-
-
+    lateinit var databaseConfig: YamlDocument
 
     fun loadConfig() {
         try {
-            crossConfig = YamlDocument.create(
-                File(SoulGraves.plugin.dataFolder, "cross-server.yml"),
-                SoulGraves.plugin.getResource("cross-server.yml")!!,
+            databaseConfig = YamlDocument.create(
+                File(SoulGraves.plugin.dataFolder, "database.yml"),
+                SoulGraves.plugin.getResource("database.yml")!!,
                 GeneralSettings.DEFAULT,
                 LoaderSettings.builder().setAutoUpdate(true).build(),
                 DumperSettings.DEFAULT,
                 UpdaterSettings.builder().setVersioning(BasicVersioning("file-version")).setOptionSorting(
                     UpdaterSettings.OptionSorting.SORT_BY_DEFAULTS).build()
             )
-            crossConfig.update()
-            crossConfig.save()
+            databaseConfig.update()
+            databaseConfig.save()
         } catch (e: IOException) {
-            SoulGraves.plugin.logger.severe("Failed to load cross-server.yml! The plugin will now shut down.")
+            SoulGraves.plugin.logger.severe("Failed to load database.yml! The plugin will now shut down.")
             Bukkit.getServer().pluginManager.disablePlugin(SoulGraves.plugin)
         }
-
-        // LOAD VALUES
-        serverId = crossConfig.getString("name")
     }
 
 }
