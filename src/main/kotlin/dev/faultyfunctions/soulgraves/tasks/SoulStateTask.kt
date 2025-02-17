@@ -28,7 +28,7 @@ class SoulStateTask(val soul: Soul) : BukkitRunnable() {
 
 		// LOAD CHUNK & GRAB ENTITY
 		soul.location.world?.loadChunk(soul.location.chunk)
-		val soulEntity: Marker = Bukkit.getEntity(soul.markerUUID) as Marker
+		val soulEntity: Marker = Bukkit.getEntity(soul.markerUUID!!) as Marker
 
 		// STORE TIME LEFT IN ENTITY'S PDC
 		soulEntity.persistentDataContainer.set(soulTimeLeftKey, DataType.INTEGER, soul.timeLeft)

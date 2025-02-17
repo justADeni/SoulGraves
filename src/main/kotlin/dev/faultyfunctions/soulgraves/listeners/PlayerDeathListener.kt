@@ -2,7 +2,6 @@ package dev.faultyfunctions.soulgraves.listeners
 
 import dev.faultyfunctions.soulgraves.managers.ConfigManager
 import dev.faultyfunctions.soulgraves.utils.Soul
-import com.jeff_media.morepersistentdatatypes.DataType
 import dev.faultyfunctions.soulgraves.*
 import dev.faultyfunctions.soulgraves.api.event.SoulPreSpawnEvent
 import dev.faultyfunctions.soulgraves.api.event.SoulSpawnEvent
@@ -57,8 +56,7 @@ class PlayerDeathListener() : Listener {
 		val timeLeft = ConfigManager.timeStable + ConfigManager.timeUnstable
 
 		// CREATE SOUL DATA
-		val soul = Soul(player.uniqueId, marker.uniqueId, marker.location, inventory, xp, timeLeft)
-		soul.start()
+		val soul = Soul(player.uniqueId, null, marker.location, inventory, xp, timeLeft)
 		SoulGraves.soulList.add(soul)
 		Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable { MySQLDatabase.instance.saveSoul(soul, ConfigManager.serverName) })
 

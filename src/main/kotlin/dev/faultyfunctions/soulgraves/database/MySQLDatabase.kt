@@ -96,7 +96,7 @@ class MySQLDatabase private constructor(){
     }
 
 
-    // Read Soul form Database
+    // Read Souls From Database
     fun readPlayerSouls(uuid: String) : MutableList<Soul> {
         val souls = ArrayList<Soul>()
 
@@ -128,6 +128,7 @@ class MySQLDatabase private constructor(){
     }
 
 
+    // Read Souls in Current Server
     fun readServerSouls(serverName: String) : MutableList<Soul> {
         val souls = ArrayList<Soul>()
 
@@ -159,8 +160,7 @@ class MySQLDatabase private constructor(){
     }
 
 
-
-    // Delete Soul from Database
+    // Delete Soul From Database
     fun deleteSoul(soul: Soul) {
         val uuid = soul.markerUUID.toString()
         val connection = dataSource.connection

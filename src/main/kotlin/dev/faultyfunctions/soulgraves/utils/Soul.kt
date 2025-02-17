@@ -4,10 +4,10 @@ import com.jeff_media.morepersistentdatatypes.DataType
 import dev.faultyfunctions.soulgraves.*
 import dev.faultyfunctions.soulgraves.database.MySQLDatabase
 import dev.faultyfunctions.soulgraves.managers.ConfigManager
-import dev.faultyfunctions.soulgraves.managers.DatabaseManager
 import dev.faultyfunctions.soulgraves.tasks.*
 import org.bukkit.Bukkit
 import org.bukkit.Location
+import org.bukkit.entity.Entity
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.Marker
 import org.bukkit.inventory.ItemStack
@@ -19,17 +19,18 @@ enum class SoulState {
 
 class Soul(
 	val ownerUUID: UUID,
-	val markerUUID: UUID,
+	var markerUUID: UUID?,
 	val location: Location,
-
 	var inventory:MutableList<ItemStack?>,
 	var xp: Int,
 	var timeLeft: Int
 ) {
 	val expireTime: Long = System.currentTimeMillis() + ((ConfigManager.timeStable + ConfigManager.timeUnstable) * 1000)
 	val serverId: String = ConfigManager.serverName
+
 	var state: Enum<SoulState> = SoulState.NORMAL
 	var implosion: Boolean = false
+
 
 	private val stateTask: SoulStateTask = SoulStateTask(this)
 	private val soundTask: SoulSoundTask = SoulSoundTask(this)
@@ -37,10 +38,17 @@ class Soul(
 	private val pickupTask: SoulPickupTask = SoulPickupTask(this)
 	private val explodeTask: SoulExplodeTask = SoulExplodeTask(this)
 
+	init {
+		this.markerUUID = markerUUID ?: spawnMarker()?.uniqueId // Spawn Marker If Marker Not Exist
+		startTasks()
+	}
+
+
 	/**
 	 * Start Soul Tasks.
 	 */
-	fun start() {
+	private fun startTasks() {
+		markerUUID ?: this.delete() // IF DO NOT HAVE UUID MEAN WORLD IS NOT EXIST, DATA WILL BE REMOVE
 		stateTask.runTaskTimer(SoulGraves.plugin, 0, 20)
 		soundTask.runTaskTimer(SoulGraves.plugin, 0, 50)
 		renderTask.runTaskTimer(SoulGraves.plugin, 0, 1)
@@ -48,12 +56,13 @@ class Soul(
 		explodeTask.runTaskTimer(SoulGraves.plugin, 0, 20)
 	}
 
+
 	/**
 	 * Spawn a Marker Entity upon Soul Created.
 	 */
-	fun spawnMaker() {
-		val entity = markerUUID?.let { Bukkit.getEntity(it) }
-		if (entity == null && location.world != null) {
+	private fun spawnMarker(): Entity? {
+		location.chunk.load()
+		if (location.world != null) {
 			val marker = location.world!!.spawnEntity(location, EntityType.MARKER) as Marker
 			marker.isPersistent = true
 			marker.isSilent = true
@@ -64,8 +73,11 @@ class Soul(
 			marker.persistentDataContainer.set(soulInvKey, DataType.ITEM_STACK_ARRAY, inventory.toTypedArray())
 			marker.persistentDataContainer.set(soulXpKey, DataType.INTEGER, xp)
 			marker.persistentDataContainer.set(soulTimeLeftKey, DataType.INTEGER, timeLeft)
+			return marker
 		}
+		return null
 	}
+
 
 	/**
 	 * Make Soul Explode Now, Will Drop Exp And Items.
@@ -74,6 +86,7 @@ class Soul(
 		this.state = SoulState.EXPLODING
 		this.implosion = true
 	}
+
 
 	/**
 	 * Delete Soul, Stop All Task of Soul, Will Drop Nothing.
@@ -84,9 +97,9 @@ class Soul(
 		renderTask.cancel()
 		pickupTask.cancel()
 		explodeTask.cancel()
-		(Bukkit.getEntity(markerUUID) as Marker).remove()
+		markerUUID?.let { (Bukkit.getEntity(it) as Marker).remove() }
 		SoulGraves.soulList.remove(this)
-		MySQLDatabase.instance.deleteSoul(this)
+		Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable { MySQLDatabase.instance.deleteSoul(this) })
 	}
 
 }

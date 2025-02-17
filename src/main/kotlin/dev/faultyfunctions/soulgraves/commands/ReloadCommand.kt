@@ -16,7 +16,6 @@ class ReloadCommand: CommandExecutor, TabExecutor {
 
 		if (args.size == 1) {
 			completionList.add("reload")
-			completionList.add("debug")
 			return completionList
 		}
 
@@ -38,10 +37,6 @@ class ReloadCommand: CommandExecutor, TabExecutor {
 				}
 
 				SoulGraves.plugin.logger.info("Config reloaded!")
-			}
-
-			if (args[0].equals("reload", ignoreCase = true)) {
-
 			}
 		}
 

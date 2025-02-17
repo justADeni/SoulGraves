@@ -71,7 +71,7 @@ class SoulExplodeTask(val soul: Soul) : BukkitRunnable() {
 			}
 
 			// SEND NEARBY PLAYERS A MESSAGE
-			val marker: Marker = Bukkit.getEntity(soul.markerUUID) as Marker
+			val marker: Marker = Bukkit.getEntity(soul.markerUUID!!) as Marker
 			if (ConfigManager.notifyNearbyPlayers) {
 				val radii: Double = ConfigManager.notifyRadius.toDouble()
 				for (player in marker.getNearbyEntities(radii, radii, radii)) {

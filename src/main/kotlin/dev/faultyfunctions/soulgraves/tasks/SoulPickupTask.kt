@@ -21,7 +21,7 @@ class SoulPickupTask(val soul: Soul) : BukkitRunnable() {
 	override fun run() {
 		if (!soul.location.world?.isChunkLoaded(soul.location.chunk)!! || soul.state == SoulState.EXPLODING) { return }
 
-		val marker: Marker = Bukkit.getEntity(soul.markerUUID) as Marker
+		val marker: Marker = Bukkit.getEntity(soul.markerUUID!!) as Marker
 
 		for (entity in marker.getNearbyEntities(0.5, 0.5, 0.5)) {
 			if (entity !is Player) { continue }
