@@ -1,5 +1,8 @@
 # DO NOT EDIT file-version DIRECTLY
-file-version: 1
+file-version: 2
+
+# Server ID,
+server-name: "lobby"
 
 # Database For Cross-Server
 MySQL:

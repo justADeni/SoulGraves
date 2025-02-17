@@ -41,16 +41,6 @@ class ReloadCommand: CommandExecutor, TabExecutor {
 
 				SoulGraves.plugin.logger.info("Config reloaded!")
 			}
-
-			if (args[0].equals("debug", ignoreCase = true)) {
-				val allSoulsCrossServer = SoulGraveAPI.getAllSoulsCrossServer()
-				allSoulsCrossServer.thenAcceptAsync {
-					for (soul in it) {
-						sender.sendMessage("uuid:" + soul.markerUUID)
-						RedisPublishAPI.explodeSoul(soul.markerUUID!!)
-					}
-				}
-			}
 		}
 
 		return true

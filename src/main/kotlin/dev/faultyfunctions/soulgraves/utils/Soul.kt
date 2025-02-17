@@ -5,6 +5,7 @@ import dev.faultyfunctions.soulgraves.*
 import dev.faultyfunctions.soulgraves.api.RedisPublishAPI
 import dev.faultyfunctions.soulgraves.database.MySQLDatabase
 import dev.faultyfunctions.soulgraves.managers.ConfigManager
+import dev.faultyfunctions.soulgraves.managers.DatabaseManager
 import dev.faultyfunctions.soulgraves.tasks.*
 import org.bukkit.Bukkit
 import org.bukkit.Location
@@ -25,7 +26,7 @@ class Soul(
 	var inventory:MutableList<ItemStack?>,
 	var xp: Int,
 	var timeLeft: Int,
-	val serverId: String = ConfigManager.serverName,
+	val serverId: String = DatabaseManager.serverName,
 	val expireTime: Long = System.currentTimeMillis() + ((ConfigManager.timeStable + ConfigManager.timeUnstable) * 1000)
 ) {
 	var state: Enum<SoulState> = SoulState.NORMAL
@@ -44,7 +45,7 @@ class Soul(
 	 * Start Soul Tasks.
 	 */
 	fun startTasks() {
-		if (serverId != ConfigManager.serverName) return
+		if (serverId != DatabaseManager.serverName) return
 		if (isStarted) return
 
 		markerUUID ?: this.delete() // IF SOUL DO NOT HAVE UUID MEAN WORLD IS NOT EXIST, DATA WILL REMOVE
@@ -62,7 +63,7 @@ class Soul(
 	 * Spawn a Marker Entity upon Soul Created.
 	 */
 	 fun spawnMarker() {
-		if (serverId != ConfigManager.serverName) return
+		if (serverId != DatabaseManager.serverName) return
 		if (location.world == null) return
 		location.chunk.load()
 		markerUUID?.let { Bukkit.getEntity(it)?.let { return } }
@@ -87,7 +88,7 @@ class Soul(
 	 * Make Soul Explode Now, Will Drop Exp And Items.
 	 */
 	fun explodeNow() {
-		if (serverId == ConfigManager.serverName) {
+		if (serverId == DatabaseManager.serverName) {
 			this.state = SoulState.EXPLODING
 			this.implosion = true
 		} else {
@@ -100,7 +101,7 @@ class Soul(
 	 * Delete Soul, Stop All Task of Soul, Will Drop Nothing.
 	 */
 	fun delete() {
-		if (serverId == ConfigManager.serverName) {
+		if (serverId == DatabaseManager.serverName) {
 			explodeTask.cancel()
 			particleTask.cancel()
 			pickupTask.cancel()

@@ -1,9 +1,6 @@
 # DO NOT EDIT file-version DIRECTLY
 file-version: 3
 
-# Server ID,
-server-name: "lobby"
-
 # If set true, players will require "soulgraves.spawn" permission to spawn a soul upon death
 permission-required: false
 

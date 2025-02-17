@@ -4,7 +4,7 @@ import dev.faultyfunctions.soulgraves.database.MessageAction
 import dev.faultyfunctions.soulgraves.database.MySQLDatabase
 import dev.faultyfunctions.soulgraves.database.RedisDatabase
 import dev.faultyfunctions.soulgraves.database.RedisPacket
-import dev.faultyfunctions.soulgraves.managers.ConfigManager
+import dev.faultyfunctions.soulgraves.managers.DatabaseManager
 import java.util.UUID
 
 
@@ -19,7 +19,7 @@ object RedisPublishAPI {
      */
     fun deleteSoul(markerUUID: UUID) {
         MySQLDatabase.instance.markSoulDelete(markerUUID)
-        RedisDatabase.instance.publish(RedisPacket(ConfigManager.serverName, MessageAction.REMOVE_SOUL, markerUUID.toString()))
+        RedisDatabase.instance.publish(RedisPacket(DatabaseManager.serverName, MessageAction.REMOVE_SOUL, markerUUID.toString()))
     }
 
 
@@ -28,7 +28,7 @@ object RedisPublishAPI {
      */
     fun explodeSoul(markerUUID: UUID) {
         MySQLDatabase.instance.markSoulExplode(markerUUID)
-        RedisDatabase.instance.publish(RedisPacket(ConfigManager.serverName, MessageAction.EXPLODE_SOUL, markerUUID.toString()))
+        RedisDatabase.instance.publish(RedisPacket(DatabaseManager.serverName, MessageAction.EXPLODE_SOUL, markerUUID.toString()))
     }
 
 }

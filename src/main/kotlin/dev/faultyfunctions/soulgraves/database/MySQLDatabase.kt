@@ -214,7 +214,7 @@ class MySQLDatabase private constructor(){
 
 
     // Read Souls in Current Server
-    fun getCurrentServerSouls(serverName: String = ConfigManager.serverName) : MutableList<Soul> {
+    fun getCurrentServerSouls(serverName: String = DatabaseManager.serverName) : MutableList<Soul> {
         val souls = ArrayList<Soul>()
 
         val connection = dataSource.connection

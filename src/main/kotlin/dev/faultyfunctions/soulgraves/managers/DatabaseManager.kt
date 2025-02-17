@@ -10,10 +10,14 @@ import dev.faultyfunctions.soulgraves.SoulGraves
 import org.bukkit.Bukkit
 import java.io.File
 import java.io.IOException
+import kotlin.properties.Delegates
 
 object DatabaseManager {
 
     lateinit var databaseConfig: YamlDocument
+
+    // CONFIG VALUES
+    var serverName by Delegates.notNull<String>()
 
     fun loadConfig() {
         try {
@@ -32,6 +36,9 @@ object DatabaseManager {
             SoulGraves.plugin.logger.severe("Failed to load database.yml! The plugin will now shut down.")
             Bukkit.getServer().pluginManager.disablePlugin(SoulGraves.plugin)
         }
+
+        // LOAD VALUES
+        serverName = databaseConfig.getString("server-name")
     }
 
 }

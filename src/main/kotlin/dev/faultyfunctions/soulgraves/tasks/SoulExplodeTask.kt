@@ -9,6 +9,7 @@ import dev.faultyfunctions.soulgraves.api.event.SoulExplodeEvent
 import dev.faultyfunctions.soulgraves.database.MessageAction
 import dev.faultyfunctions.soulgraves.database.RedisDatabase
 import dev.faultyfunctions.soulgraves.database.RedisPacket
+import dev.faultyfunctions.soulgraves.managers.DatabaseManager
 import dev.faultyfunctions.soulgraves.utils.Soul
 import org.bukkit.Bukkit
 import org.bukkit.Particle
@@ -66,7 +67,7 @@ class SoulExplodeTask(val soul: Soul) : BukkitRunnable() {
 			soul.location.world?.spawnParticle(Particle.SCULK_SOUL, soul.location.clone().add(0.0, 1.0, 0.0), 100, 0.0, 0.0, 0.0, 0.1, null, true)
 
 			// SEND PLAYER MESSAGE
-			if (owner != null) RedisDatabase.instance.publish(RedisPacket(ConfigManager.serverName, MessageAction.NOTIFY_SOUL_EXPLODE, owner.uniqueId.toString()))
+			if (owner != null) RedisDatabase.instance.publish(RedisPacket(DatabaseManager.serverName, MessageAction.NOTIFY_SOUL_EXPLODE, owner.uniqueId.toString()))
 
 			// SEND NEARBY PLAYERS A MESSAGE
 			val marker: Marker = Bukkit.getEntity(soul.markerUUID!!) as Marker

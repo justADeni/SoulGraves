@@ -6,6 +6,7 @@ import dev.faultyfunctions.soulgraves.*
 import dev.faultyfunctions.soulgraves.api.event.SoulPreSpawnEvent
 import dev.faultyfunctions.soulgraves.api.event.SoulSpawnEvent
 import dev.faultyfunctions.soulgraves.database.MySQLDatabase
+import dev.faultyfunctions.soulgraves.managers.DatabaseManager
 import dev.faultyfunctions.soulgraves.utils.SpigotCompatUtils
 import org.bukkit.*
 import org.bukkit.block.Block
@@ -60,7 +61,7 @@ class PlayerDeathListener() : Listener {
 		soul.spawnMarker()
 		soul.startTasks()
 		SoulGraves.soulList.add(soul)
-		Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable { MySQLDatabase.instance.saveSoul(soul, ConfigManager.serverName) })
+		Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable { MySQLDatabase.instance.saveSoul(soul, DatabaseManager.serverName) })
 
 		// CANCEL DROPS
 		e.drops.clear()
