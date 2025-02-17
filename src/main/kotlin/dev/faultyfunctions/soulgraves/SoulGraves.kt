@@ -5,6 +5,7 @@ import dev.faultyfunctions.soulgraves.managers.ConfigManager
 import dev.faultyfunctions.soulgraves.managers.MessageManager
 import com.jeff_media.morepersistentdatatypes.DataType
 import dev.faultyfunctions.soulgraves.listeners.PlayerDeathListener
+import dev.faultyfunctions.soulgraves.managers.CrossServerManager
 import dev.faultyfunctions.soulgraves.tasks.*
 import dev.faultyfunctions.soulgraves.utils.Soul
 import dev.faultyfunctions.soulgraves.utils.SpigotCompatUtils
@@ -43,6 +44,7 @@ class SoulGraves : JavaPlugin() {
 		// LOAD CONFIG
 		ConfigManager.loadConfig()
 		MessageManager.loadMessages()
+		CrossServerManager.loadConfig()
 
 		initSouls()
 
@@ -52,13 +54,6 @@ class SoulGraves : JavaPlugin() {
 		// COMMANDS
 		getCommand("soulgraves")?.setExecutor(ReloadCommand())
 		getCommand("soulgraves")?.tabCompleter = ReloadCommand()
-
-		// TASKS
-		SoulExplodeTask().runTaskTimer(this, 0, 20)
-		SoulPickupTask().runTaskTimer(this, 0, 4)
-		SoulRenderTask().runTaskTimer(this, 0, 1)
-		SoulStateTask().runTaskTimer(this, 0, 20)
-		SoulSoundTask().runTaskTimer(this, 0, 50)
 
 		// SET UP BSTATS
 		val pluginId = 23436

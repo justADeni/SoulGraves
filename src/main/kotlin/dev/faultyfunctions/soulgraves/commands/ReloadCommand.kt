@@ -1,6 +1,7 @@
 package dev.faultyfunctions.soulgraves.commands
 import dev.faultyfunctions.soulgraves.SoulGraves
 import dev.faultyfunctions.soulgraves.managers.ConfigManager
+import dev.faultyfunctions.soulgraves.managers.CrossServerManager
 import dev.faultyfunctions.soulgraves.managers.MessageManager
 import org.bukkit.Bukkit
 import org.bukkit.command.Command
@@ -30,6 +31,7 @@ class ReloadCommand: CommandExecutor, TabExecutor {
 			if (args[0].equals("reload", ignoreCase = true)) {
 				ConfigManager.loadConfig()
 				MessageManager.loadMessages()
+				CrossServerManager.loadConfig()
 				if (sender is Player) {
 					sender.sendMessage("[SoulGraves] Config reloaded!")
 				}
