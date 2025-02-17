@@ -32,11 +32,12 @@ class Soul(
 	var implosion: Boolean = false
 
 
-	private val stateTask: SoulStateTask = SoulStateTask(this)
-	private val soundTask: SoulSoundTask = SoulSoundTask(this)
-	private val renderTask: SoulRenderTask = SoulRenderTask(this)
-	private val pickupTask: SoulPickupTask = SoulPickupTask(this)
 	private val explodeTask: SoulExplodeTask = SoulExplodeTask(this)
+	private val particleTask: SoulParticleTask = SoulParticleTask(this)
+	private val pickupTask: SoulPickupTask = SoulPickupTask(this)
+	private val renderTask: SoulRenderTask = SoulRenderTask(this)
+	private val soundTask: SoulSoundTask = SoulSoundTask(this)
+	private val stateTask: SoulStateTask = SoulStateTask(this)
 
 	init {
 		this.markerUUID = markerUUID ?: spawnMarker()?.uniqueId // Spawn Marker If Marker Not Exist
@@ -48,12 +49,13 @@ class Soul(
 	 * Start Soul Tasks.
 	 */
 	private fun startTasks() {
-		markerUUID ?: this.delete() // IF DO NOT HAVE UUID MEAN WORLD IS NOT EXIST, DATA WILL BE REMOVE
-		stateTask.runTaskTimer(SoulGraves.plugin, 0, 20)
-		soundTask.runTaskTimer(SoulGraves.plugin, 0, 50)
-		renderTask.runTaskTimer(SoulGraves.plugin, 0, 1)
-		pickupTask.runTaskTimer(SoulGraves.plugin, 0, 4)
+		markerUUID ?: this.delete() // IF SOUL DO NOT HAVE UUID MEAN WORLD IS NOT EXIST, DATA WILL REMOVE
 		explodeTask.runTaskTimer(SoulGraves.plugin, 0, 20)
+		particleTask.runTaskTimer(SoulGraves.plugin, 0, 50)
+		pickupTask.runTaskTimer(SoulGraves.plugin, 0, 4)
+		renderTask.runTaskTimer(SoulGraves.plugin, 0, 1)
+		soundTask.runTaskTimer(SoulGraves.plugin, 0, 50)
+		stateTask.runTaskTimer(SoulGraves.plugin, 0, 20)
 	}
 
 
