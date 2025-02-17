@@ -4,11 +4,11 @@ import org.bukkit.scheduler.BukkitRunnable
 import dev.faultyfunctions.soulgraves.SoulGraves
 import dev.faultyfunctions.soulgraves.managers.ConfigManager
 import dev.faultyfunctions.soulgraves.managers.MessageManager
-import dev.faultyfunctions.soulgraves.soulChunksKey
-import dev.faultyfunctions.soulgraves.soulKey
 import dev.faultyfunctions.soulgraves.utils.SoulState
-import com.jeff_media.morepersistentdatatypes.DataType
 import dev.faultyfunctions.soulgraves.api.event.SoulPickupEvent
+import dev.faultyfunctions.soulgraves.database.MessageAction
+import dev.faultyfunctions.soulgraves.database.RedisDatabase
+import dev.faultyfunctions.soulgraves.database.RedisPacket
 import dev.faultyfunctions.soulgraves.utils.Soul
 import org.bukkit.Bukkit
 import org.bukkit.GameMode
@@ -74,13 +74,7 @@ class SoulPickupTask(val soul: Soul) : BukkitRunnable() {
 				// SEND MESSAGE TO OWNER IF NEEDED
 				if (player.uniqueId != soul.ownerUUID && owner != null) {
 					if (ConfigManager.notifyOwnerPickup) {
-						if (MessageManager.soulCollectOtherComponent != null) SoulGraves.plugin.adventure().player(owner.uniqueId).sendMessage(MessageManager.soulCollectOtherComponent!!)
-
-						if (ConfigManager.notifyOwnerPickupSound.enabled) {
-							ConfigManager.notifyOwnerPickupSound.sounds.forEachIndexed { index, soundKey ->
-								owner.playSound(owner.location, soundKey, ConfigManager.notifyOwnerPickupSound.volumes[index], ConfigManager.notifyOwnerPickupSound.pitches[index])
-							}
-						}
+						RedisDatabase.instance.publish(RedisPacket(ConfigManager.serverName, MessageAction.NOTIFY_SOUL_OTHER_PICKUP, soul.ownerUUID.toString()))
 					}
 				}
 

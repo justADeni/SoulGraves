@@ -38,18 +38,15 @@ class Soul(
 	private val soundTask: SoulSoundTask = SoulSoundTask(this)
 	private val stateTask: SoulStateTask = SoulStateTask(this)
 
-	init {
-		if (serverId == ConfigManager.serverName) {
-			this.markerUUID = markerUUID ?: spawnMarker()?.uniqueId // Spawn Marker If Marker Not Exist
-			startTasks()
-		}
-	}
-
+	private var isStarted: Boolean = false
 
 	/**
 	 * Start Soul Tasks.
 	 */
-	private fun startTasks() {
+	fun startTasks() {
+		if (serverId != ConfigManager.serverName) return
+		if (isStarted) return
+
 		markerUUID ?: this.delete() // IF SOUL DO NOT HAVE UUID MEAN WORLD IS NOT EXIST, DATA WILL REMOVE
 		explodeTask.runTaskTimer(SoulGraves.plugin, 0, 20)
 		particleTask.runTaskTimer(SoulGraves.plugin, 0, 50)
@@ -57,16 +54,21 @@ class Soul(
 		renderTask.runTaskTimer(SoulGraves.plugin, 0, 1)
 		soundTask.runTaskTimer(SoulGraves.plugin, 0, 50)
 		stateTask.runTaskTimer(SoulGraves.plugin, 0, 20)
+		isStarted = true
 	}
 
 
 	/**
 	 * Spawn a Marker Entity upon Soul Created.
 	 */
-	private fun spawnMarker(): Entity? {
+	 fun spawnMarker() {
+		if (serverId != ConfigManager.serverName) return
+		if (location.world == null) return
 		location.chunk.load()
-		if (location.world != null) {
-			val marker = location.world!!.spawnEntity(location, EntityType.MARKER) as Marker
+		markerUUID?.let { Bukkit.getEntity(it)?.let { return } }
+
+		location.world?.let {
+			val marker = it.spawnEntity(location, EntityType.MARKER) as Marker
 			marker.isPersistent = true
 			marker.isSilent = true
 			marker.isInvulnerable = true
@@ -76,9 +78,8 @@ class Soul(
 			marker.persistentDataContainer.set(soulInvKey, DataType.ITEM_STACK_ARRAY, inventory.toTypedArray())
 			marker.persistentDataContainer.set(soulXpKey, DataType.INTEGER, xp)
 			marker.persistentDataContainer.set(soulTimeLeftKey, DataType.INTEGER, timeLeft)
-			return marker
+			markerUUID = marker.uniqueId
 		}
-		return null
 	}
 
 

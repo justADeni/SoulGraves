@@ -4,7 +4,9 @@ import com.google.gson.JsonSyntaxException
 import dev.faultyfunctions.soulgraves.SoulGraves
 import dev.faultyfunctions.soulgraves.api.SoulGraveAPI
 import dev.faultyfunctions.soulgraves.database.MessageAction.*
+import dev.faultyfunctions.soulgraves.managers.ConfigManager
 import dev.faultyfunctions.soulgraves.managers.DatabaseManager
+import dev.faultyfunctions.soulgraves.managers.MessageManager
 import io.lettuce.core.RedisClient
 import io.lettuce.core.api.StatefulRedisConnection
 import io.lettuce.core.pubsub.RedisPubSubAdapter
@@ -94,18 +96,52 @@ class RedisDatabase {
                 // PAYLOAD FORMAT: [MAKER_UUID]
                 REMOVE_SOUL -> {
                     callbackExecutor!!.execute {
-                        val makerUUID = packet.payload
-                        val soul = SoulGraveAPI.getSoul(UUID.fromString(makerUUID))
-                        soul?.let { Bukkit.getScheduler().runTask(SoulGraves.plugin, Runnable { soul.delete() }) } // Sync for Bukkit API
+                        val makerUUID = UUID.fromString(packet.payload)
+                        val soul = SoulGraveAPI.getSoul(makerUUID)
+                        soul?.let { soul.delete() } // Sync for Bukkit API
                     }
                 }
                 // EXPLODE_SOUL
                 // PAYLOAD FORMAT: [MAKER_UUID]
                 EXPLODE_SOUL -> {
                     callbackExecutor!!.execute {
-                        val makerUUID = packet.payload
-                        val soul = SoulGraveAPI.getSoul(UUID.fromString(makerUUID))
-                        soul?.let { Bukkit.getScheduler().runTask(SoulGraves.plugin, Runnable { soul.explodeNow() }) } // Sync for Bukkit API
+                        val makerUUID = UUID.fromString(packet.payload)
+                        val soul = SoulGraveAPI.getSoul(makerUUID)
+                        soul?.let { soul.explodeNow() } // Sync for Bukkit API
+                    }
+                }
+
+                // NOTIFY_SOUL_EXPLODE
+                // PAYLOAD FORMAT: [OWNER_UUID]
+                NOTIFY_SOUL_EXPLODE -> {
+                    callbackExecutor!!.execute {
+                        val ownerUUID = UUID.fromString(packet.payload)
+                        val player = Bukkit.getPlayer(ownerUUID)
+                        if (player?.isOnline == true) {
+                            if (MessageManager.soulBurstComponent != null)
+                                SoulGraves.plugin.adventure().player(player).sendMessage(MessageManager.soulBurstComponent!!)
+                            if (ConfigManager.soulsDropItems && MessageManager.soulBurstDropItemsComponent != null)
+                                SoulGraves.plugin.adventure().player(player).sendMessage(MessageManager.soulBurstDropItemsComponent!!)
+                            else if (MessageManager.soulBurstLoseItemsComponent != null)
+                                SoulGraves.plugin.adventure().player(player).sendMessage(MessageManager.soulBurstLoseItemsComponent!!)
+                        }
+                    }
+                }
+
+                // NOTIFY_SOUL_OTHER_PICKUP
+                // PAYLOAD FORMAT: [OWNER_UUID]
+                NOTIFY_SOUL_OTHER_PICKUP -> {
+                    callbackExecutor!!.execute {
+                        val ownerUUID = UUID.fromString(packet.payload)
+                        val player = Bukkit.getPlayer(ownerUUID)
+                        if (player?.isOnline == true) {
+                            if (MessageManager.soulCollectOtherComponent != null) SoulGraves.plugin.adventure().player(player).sendMessage(MessageManager.soulCollectOtherComponent!!)
+                            if (ConfigManager.notifyOwnerPickupSound.enabled) {
+                                ConfigManager.notifyOwnerPickupSound.sounds.forEachIndexed { index, soundKey ->
+                                    player.playSound(player.location, soundKey, ConfigManager.notifyOwnerPickupSound.volumes[index], ConfigManager.notifyOwnerPickupSound.pitches[index])
+                                }
+                            }
+                        }
                     }
                 }
             }

@@ -5,7 +5,9 @@ import com.google.gson.Gson
 
 enum class MessageAction {
     REMOVE_SOUL,
-    EXPLODE_SOUL
+    EXPLODE_SOUL,
+    NOTIFY_SOUL_EXPLODE,
+    NOTIFY_SOUL_OTHER_PICKUP
 }
 
 

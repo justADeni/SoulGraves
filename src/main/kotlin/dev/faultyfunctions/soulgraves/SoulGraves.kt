@@ -8,7 +8,6 @@ import dev.faultyfunctions.soulgraves.database.RedisDatabase
 import dev.faultyfunctions.soulgraves.listeners.PlayerDeathListener
 import dev.faultyfunctions.soulgraves.managers.DatabaseManager
 import dev.faultyfunctions.soulgraves.utils.Soul
-import dev.faultyfunctions.soulgraves.utils.SpigotCompatUtils
 import net.kyori.adventure.platform.bukkit.BukkitAudiences
 import org.bstats.bukkit.Metrics
 import org.bukkit.NamespacedKey
@@ -43,7 +42,8 @@ class SoulGraves : JavaPlugin() {
 		RedisDatabase.instance
 
 		// INIT SOULS
-		soulList = MySQLDatabase.instance.readServerSouls(ConfigManager.serverName)
+		soulList = MySQLDatabase.instance.getCurrentServerSouls()
+		for (soul in soulList) soul.startTasks()
 
 		// LISTENERS
 		server.pluginManager.registerEvents(PlayerDeathListener(), this)

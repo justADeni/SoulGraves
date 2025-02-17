@@ -57,6 +57,8 @@ class PlayerDeathListener() : Listener {
 
 		// CREATE SOUL DATA
 		val soul = Soul(player.uniqueId, null, marker.location, inventory, xp, timeLeft)
+		soul.spawnMarker()
+		soul.startTasks()
 		SoulGraves.soulList.add(soul)
 		Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable { MySQLDatabase.instance.saveSoul(soul, ConfigManager.serverName) })
 

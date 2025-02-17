@@ -1,5 +1,8 @@
 package dev.faultyfunctions.soulgraves.commands
 import dev.faultyfunctions.soulgraves.SoulGraves
+import dev.faultyfunctions.soulgraves.api.RedisPublishAPI
+import dev.faultyfunctions.soulgraves.api.SoulGraveAPI
+import dev.faultyfunctions.soulgraves.database.MySQLDatabase
 import dev.faultyfunctions.soulgraves.managers.ConfigManager
 import dev.faultyfunctions.soulgraves.managers.DatabaseManager
 import dev.faultyfunctions.soulgraves.managers.MessageManager
@@ -37,6 +40,16 @@ class ReloadCommand: CommandExecutor, TabExecutor {
 				}
 
 				SoulGraves.plugin.logger.info("Config reloaded!")
+			}
+
+			if (args[0].equals("debug", ignoreCase = true)) {
+				val allSoulsCrossServer = SoulGraveAPI.getAllSoulsCrossServer()
+				allSoulsCrossServer.thenAcceptAsync {
+					for (soul in it) {
+						sender.sendMessage("uuid:" + soul.markerUUID)
+						RedisPublishAPI.explodeSoul(soul.markerUUID!!)
+					}
+				}
 			}
 		}
 

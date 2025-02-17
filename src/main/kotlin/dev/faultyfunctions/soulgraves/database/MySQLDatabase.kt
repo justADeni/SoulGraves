@@ -78,7 +78,7 @@ class MySQLDatabase private constructor(){
 
     // Save Soul to Database
     fun saveSoul(soul: Soul, serverName: String) {
-        var now = System.currentTimeMillis()
+        val now = System.currentTimeMillis()
         val connection = dataSource.connection
         val sql = "INSERT INTO $databaseName (ownerUUID, markerUUID, serverName, world, x, y, z, inventory, xp, expireTime, isDeleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         val statement = connection.prepareStatement(sql)
@@ -105,19 +105,20 @@ class MySQLDatabase private constructor(){
         }
     }
 
-
-    // Read Souls From Database
-    fun readPlayerSouls(uuid: String) : MutableList<Soul> {
+    // Read Souls in Current Server
+    fun getAllSouls() : MutableList<Soul> {
         val souls = ArrayList<Soul>()
 
         val connection = dataSource.connection
-        val sql = "SELECT * FROM $databaseName WHERE uuid = ?"
+        val sql = "SELECT * FROM $databaseName"
         val statement = connection.prepareStatement(sql)
-        statement.setString(1, uuid)
 
         try {
             val resultSet = statement.executeQuery()
             while (resultSet.next()) {
+                // IF DELETED OR EXPIRE SOULS.
+                if (resultSet.getBoolean("isDeleted")) continue
+                if (resultSet.getLong("expireTime") <= System.currentTimeMillis()) continue
                 val soul = Soul(
                     ownerUUID = UUID.fromString(resultSet.getString("ownerUUID")),
                     markerUUID = UUID.fromString(resultSet.getString("markerUUID")),
@@ -140,8 +141,80 @@ class MySQLDatabase private constructor(){
     }
 
 
+    // Read Souls From Database
+    fun getPlayerSouls(playerUUID: String) : MutableList<Soul> {
+        val souls = ArrayList<Soul>()
+
+        val connection = dataSource.connection
+        val sql = "SELECT * FROM $databaseName WHERE ownerUUID = ?"
+        val statement = connection.prepareStatement(sql)
+        statement.setString(1, playerUUID)
+
+        try {
+            val resultSet = statement.executeQuery()
+            while (resultSet.next()) {
+                // IF DELETED OR EXPIRE SOULS.
+                if (resultSet.getBoolean("isDeleted")) continue
+                if (resultSet.getLong("expireTime") <= System.currentTimeMillis()) continue
+                val soul = Soul(
+                    ownerUUID = UUID.fromString(resultSet.getString("ownerUUID")),
+                    markerUUID = UUID.fromString(resultSet.getString("markerUUID")),
+                    inventory = ItemTagStream.INSTANCE.listFromBase64(resultSet.getString("inventory")),
+                    xp = resultSet.getInt("xp"),
+                    location = Location(Bukkit.getWorld(resultSet.getString("world")), resultSet.getDouble("x"), resultSet.getDouble("y"), resultSet.getDouble("z")),
+                    timeLeft = ((resultSet.getLong("expireTime") - System.currentTimeMillis()) / 1000).toInt(),
+                    serverId = resultSet.getString("serverName"),
+                    expireTime = resultSet.getLong("expireTime")
+                )
+                souls.add(soul)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            statement.close()
+            connection.close()
+        }
+        return souls
+    }
+
+
+    // Read Soul From Database
+    fun getSoul(markerUUID: String) : Soul? {
+        val connection = dataSource.connection
+        val sql = "SELECT * FROM $databaseName WHERE markerUUID = ?"
+        val statement = connection.prepareStatement(sql)
+        statement.setString(1, markerUUID)
+
+        try {
+            val resultSet = statement.executeQuery()
+            while (resultSet.next()) {
+                // IF DELETED OR EXPIRE SOULS.
+                if (resultSet.getBoolean("isDeleted")) continue
+                if (resultSet.getLong("expireTime") <= System.currentTimeMillis()) continue
+
+                return Soul(
+                    ownerUUID = UUID.fromString(resultSet.getString("ownerUUID")),
+                    markerUUID = UUID.fromString(resultSet.getString("markerUUID")),
+                    inventory = ItemTagStream.INSTANCE.listFromBase64(resultSet.getString("inventory")),
+                    xp = resultSet.getInt("xp"),
+                    location = Location(Bukkit.getWorld(resultSet.getString("world")), resultSet.getDouble("x"), resultSet.getDouble("y"), resultSet.getDouble("z")),
+                    timeLeft = ((resultSet.getLong("expireTime") - System.currentTimeMillis()) / 1000).toInt(),
+                    serverId = resultSet.getString("serverName"),
+                    expireTime = resultSet.getLong("expireTime")
+                )
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            statement.close()
+            connection.close()
+        }
+        return null
+    }
+
+
     // Read Souls in Current Server
-    fun readServerSouls(serverName: String) : MutableList<Soul> {
+    fun getCurrentServerSouls(serverName: String = ConfigManager.serverName) : MutableList<Soul> {
         val souls = ArrayList<Soul>()
 
         val connection = dataSource.connection
@@ -158,14 +231,15 @@ class MySQLDatabase private constructor(){
                     inventory = ItemTagStream.INSTANCE.listFromBase64(resultSet.getString("inventory")),
                     xp = resultSet.getInt("xp"),
                     location = Location(Bukkit.getWorld(resultSet.getString("world")), resultSet.getDouble("x"), resultSet.getDouble("y"), resultSet.getDouble("z")),
-                    timeLeft = ((resultSet.getLong("expireTime") - System.currentTimeMillis()) / 1000).toInt()
+                    timeLeft = ((resultSet.getLong("expireTime") - System.currentTimeMillis()) / 1000).toInt(),
+                    serverId = resultSet.getString("serverName"),
+                    expireTime = resultSet.getLong("expireTime")
                 )
                 // IF MARKER DELETED, WILL REMOVE.
                 if (resultSet.getBoolean("isDeleted")) {
                     soul.delete()
-                } else {
-                    souls.add(soul)
                 }
+                souls.add(soul)
             }
         } catch (e: Exception) {
             e.printStackTrace()
