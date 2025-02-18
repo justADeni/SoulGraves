@@ -96,7 +96,7 @@ class RedisDatabase {
                     callbackExecutor!!.execute {
                         val makerUUID = UUID.fromString(packet.payload)
                         val soul = SoulGraveAPI.getSoul(makerUUID)
-                        soul?.let { soul.delete() } // Sync for Bukkit API
+                        soul?.let { Bukkit.getScheduler().runTask(SoulGraves.plugin, Runnable { soul.delete() }) } // Sync for Bukkit API
                     }
                 }
                 // EXPLODE_SOUL
@@ -105,7 +105,7 @@ class RedisDatabase {
                     callbackExecutor!!.execute {
                         val makerUUID = UUID.fromString(packet.payload)
                         val soul = SoulGraveAPI.getSoul(makerUUID)
-                        soul?.let { soul.explodeNow() } // Sync for Bukkit API
+                        soul?.let { Bukkit.getScheduler().runTask(SoulGraves.plugin, Runnable { soul.explodeNow() }) } // Sync for Bukkit API
                     }
                 }
 
