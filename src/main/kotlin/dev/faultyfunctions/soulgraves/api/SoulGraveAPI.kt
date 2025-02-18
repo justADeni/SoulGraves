@@ -7,6 +7,7 @@ import dev.faultyfunctions.soulgraves.utils.Soul
 import org.bukkit.Bukkit
 import java.util.*
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.TimeUnit
 
 object SoulGraveAPI {
 
@@ -27,7 +28,7 @@ object SoulGraveAPI {
             val allSouls = MySQLDatabase.instance.getAllSouls()
             future.complete(allSouls)
         })
-        return future
+        return future.orTimeout(10, TimeUnit.SECONDS)
     }
 
 
@@ -54,7 +55,7 @@ object SoulGraveAPI {
             val allSouls = MySQLDatabase.instance.getPlayerSouls(ownerUUID.toString())
             future.complete(allSouls)
         })
-        return future
+        return future.orTimeout(10, TimeUnit.SECONDS)
     }
 
 
@@ -80,7 +81,7 @@ object SoulGraveAPI {
             val soul = MySQLDatabase.instance.getSoul(makerUUID.toString())
             future.complete(soul)
         })
-        return future
+        return future.orTimeout(10, TimeUnit.SECONDS)
     }
 
 

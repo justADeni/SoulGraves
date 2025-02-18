@@ -142,7 +142,6 @@ class Soul(
 	 * Check Soul is Valid
 	 */
 	fun isValid(): Boolean {
-		if (serverId != DatabaseManager.serverName) return false // not same server
 		location.world ?: return false // world is not exist
 		markerUUID ?: return false // initialization error
 		markerUUID?.let { Bukkit.getEntity(it) ?: return false } // Marker is not exist
@@ -158,6 +157,7 @@ class Soul(
 			this.state = SoulState.EXPLODING
 			this.implosion = true
 		} else {
+			// IF SOUL IS NOT IN THIS SERVER, IT WILL MARK AND PUB TO CHANNEL.
 			if (DatabaseManager.storeMode == STORE_MODE.DATABASE)
 				markerUUID?.let { RedisPublishAPI.explodeSoul(it) }
 		}
@@ -204,8 +204,8 @@ class Soul(
 			markerUUID?.let { uuid ->
 				(Bukkit.getEntity(uuid) as? Marker)?.remove()
 			}
-		// IF NOT THIS SERVER, IT WILL PUB TO CHANNEL.
 		} else {
+			// IF SOUL IS NOT IN THIS SERVER, IT WILL MARK AND PUB TO CHANNEL.
 			if (DatabaseManager.storeMode == STORE_MODE.DATABASE)
 				markerUUID?.let { RedisPublishAPI.deleteSoul(it) }
 		}

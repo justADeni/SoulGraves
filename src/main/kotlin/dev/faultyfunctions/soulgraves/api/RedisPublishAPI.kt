@@ -12,7 +12,7 @@ import java.util.UUID
 
 /**
  * In this API, ALL Action Will Cross Server.
- * If Target Server Offline, It Will Mark To Mysql, Next Start Will Handle These Souls.
+ * If Target Server Offline, It Will Mark To Mysql, Target Server Will Handle These Souls At Next Start.
  */
 object RedisPublishAPI {
 
