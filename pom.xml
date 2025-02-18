@@ -120,7 +120,7 @@
 			<version>${kotlin.version}</version>
 			<scope>compile</scope>
 		</dependency>
-		<!-- Database-->
+		<!-- Database -->
 		<dependency>
 			<groupId>com.zaxxer</groupId>
 			<artifactId>HikariCP</artifactId>

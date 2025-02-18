@@ -10,7 +10,7 @@ import org.bukkit.Chunk
 import org.bukkit.entity.Marker
 import org.bukkit.inventory.ItemStack
 
-class PDCDatabase {
+class PDCDatabase private constructor() {
 
     companion object {
         val instance by lazy { PDCDatabase().apply { initSouls() } }

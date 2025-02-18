@@ -1,5 +1,5 @@
 # DO NOT EDIT file-version DIRECTLY
-file-version: 2
+file-version: 1
 
 # Change This File's Config, You Need Restart Server!!!
 
@@ -14,11 +14,11 @@ server-name: "lobby"
 
 # Database For Cross-Server
 MySQL:
-  jdbc-url: "jdbc:mysql://mysql:3306/minecraft?useSSL=false&autoReconnect=true"
+  jdbc-url: "jdbc:mysql://localhost:3306/minecraft?useSSL=false&autoReconnect=true"
   jdbc-class: "com.mysql.cj.jdbc.Driver"
   properties:
-    user: "catnies"
-    password: "minato"
+    user: "root"
+    password: "password"
 
 Redis:
-  uri: "redis://redis:6379/0"
+  uri: "redis://localhost:6379/0"

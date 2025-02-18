@@ -14,6 +14,7 @@ import net.kyori.adventure.platform.bukkit.BukkitAudiences
 import org.bstats.bukkit.Metrics
 import org.bukkit.NamespacedKey
 import org.bukkit.plugin.java.JavaPlugin
+import java.util.concurrent.CopyOnWriteArrayList
 
 val soulChunksKey = NamespacedKey(SoulGraves.plugin, "soul-chunks")
 val soulKey = NamespacedKey(SoulGraves.plugin, "soul")
@@ -25,7 +26,7 @@ val soulTimeLeftKey = NamespacedKey(SoulGraves.plugin, "soul-time-left")
 class SoulGraves : JavaPlugin() {
 	companion object {
 		lateinit var plugin: SoulGraves
-		var soulList: MutableList<Soul> = mutableListOf()
+		var soulList = CopyOnWriteArrayList<Soul>()
 	}
 
 	private lateinit var adventure: BukkitAudiences
@@ -52,7 +53,6 @@ class SoulGraves : JavaPlugin() {
 			STORE_MODE.DATABASE -> {
 				MySQLDatabase.instance
 				RedisDatabase.instance
-				soulList = MySQLDatabase.instance.getCurrentServerSouls()
 			}
 			// OTHER NOT VALID MODE
 			else -> {

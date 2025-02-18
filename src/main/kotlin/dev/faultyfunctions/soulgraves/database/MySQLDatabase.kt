@@ -12,7 +12,7 @@ import org.bukkit.Location
 import java.util.*
 import kotlin.collections.ArrayList
 
-class MySQLDatabase private constructor(){
+class MySQLDatabase private constructor() {
 
     // DATABASE VALUES
     private var dataSource: HikariDataSource
@@ -41,6 +41,7 @@ class MySQLDatabase private constructor(){
     companion object {
         val instance: MySQLDatabase by lazy { MySQLDatabase().apply {
             createTable()
+            initCurrentServerSouls()
             SoulGraves.plugin.logger.info("Connected to MySQL Database!")
         } }
     }
@@ -69,6 +70,42 @@ class MySQLDatabase private constructor(){
         } catch (e: Exception) {
             e.printStackTrace()
             println("Error while creating table: ${e.message}")
+        } finally {
+            statement.close()
+            connection.close()
+        }
+    }
+
+    // Read Souls in Current Server
+    private fun initCurrentServerSouls(serverName: String = DatabaseManager.serverName) {
+        val souls = ArrayList<Soul>()
+
+        val connection = dataSource.connection
+        val sql = "SELECT * FROM $databaseName WHERE serverName = ?"
+        val statement = connection.prepareStatement(sql)
+        statement.setString(1, serverName)
+
+        try {
+            val resultSet = statement.executeQuery()
+            while (resultSet.next()) {
+                val soul = Soul(
+                    ownerUUID = UUID.fromString(resultSet.getString("ownerUUID")),
+                    markerUUID = UUID.fromString(resultSet.getString("markerUUID")),
+                    inventory = ItemTagStream.INSTANCE.listFromBase64(resultSet.getString("inventory")),
+                    xp = resultSet.getInt("xp"),
+                    location = Location(Bukkit.getWorld(resultSet.getString("world")), resultSet.getDouble("x"), resultSet.getDouble("y"), resultSet.getDouble("z")),
+                    timeLeft = ((resultSet.getLong("expireTime") - System.currentTimeMillis()) / 1000).toInt(),
+                    serverId = resultSet.getString("serverName"),
+                    expireTime = resultSet.getLong("expireTime")
+                )
+                // IF MARKER DELETED, WILL REMOVE.
+                if (resultSet.getBoolean("isDeleted")) {
+                    soul.delete()
+                }
+                SoulGraves.soulList.add(soul)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         } finally {
             statement.close()
             connection.close()
@@ -213,44 +250,6 @@ class MySQLDatabase private constructor(){
     }
 
 
-    // Read Souls in Current Server
-    fun getCurrentServerSouls(serverName: String = DatabaseManager.serverName) : MutableList<Soul> {
-        val souls = ArrayList<Soul>()
-
-        val connection = dataSource.connection
-        val sql = "SELECT * FROM $databaseName WHERE serverName = ?"
-        val statement = connection.prepareStatement(sql)
-        statement.setString(1, serverName)
-
-        try {
-            val resultSet = statement.executeQuery()
-            while (resultSet.next()) {
-                val soul = Soul(
-                    ownerUUID = UUID.fromString(resultSet.getString("ownerUUID")),
-                    markerUUID = UUID.fromString(resultSet.getString("markerUUID")),
-                    inventory = ItemTagStream.INSTANCE.listFromBase64(resultSet.getString("inventory")),
-                    xp = resultSet.getInt("xp"),
-                    location = Location(Bukkit.getWorld(resultSet.getString("world")), resultSet.getDouble("x"), resultSet.getDouble("y"), resultSet.getDouble("z")),
-                    timeLeft = ((resultSet.getLong("expireTime") - System.currentTimeMillis()) / 1000).toInt(),
-                    serverId = resultSet.getString("serverName"),
-                    expireTime = resultSet.getLong("expireTime")
-                )
-                // IF MARKER DELETED, WILL REMOVE.
-                if (resultSet.getBoolean("isDeleted")) {
-                    soul.delete()
-                }
-                souls.add(soul)
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        } finally {
-            statement.close()
-            connection.close()
-        }
-        return souls
-    }
-
-
     // Mark a Soul Deleted
     fun markSoulDelete(makerUUID: UUID) {
         val connection = dataSource.connection
@@ -291,6 +290,7 @@ class MySQLDatabase private constructor(){
     fun deleteSoul(soul: Soul) {
         val uuid = soul.markerUUID.toString()
         val connection = dataSource.connection
+        SoulGraves.plugin.logger.warning("delete maker $uuid")
         val sql = "DELETE FROM $databaseName WHERE markerUUID = ?"
         val statement = connection.prepareStatement(sql)
         statement.setString(1, uuid)

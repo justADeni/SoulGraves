@@ -16,7 +16,7 @@ import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-class RedisDatabase {
+class RedisDatabase private constructor() {
 
     private var redisClient: RedisClient? = null
     private var connection: StatefulRedisConnection<String, String>? = null
