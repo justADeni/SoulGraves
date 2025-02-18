@@ -20,6 +20,10 @@ enum class SoulState {
 	NORMAL, PANIC, EXPLODING
 }
 
+/**
+ * Soul Create:
+ * 1. Create Instance -> 2. SpawnMarker -> 3. StartTasks -> 4. SaveData
+ */
 class Soul(
 	val ownerUUID: UUID,
 	var markerUUID: UUID?,
@@ -33,43 +37,23 @@ class Soul(
 	var state: Enum<SoulState> = SoulState.NORMAL
 	var implosion: Boolean = false
 
-	private val explodeTask: SoulExplodeTask = SoulExplodeTask(this)
-	private val particleTask: SoulParticleTask = SoulParticleTask(this)
-	private val pickupTask: SoulPickupTask = SoulPickupTask(this)
-	private val renderTask: SoulRenderTask = SoulRenderTask(this)
-	private val soundTask: SoulSoundTask = SoulSoundTask(this)
-	private val stateTask: SoulStateTask = SoulStateTask(this)
-
-	private var isStarted: Boolean = false
-
-	/**
-	 * Start Soul Tasks.
-	 */
-	fun startTasks() {
-		if (serverId != DatabaseManager.serverName) return
-		if (isStarted) return
-
-		markerUUID ?: this.delete() // IF SOUL DO NOT HAVE UUID MEAN WORLD IS NOT EXIST, DATA WILL REMOVE
-		explodeTask.runTaskTimer(SoulGraves.plugin, 0, 20)
-		particleTask.runTaskTimer(SoulGraves.plugin, 0, 50)
-		pickupTask.runTaskTimer(SoulGraves.plugin, 0, 4)
-		renderTask.runTaskTimer(SoulGraves.plugin, 0, 1)
-		soundTask.runTaskTimer(SoulGraves.plugin, 0, 50)
-		stateTask.runTaskTimer(SoulGraves.plugin, 0, 20)
-		isStarted = true
-	}
-
+	private var explodeTask: SoulExplodeTask? = null
+	private var particleTask: SoulParticleTask? = null
+	private var pickupTask: SoulPickupTask? = null
+	private var renderTask: SoulRenderTask? = null
+	private var soundTask: SoulSoundTask? = null
+	private var stateTask: SoulStateTask? = null
 
 	/**
 	 * Spawn a Marker Entity upon Soul Created. If Entity of MarkerUUID is Exist, Marker Will DO NOT Spawn.
 	 */
-	 fun spawnMarker(): Entity? {
+	fun spawnMarker(): Entity? {
 		if (serverId != DatabaseManager.serverName) return null
 		if (location.world == null) return null
-		location.chunk.load()
 		markerUUID?.let { Bukkit.getEntity(it)?.let { return null } }
 
 		location.world?.let {
+			location.chunk.load()
 			val marker = it.spawnEntity(location, EntityType.MARKER) as Marker
 			marker.isPersistent = true
 			marker.isSilent = true
@@ -88,6 +72,85 @@ class Soul(
 
 
 	/**
+	 * Start Soul Tasks.
+	 */
+	fun startTasks() {
+		if (serverId != DatabaseManager.serverName) return
+
+		if (!isValid()) delete() // IF SOUL NOT VALID, DATA WILL REMOVE
+		explodeTask ?: SoulExplodeTask(this).also {
+			explodeTask = it
+			it.runTaskTimer(SoulGraves.plugin, 0, 20)
+		}
+
+		particleTask ?: SoulParticleTask(this).also {
+			particleTask = it
+			it.runTaskTimer(SoulGraves.plugin, 0, 50)
+		}
+
+		pickupTask ?: SoulPickupTask(this).also {
+			pickupTask = it
+			it.runTaskTimer(SoulGraves.plugin, 0, 4)
+		}
+
+		renderTask ?: SoulRenderTask(this).also {
+			renderTask = it
+			it.runTaskTimer(SoulGraves.plugin, 0, 1)
+		}
+
+		soundTask ?: SoulSoundTask(this).also {
+			soundTask = it
+			it.runTaskTimer(SoulGraves.plugin, 0, 50)
+		}
+
+		stateTask ?: SoulStateTask(this).also {
+			stateTask = it
+			it.runTaskTimer(SoulGraves.plugin, 0, 20)
+		}
+	}
+
+
+	/**
+	 * Save to Database
+	 */
+	fun saveData(marker: Entity?) {
+		if (serverId == DatabaseManager.serverName) {
+			SoulGraves.soulList.add(this)
+			when (DatabaseManager.storeMode) {
+				// PDC
+				STORE_MODE.PDC -> {
+					marker?.let {
+						val chunkList: MutableList<Long>? = marker.world.persistentDataContainer.get(soulChunksKey, DataType.asList(DataType.LONG))
+						if (chunkList != null && !chunkList.contains(SpigotCompatUtils.getChunkKey(marker.location.chunk))) {
+							chunkList.add(SpigotCompatUtils.getChunkKey(marker.location.chunk))
+							marker.world.persistentDataContainer.set(soulChunksKey, DataType.asList(DataType.LONG), chunkList)
+						} }
+				}
+				// MYSQL + REDIS
+				STORE_MODE.DATABASE -> {
+					marker?.let {
+						Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
+							MySQLDatabase.instance.saveSoul(this, DatabaseManager.serverName)
+						}) }
+				}
+			}
+		}
+	}
+
+
+	/**
+	 * Check Soul is Valid
+	 */
+	fun isValid(): Boolean {
+		if (serverId != DatabaseManager.serverName) return false // not same server
+		location.world ?: return false // world is not exist
+		markerUUID ?: return false // initialization error
+		markerUUID?.let { Bukkit.getEntity(it) ?: return false } // Marker is not exist
+		return true
+	}
+
+
+	/**
 	 * Make Soul Explode Now, Will Drop Exp And Items.
 	 */
 	fun explodeNow() {
@@ -95,7 +158,8 @@ class Soul(
 			this.state = SoulState.EXPLODING
 			this.implosion = true
 		} else {
-			markerUUID?.let { RedisPublishAPI.explodeSoul(it) }
+			if (DatabaseManager.storeMode == STORE_MODE.DATABASE)
+				markerUUID?.let { RedisPublishAPI.explodeSoul(it) }
 		}
 	}
 
@@ -105,12 +169,12 @@ class Soul(
 	 */
 	fun delete() {
 		if (serverId == DatabaseManager.serverName) {
-			explodeTask.cancel()
-			particleTask.cancel()
-			pickupTask.cancel()
-			renderTask.cancel()
-			soundTask.cancel()
-			stateTask.cancel()
+			explodeTask?.cancel()
+			particleTask?.cancel()
+			pickupTask?.cancel()
+			renderTask?.cancel()
+			soundTask?.cancel()
+			stateTask?.cancel()
 
 			SoulGraves.soulList.remove(this)
 			when (DatabaseManager.storeMode) {
@@ -142,35 +206,8 @@ class Soul(
 			}
 		// IF NOT THIS SERVER, IT WILL PUB TO CHANNEL.
 		} else {
-			markerUUID?.let { RedisPublishAPI.deleteSoul(it) }
-		}
-	}
-
-
-	/**
-	 * Save to Database
-	 */
-	fun saveData(marker: Entity?) {
-		if (serverId == DatabaseManager.serverName) {
-			SoulGraves.soulList.add(this)
-			when (DatabaseManager.storeMode) {
-				// PDC
-				STORE_MODE.PDC -> {
-					marker?.let {
-						val chunkList: MutableList<Long>? = marker.world.persistentDataContainer.get(soulChunksKey, DataType.asList(DataType.LONG))
-						if (chunkList != null && !chunkList.contains(SpigotCompatUtils.getChunkKey(marker.location.chunk))) {
-							chunkList.add(SpigotCompatUtils.getChunkKey(marker.location.chunk))
-							marker.world.persistentDataContainer.set(soulChunksKey, DataType.asList(DataType.LONG), chunkList)
-						} }
-				}
-				// MYSQL + REDIS
-				STORE_MODE.DATABASE -> {
-					marker?.let {
-						Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
-						MySQLDatabase.instance.saveSoul(this, DatabaseManager.serverName)
-					}) }
-				}
-			}
+			if (DatabaseManager.storeMode == STORE_MODE.DATABASE)
+				markerUUID?.let { RedisPublishAPI.deleteSoul(it) }
 		}
 	}
 
