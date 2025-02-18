@@ -1,10 +1,12 @@
 package dev.faultyfunctions.soulgraves.api
 
+import dev.faultyfunctions.soulgraves.SoulGraves
 import dev.faultyfunctions.soulgraves.database.MessageAction
 import dev.faultyfunctions.soulgraves.database.MySQLDatabase
 import dev.faultyfunctions.soulgraves.database.RedisDatabase
 import dev.faultyfunctions.soulgraves.database.RedisPacket
 import dev.faultyfunctions.soulgraves.managers.DatabaseManager
+import org.bukkit.Bukkit
 import java.util.UUID
 
 
@@ -18,8 +20,10 @@ object RedisPublishAPI {
      * Remove a Soul
      */
     fun deleteSoul(markerUUID: UUID) {
-        MySQLDatabase.instance.markSoulDelete(markerUUID)
-        RedisDatabase.instance.publish(RedisPacket(DatabaseManager.serverName, MessageAction.REMOVE_SOUL, markerUUID.toString()))
+        Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
+            MySQLDatabase.instance.markSoulDelete(markerUUID)
+            RedisDatabase.instance.publish(RedisPacket(DatabaseManager.serverName, MessageAction.REMOVE_SOUL, markerUUID.toString()))
+        })
     }
 
 
@@ -27,8 +31,10 @@ object RedisPublishAPI {
      * Make a Soul Explode
      */
     fun explodeSoul(markerUUID: UUID) {
-        MySQLDatabase.instance.markSoulExplode(markerUUID)
-        RedisDatabase.instance.publish(RedisPacket(DatabaseManager.serverName, MessageAction.EXPLODE_SOUL, markerUUID.toString()))
+        Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
+            MySQLDatabase.instance.markSoulExplode(markerUUID)
+            RedisDatabase.instance.publish(RedisPacket(DatabaseManager.serverName, MessageAction.EXPLODE_SOUL, markerUUID.toString()))
+        })
     }
 
 }

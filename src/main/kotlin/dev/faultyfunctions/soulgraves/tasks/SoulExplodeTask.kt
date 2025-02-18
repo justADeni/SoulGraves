@@ -1,7 +1,6 @@
 package dev.faultyfunctions.soulgraves.tasks
 
 import dev.faultyfunctions.soulgraves.SoulGraves
-import dev.faultyfunctions.soulgraves.api.RedisPublishAPI
 import dev.faultyfunctions.soulgraves.managers.ConfigManager
 import dev.faultyfunctions.soulgraves.managers.MessageManager
 import dev.faultyfunctions.soulgraves.utils.SoulState
@@ -10,6 +9,7 @@ import dev.faultyfunctions.soulgraves.database.MessageAction
 import dev.faultyfunctions.soulgraves.database.RedisDatabase
 import dev.faultyfunctions.soulgraves.database.RedisPacket
 import dev.faultyfunctions.soulgraves.managers.DatabaseManager
+import dev.faultyfunctions.soulgraves.managers.STORE_MODE
 import dev.faultyfunctions.soulgraves.utils.Soul
 import org.bukkit.Bukkit
 import org.bukkit.Particle
@@ -20,9 +20,6 @@ import org.bukkit.scheduler.BukkitRunnable
 
 class SoulExplodeTask(val soul: Soul) : BukkitRunnable() {
 
-	init {
-	    SoulGraves.plugin.logger.warning(this.toString())
-	}
 	override fun run() {
 		if (soul.state == SoulState.EXPLODING) {
 			soul.location.world?.loadChunk(soul.location.chunk)
@@ -67,7 +64,21 @@ class SoulExplodeTask(val soul: Soul) : BukkitRunnable() {
 			soul.location.world?.spawnParticle(Particle.SCULK_SOUL, soul.location.clone().add(0.0, 1.0, 0.0), 100, 0.0, 0.0, 0.0, 0.1, null, true)
 
 			// SEND PLAYER MESSAGE
-			RedisDatabase.instance.publish(RedisPacket(DatabaseManager.serverName, MessageAction.NOTIFY_SOUL_EXPLODE, soul.ownerUUID.toString()))
+			when (DatabaseManager.storeMode) {
+				STORE_MODE.PDC -> {
+					owner?.let {
+						if (MessageManager.soulBurstComponent != null)
+							SoulGraves.plugin.adventure().player(owner).sendMessage(MessageManager.soulBurstComponent!!)
+						if (ConfigManager.soulsDropItems && MessageManager.soulBurstDropItemsComponent != null)
+							SoulGraves.plugin.adventure().player(owner).sendMessage(MessageManager.soulBurstDropItemsComponent!!)
+						else if (MessageManager.soulBurstLoseItemsComponent != null)
+							SoulGraves.plugin.adventure().player(owner).sendMessage(MessageManager.soulBurstLoseItemsComponent!!)
+					}
+				}
+				STORE_MODE.DATABASE -> {
+					RedisDatabase.instance.publish(RedisPacket(DatabaseManager.serverName, MessageAction.NOTIFY_SOUL_EXPLODE, soul.ownerUUID.toString()))
+				}
+			}
 
 			// SEND NEARBY PLAYERS A MESSAGE
 			val marker: Marker = Bukkit.getEntity(soul.markerUUID!!) as Marker

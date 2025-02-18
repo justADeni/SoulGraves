@@ -6,6 +6,7 @@ import dev.faultyfunctions.soulgraves.api.RedisPublishAPI
 import dev.faultyfunctions.soulgraves.database.MySQLDatabase
 import dev.faultyfunctions.soulgraves.managers.ConfigManager
 import dev.faultyfunctions.soulgraves.managers.DatabaseManager
+import dev.faultyfunctions.soulgraves.managers.STORE_MODE
 import dev.faultyfunctions.soulgraves.tasks.*
 import org.bukkit.Bukkit
 import org.bukkit.Location
@@ -60,13 +61,13 @@ class Soul(
 
 
 	/**
-	 * Spawn a Marker Entity upon Soul Created.
+	 * Spawn a Marker Entity upon Soul Created. If Entity of MarkerUUID is Exist, Marker Will DO NOT Spawn.
 	 */
-	 fun spawnMarker() {
-		if (serverId != DatabaseManager.serverName) return
-		if (location.world == null) return
+	 fun spawnMarker(): Entity? {
+		if (serverId != DatabaseManager.serverName) return null
+		if (location.world == null) return null
 		location.chunk.load()
-		markerUUID?.let { Bukkit.getEntity(it)?.let { return } }
+		markerUUID?.let { Bukkit.getEntity(it)?.let { return null } }
 
 		location.world?.let {
 			val marker = it.spawnEntity(location, EntityType.MARKER) as Marker
@@ -80,7 +81,9 @@ class Soul(
 			marker.persistentDataContainer.set(soulXpKey, DataType.INTEGER, xp)
 			marker.persistentDataContainer.set(soulTimeLeftKey, DataType.INTEGER, timeLeft)
 			markerUUID = marker.uniqueId
+			return marker
 		}
+		return null
 	}
 
 
@@ -109,14 +112,65 @@ class Soul(
 			soundTask.cancel()
 			stateTask.cancel()
 
-			markerUUID?.let {
-				location.chunk.load()
-				(Bukkit.getEntity(it) as Marker).remove()
-			}
 			SoulGraves.soulList.remove(this)
-			Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable { MySQLDatabase.instance.deleteSoul(this) })
+			when (DatabaseManager.storeMode) {
+				// PDC - REMOVE CHUNK FROM LOAD LIST IF POSSIBLE
+				STORE_MODE.PDC -> {
+					var removeChunk = true
+					for (entityInChunk in location.chunk.entities) {
+						if (entityInChunk.persistentDataContainer.has(soulKey) && markerUUID != entityInChunk.uniqueId) {
+							removeChunk = false
+							break
+						}
+					}
+					if (removeChunk) {
+						val chunkList: MutableList<Long>? = location.world?.persistentDataContainer?.get(soulChunksKey, DataType.asList(DataType.LONG))
+						if (chunkList != null) {
+							chunkList.remove(SpigotCompatUtils.getChunkKey(location.chunk))
+							location.world?.persistentDataContainer?.set(soulChunksKey, DataType.asList(DataType.LONG), chunkList)
+						}
+					}
+				}
+				// MYSQL
+				STORE_MODE.DATABASE -> {
+					Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable { MySQLDatabase.instance.deleteSoul(this) })
+				}
+			}
+
+			markerUUID?.let { uuid ->
+				(Bukkit.getEntity(uuid) as? Marker)?.remove()
+			}
+		// IF NOT THIS SERVER, IT WILL PUB TO CHANNEL.
 		} else {
 			markerUUID?.let { RedisPublishAPI.deleteSoul(it) }
+		}
+	}
+
+
+	/**
+	 * Save to Database
+	 */
+	fun saveData(marker: Entity?) {
+		if (serverId == DatabaseManager.serverName) {
+			SoulGraves.soulList.add(this)
+			when (DatabaseManager.storeMode) {
+				// PDC
+				STORE_MODE.PDC -> {
+					marker?.let {
+						val chunkList: MutableList<Long>? = marker.world.persistentDataContainer.get(soulChunksKey, DataType.asList(DataType.LONG))
+						if (chunkList != null && !chunkList.contains(SpigotCompatUtils.getChunkKey(marker.location.chunk))) {
+							chunkList.add(SpigotCompatUtils.getChunkKey(marker.location.chunk))
+							marker.world.persistentDataContainer.set(soulChunksKey, DataType.asList(DataType.LONG), chunkList)
+						} }
+				}
+				// MYSQL + REDIS
+				STORE_MODE.DATABASE -> {
+					marker?.let {
+						Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
+						MySQLDatabase.instance.saveSoul(this, DatabaseManager.serverName)
+					}) }
+				}
+			}
 		}
 	}
 

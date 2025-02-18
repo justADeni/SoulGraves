@@ -1,5 +1,6 @@
 package dev.faultyfunctions.soulgraves.listeners
 
+import com.jeff_media.morepersistentdatatypes.DataType
 import dev.faultyfunctions.soulgraves.managers.ConfigManager
 import dev.faultyfunctions.soulgraves.utils.Soul
 import dev.faultyfunctions.soulgraves.*
@@ -42,12 +43,6 @@ class PlayerDeathListener() : Listener {
 		Bukkit.getPluginManager().callEvent(soulPreSpawnEvent)
 		if (soulPreSpawnEvent.isCancelled) return
 
-		// SPAWN & DEFINE ENTITY
-		val marker: Marker = player.world.spawnEntity(findSafeLocation(player.location), EntityType.MARKER) as Marker
-		marker.isPersistent = true
-		marker.isSilent = true
-		marker.isInvulnerable = true
-
 		// DATA
 		val inventory: MutableList<ItemStack?> = mutableListOf()
 		e.drops.forEach items@ { item ->
@@ -57,11 +52,10 @@ class PlayerDeathListener() : Listener {
 		val timeLeft = ConfigManager.timeStable + ConfigManager.timeUnstable
 
 		// CREATE SOUL DATA
-		val soul = Soul(player.uniqueId, null, marker.location, inventory, xp, timeLeft)
-		soul.spawnMarker()
+		val soul = Soul(player.uniqueId, null, findSafeLocation(player.location), inventory, xp, timeLeft)
+		val marker = soul.spawnMarker()
 		soul.startTasks()
-		SoulGraves.soulList.add(soul)
-		Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable { MySQLDatabase.instance.saveSoul(soul, DatabaseManager.serverName) })
+		soul.saveData(marker)
 
 		// CANCEL DROPS
 		e.drops.clear()

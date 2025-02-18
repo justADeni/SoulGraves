@@ -34,7 +34,6 @@ class ReloadCommand: CommandExecutor, TabExecutor {
 			if (args[0].equals("reload", ignoreCase = true)) {
 				ConfigManager.loadConfig()
 				MessageManager.loadMessages()
-				DatabaseManager.loadConfig()
 				if (sender is Player) {
 					sender.sendMessage("[SoulGraves] Config reloaded!")
 				}

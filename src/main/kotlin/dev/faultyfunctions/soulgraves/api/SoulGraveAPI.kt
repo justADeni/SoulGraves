@@ -19,6 +19,7 @@ object SoulGraveAPI {
 
     /**
      * Returns a list of all souls cross server.
+     * DO NOT USE IT WITH PDC STORE MODE
      */
     fun getAllSoulsCrossServer(): CompletableFuture<List<Soul>> {
         val future = CompletableFuture<List<Soul>>()
@@ -45,6 +46,7 @@ object SoulGraveAPI {
 
     /**
      * Returns a list of all souls cross server that match the given owner UUID.
+     * DO NOT USE IT WITH PDC STORE MODE
      */
     fun getPlayerSoulsCrossServer(ownerUUID: UUID): CompletableFuture<List<Soul>> {
         val future = CompletableFuture<List<Soul>>()
@@ -70,6 +72,7 @@ object SoulGraveAPI {
 
     /**
      * Returns a souls cross server that match the given marker UUID.
+     * DO NOT USE IT WITH PDC STORE MODE
      */
     fun getSoulCrossServer(makerUUID: UUID): CompletableFuture<Soul?> {
         val future = CompletableFuture<Soul?>()

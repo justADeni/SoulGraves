@@ -3,6 +3,7 @@ package dev.faultyfunctions.soulgraves.tasks
 import dev.faultyfunctions.soulgraves.SoulGraves
 import dev.faultyfunctions.soulgraves.managers.ConfigManager
 import dev.faultyfunctions.soulgraves.utils.Soul
+import org.bukkit.GameMode
 import org.bukkit.entity.Entity
 import org.bukkit.entity.Player
 import org.bukkit.scheduler.BukkitRunnable
@@ -31,7 +32,10 @@ class SoulParticleTask(private val soul: Soul) : BukkitRunnable() {
             ConfigManager.particlesFollowRadius
         )
             .filterIsInstance<Player>()
-            .firstOrNull { it.uniqueId == ownerUUID } ?: return
+            .firstOrNull {
+                it.uniqueId == ownerUUID &&
+                it.gameMode != GameMode.SPECTATOR
+            } ?: return
 
         // Validate particle spawning conditions
         if (!targetPlayer.isOnline ||
