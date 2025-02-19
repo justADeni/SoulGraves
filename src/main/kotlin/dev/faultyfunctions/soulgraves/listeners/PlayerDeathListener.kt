@@ -6,13 +6,11 @@ import dev.faultyfunctions.soulgraves.utils.Soul
 import dev.faultyfunctions.soulgraves.*
 import dev.faultyfunctions.soulgraves.api.event.SoulPreSpawnEvent
 import dev.faultyfunctions.soulgraves.api.event.SoulSpawnEvent
-import dev.faultyfunctions.soulgraves.database.MySQLDatabase
-import dev.faultyfunctions.soulgraves.managers.DatabaseManager
 import dev.faultyfunctions.soulgraves.utils.SpigotCompatUtils
 import org.bukkit.*
 import org.bukkit.block.Block
+import org.bukkit.entity.Entity
 import org.bukkit.entity.EntityType
-import org.bukkit.entity.Marker
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -51,11 +49,21 @@ class PlayerDeathListener() : Listener {
 		val xp: Int = SpigotCompatUtils.calculateTotalExperiencePoints(player.level)
 		val timeLeft = ConfigManager.timeStable + ConfigManager.timeUnstable
 
-		// CREATE SOUL DATA
-		val soul = Soul(player.uniqueId, null, findSafeLocation(player.location), inventory, xp, timeLeft)
-		val marker = soul.spawnMarker()
-		soul.startTasks()
-		soul.saveData(marker)
+		// SPAWN & DEFINE ENTITY
+		val marker: Entity = player.world.spawnEntity(findSafeLocation(player.location), EntityType.MARKER)
+		marker.isPersistent = true
+		marker.isSilent = true
+		marker.isInvulnerable = true
+
+		// STORE DATA
+		marker.persistentDataContainer.set(soulKey, DataType.BOOLEAN, true)
+		marker.persistentDataContainer.set(soulOwnerKey, DataType.UUID, player.uniqueId)
+		marker.persistentDataContainer.set(soulInvKey, DataType.ITEM_STACK_ARRAY, inventory.toTypedArray())
+		marker.persistentDataContainer.set(soulXpKey, DataType.INTEGER, xp)
+		marker.persistentDataContainer.set(soulTimeLeftKey, DataType.INTEGER, timeLeft)
+
+		// CREATE SOUL
+		val soul = Soul.createNewForPlayerDeath(player.uniqueId, marker, findSafeLocation(player.location), inventory, xp)
 
 		// CANCEL DROPS
 		e.drops.clear()

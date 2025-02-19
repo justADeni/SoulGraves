@@ -91,17 +91,18 @@ class MySQLDatabase private constructor() {
                 val soul = Soul(
                     ownerUUID = UUID.fromString(resultSet.getString("ownerUUID")),
                     markerUUID = UUID.fromString(resultSet.getString("markerUUID")),
+                    location = Location(Bukkit.getWorld(resultSet.getString("world")), resultSet.getDouble("x"), resultSet.getDouble("y"), resultSet.getDouble("z")),
                     inventory = ItemTagStream.INSTANCE.listFromBase64(resultSet.getString("inventory")),
                     xp = resultSet.getInt("xp"),
-                    location = Location(Bukkit.getWorld(resultSet.getString("world")), resultSet.getDouble("x"), resultSet.getDouble("y"), resultSet.getDouble("z")),
                     timeLeft = ((resultSet.getLong("expireTime") - System.currentTimeMillis()) / 1000).toInt(),
-                    serverId = resultSet.getString("serverName"),
-                    expireTime = resultSet.getLong("expireTime")
+                    serverId = resultSet.getString("serverName")
                 )
-                // IF MARKER DELETED, WILL REMOVE.
-                if (resultSet.getBoolean("isDeleted")) {
-                    soul.delete()
-                }
+                // IF FOUND DELETED TAG, WILL REMOVE.
+                if (resultSet.getBoolean("isDeleted")) soul.delete()
+                // IF SOUL EXPIRE
+                if (soul.timeLeft <= 0) soul.delete()
+
+                soul.startTasks()
                 SoulGraves.soulList.add(soul)
             }
         } catch (e: Exception) {
@@ -114,7 +115,7 @@ class MySQLDatabase private constructor() {
 
 
     // Save Soul to Database
-    fun saveSoul(soul: Soul, serverName: String) {
+    fun saveSoul(soul: Soul) {
         val now = System.currentTimeMillis()
         val connection = dataSource.connection
         val sql = "INSERT INTO $databaseName (ownerUUID, markerUUID, serverName, world, x, y, z, inventory, xp, expireTime, isDeleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
@@ -122,7 +123,7 @@ class MySQLDatabase private constructor() {
 
         statement.setString(1, soul.ownerUUID.toString())
         statement.setString(2, soul.markerUUID.toString())
-        statement.setString(3, serverName)
+        statement.setString(3, soul.serverId)
         statement.setString(4, soul.location.world?.name)
         statement.setInt(5, soul.location.x.toInt())
         statement.setInt(6, soul.location.y.toInt())

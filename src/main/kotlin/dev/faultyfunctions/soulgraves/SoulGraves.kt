@@ -8,7 +8,7 @@ import dev.faultyfunctions.soulgraves.database.PDCDatabase
 import dev.faultyfunctions.soulgraves.database.RedisDatabase
 import dev.faultyfunctions.soulgraves.listeners.PlayerDeathListener
 import dev.faultyfunctions.soulgraves.managers.DatabaseManager
-import dev.faultyfunctions.soulgraves.managers.STORE_MODE
+import dev.faultyfunctions.soulgraves.managers.STORAGE_TYPE
 import dev.faultyfunctions.soulgraves.utils.Soul
 import net.kyori.adventure.platform.bukkit.BukkitAudiences
 import org.bstats.bukkit.Metrics
@@ -44,13 +44,13 @@ class SoulGraves : JavaPlugin() {
 		DatabaseManager.loadConfig()
 
 		// INIT SOULS
-		when (DatabaseManager.storeMode) {
+		when (DatabaseManager.storageMode) {
 			// PDC
-			STORE_MODE.PDC  -> {
+			STORAGE_TYPE.PDC  -> {
 				PDCDatabase.instance
 			}
 			// MYSQL + REDIS
-			STORE_MODE.DATABASE -> {
+			STORAGE_TYPE.DATABASE -> {
 				MySQLDatabase.instance
 				RedisDatabase.instance
 			}
@@ -60,7 +60,6 @@ class SoulGraves : JavaPlugin() {
 				server.pluginManager.disablePlugin(this)
 			}
 		}
-		for (soul in soulList) soul.startTasks()
 
 		// LISTENERS
 		server.pluginManager.registerEvents(PlayerDeathListener(), this)

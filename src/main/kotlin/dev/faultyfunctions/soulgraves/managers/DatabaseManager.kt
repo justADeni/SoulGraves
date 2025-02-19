@@ -12,16 +12,18 @@ import java.io.File
 import java.io.IOException
 import kotlin.properties.Delegates
 
-enum class STORE_MODE {
+enum class STORAGE_TYPE {
     PDC, DATABASE
 }
+
+val STORAGE_MODE = DatabaseManager.storageMode
 
 object DatabaseManager {
 
     lateinit var databaseConfig: YamlDocument
 
     // CONFIG VALUES
-    var storeMode by Delegates.notNull<STORE_MODE>()
+    var storageMode by Delegates.notNull<STORAGE_TYPE>()
     var serverName by Delegates.notNull<String>()
 
     fun loadConfig() {
@@ -43,7 +45,7 @@ object DatabaseManager {
         }
 
         // LOAD VALUES
-        storeMode = STORE_MODE.valueOf(databaseConfig.getString("storage-mode", "PDC"))
+        storageMode = STORAGE_TYPE.valueOf(databaseConfig.getString("storage-mode", "PDC"))
         serverName = databaseConfig.getString("server-name")
     }
 

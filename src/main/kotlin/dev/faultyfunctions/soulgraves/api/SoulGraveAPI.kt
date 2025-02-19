@@ -89,7 +89,7 @@ object SoulGraveAPI {
      * Makes a soul instantly explode.
      */
     fun makeExplosion(soul: Soul) {
-        soul.explodeNow()
+        soul.explode()
     }
 
 }

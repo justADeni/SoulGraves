@@ -1,6 +1,5 @@
 package dev.faultyfunctions.soulgraves.tasks
 
-import dev.faultyfunctions.soulgraves.SoulGraves
 import dev.faultyfunctions.soulgraves.managers.ConfigManager
 import dev.faultyfunctions.soulgraves.soulTimeLeftKey
 import dev.faultyfunctions.soulgraves.utils.SoulState
