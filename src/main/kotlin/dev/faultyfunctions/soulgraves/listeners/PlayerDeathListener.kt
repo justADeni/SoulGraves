@@ -63,7 +63,8 @@ class PlayerDeathListener() : Listener {
 		marker.persistentDataContainer.set(soulTimeLeftKey, DataType.INTEGER, timeLeft)
 
 		// CREATE SOUL
-		val soul = Soul.createNewForPlayerDeath(player.uniqueId, marker, findSafeLocation(player.location), inventory, xp)
+		val deathTime = System.currentTimeMillis()
+		val soul = Soul.createNewForPlayerDeath(player.uniqueId, marker, findSafeLocation(player.location), inventory, xp, deathTime)
 
 		// CANCEL DROPS
 		e.drops.clear()

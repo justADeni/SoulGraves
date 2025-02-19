@@ -30,8 +30,8 @@ class Soul(
 	var xp: Int,
 	var timeLeft: Int,
 	val serverId: String = SERVER_NAME,
-	val expireTime: Long = System.currentTimeMillis() + ((ConfigManager.timeStable + ConfigManager.timeUnstable) * 1000),
-	val deathTime: Long = System.currentTimeMillis(),
+	val deathTime: Long,
+	val expireTime: Long,
 	val isLocal: Boolean = serverId == SERVER_NAME
 ) {
 
@@ -43,7 +43,8 @@ class Soul(
 			marker: Entity,
 			location: Location,
 			inventory: MutableList<ItemStack?>,
-			xp: Int
+			xp: Int,
+			deathTime: Long
 		): Soul {
 			val soul = Soul(
 				ownerUUID = ownerUUID,
@@ -52,6 +53,8 @@ class Soul(
 				inventory = inventory,
 				xp = xp,
 				timeLeft = ConfigManager.timeStable + ConfigManager.timeUnstable,
+				deathTime = deathTime,
+				expireTime = deathTime + ((ConfigManager.timeStable + ConfigManager.timeUnstable) * 1000),
 				isLocal = true
 			)
 			soul.marker = marker
@@ -68,15 +71,19 @@ class Soul(
 			inventory: MutableList<ItemStack?>,
 			xp: Int,
 			timeLeft: Int,
-			serverId: String
+			serverId: String,
+			deathTime: Long,
+			expireTime: Long
 		) = Soul(
 			ownerUUID = ownerUUID,
-			markerUUID = markerUUID,
 			location = location,
+			markerUUID = markerUUID,
 			inventory = inventory,
 			xp = xp,
 			timeLeft = timeLeft,
 			serverId = serverId,
+			deathTime = deathTime,
+			expireTime = expireTime,
 			isLocal = false
 		)
 	}
@@ -256,8 +263,6 @@ class Soul(
 	fun syncData() {
 		// local soul and pdc mode do not need to sync to database
 		if (isLocal || STORAGE_MODE == STORAGE_TYPE.PDC) return
-
-
 	}
 
 }

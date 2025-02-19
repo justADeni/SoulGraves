@@ -79,11 +79,10 @@ class MySQLDatabase private constructor() {
     }
 
     // Read Souls in Current Server
-    private fun initCurrentServerSouls(serverName: String = SERVER_NAME) {
+    private fun initCurrentServerSouls() {
         val connection = dataSource.connection
-        val sql = "SELECT * FROM $databaseName WHERE serverName = ?"
+        val sql = "SELECT * FROM $databaseName WHERE serverName = $SERVER_NAME"
         val statement = connection.prepareStatement(sql)
-        statement.setString(1, serverName)
 
         try {
             val resultSet = statement.executeQuery()
@@ -95,7 +94,8 @@ class MySQLDatabase private constructor() {
                     inventory = ItemTagStream.INSTANCE.listFromBase64(resultSet.getString("inventory")),
                     xp = resultSet.getInt("xp"),
                     timeLeft = ((resultSet.getLong("expireTime") - System.currentTimeMillis()) / 1000).toInt(),
-                    serverId = resultSet.getString("serverName")
+                    deathTime = resultSet.getLong("deathTime"),
+                    expireTime = resultSet.getLong("expireTime"),
                 )
                 // IF FOUND DELETED TAG, WILL REMOVE.
                 if (resultSet.getBoolean("isDeleted")) soul.delete()
@@ -118,7 +118,7 @@ class MySQLDatabase private constructor() {
     fun saveSoul(soul: Soul) {
         val now = System.currentTimeMillis()
         val connection = dataSource.connection
-        val sql = "INSERT INTO $databaseName (ownerUUID, markerUUID, serverName, world, x, y, z, inventory, xp, expireTime, isDeleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        val sql = "INSERT INTO $databaseName (ownerUUID, markerUUID, serverName, world, x, y, z, inventory, xp, deathTime, expireTime, isDeleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         val statement = connection.prepareStatement(sql)
 
         statement.setString(1, soul.ownerUUID.toString())
@@ -130,8 +130,9 @@ class MySQLDatabase private constructor() {
         statement.setInt(7, soul.location.z.toInt())
         statement.setString(8, ItemTagStream.INSTANCE.listToBase64(soul.inventory))
         statement.setInt(9, soul.xp)
-        statement.setLong(10, (ConfigManager.timeStable + ConfigManager.timeUnstable) * 1000L + now)
-        statement.setBoolean(11, false)
+        statement.setLong(10, soul.deathTime)
+        statement.setLong(11, (ConfigManager.timeStable + ConfigManager.timeUnstable) * 1000L + now)
+        statement.setBoolean(12, false)
 
         try {
             statement.executeUpdate()
@@ -158,7 +159,7 @@ class MySQLDatabase private constructor() {
                 // IF DELETED OR EXPIRE SOULS.
                 if (resultSet.getBoolean("isDeleted")) continue
                 if (resultSet.getLong("expireTime") <= System.currentTimeMillis()) continue
-                val soul = Soul(
+                val soul = Soul.createDataCopy(
                     ownerUUID = UUID.fromString(resultSet.getString("ownerUUID")),
                     markerUUID = UUID.fromString(resultSet.getString("markerUUID")),
                     inventory = ItemTagStream.INSTANCE.listFromBase64(resultSet.getString("inventory")),
@@ -166,6 +167,7 @@ class MySQLDatabase private constructor() {
                     location = Location(Bukkit.getWorld(resultSet.getString("world")), resultSet.getDouble("x"), resultSet.getDouble("y"), resultSet.getDouble("z")),
                     timeLeft = ((resultSet.getLong("expireTime") - System.currentTimeMillis()) / 1000).toInt(),
                     serverId = resultSet.getString("serverName"),
+                    deathTime = resultSet.getLong("deathTime"),
                     expireTime = resultSet.getLong("expireTime")
                 )
                 souls.add(soul)
@@ -200,7 +202,7 @@ class MySQLDatabase private constructor() {
                 // IF DELETED OR EXPIRE SOULS.
                 if (resultSet.getBoolean("isDeleted")) continue
                 if (resultSet.getLong("expireTime") <= System.currentTimeMillis()) continue
-                val soul = Soul(
+                val soul = Soul.createDataCopy(
                     ownerUUID = UUID.fromString(resultSet.getString("ownerUUID")),
                     markerUUID = UUID.fromString(resultSet.getString("markerUUID")),
                     inventory = ItemTagStream.INSTANCE.listFromBase64(resultSet.getString("inventory")),
@@ -208,6 +210,7 @@ class MySQLDatabase private constructor() {
                     location = Location(Bukkit.getWorld(resultSet.getString("world")), resultSet.getDouble("x"), resultSet.getDouble("y"), resultSet.getDouble("z")),
                     timeLeft = ((resultSet.getLong("expireTime") - System.currentTimeMillis()) / 1000).toInt(),
                     serverId = resultSet.getString("serverName"),
+                    deathTime = resultSet.getLong("deathTime"),
                     expireTime = resultSet.getLong("expireTime")
                 )
                 souls.add(soul)
@@ -240,7 +243,7 @@ class MySQLDatabase private constructor() {
                 if (resultSet.getBoolean("isDeleted")) continue
                 if (resultSet.getLong("expireTime") <= System.currentTimeMillis()) continue
 
-                return Soul(
+                return Soul.createDataCopy(
                     ownerUUID = UUID.fromString(resultSet.getString("ownerUUID")),
                     markerUUID = UUID.fromString(resultSet.getString("markerUUID")),
                     inventory = ItemTagStream.INSTANCE.listFromBase64(resultSet.getString("inventory")),
@@ -248,6 +251,7 @@ class MySQLDatabase private constructor() {
                     location = Location(Bukkit.getWorld(resultSet.getString("world")), resultSet.getDouble("x"), resultSet.getDouble("y"), resultSet.getDouble("z")),
                     timeLeft = ((resultSet.getLong("expireTime") - System.currentTimeMillis()) / 1000).toInt(),
                     serverId = resultSet.getString("serverName"),
+                    deathTime = resultSet.getLong("deathTime"),
                     expireTime = resultSet.getLong("expireTime")
                 )
             }
