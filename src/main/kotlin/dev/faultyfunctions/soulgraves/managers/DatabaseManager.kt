@@ -17,6 +17,7 @@ enum class STORAGE_TYPE {
 }
 
 val STORAGE_MODE = DatabaseManager.storageMode
+val SERVER_NAME = DatabaseManager.serverName
 
 object DatabaseManager {
 

@@ -4,10 +4,7 @@ import com.jeff_media.morepersistentdatatypes.DataType
 import dev.faultyfunctions.soulgraves.*
 import dev.faultyfunctions.soulgraves.api.RedisPublishAPI
 import dev.faultyfunctions.soulgraves.database.MySQLDatabase
-import dev.faultyfunctions.soulgraves.managers.ConfigManager
-import dev.faultyfunctions.soulgraves.managers.DatabaseManager
-import dev.faultyfunctions.soulgraves.managers.STORAGE_MODE
-import dev.faultyfunctions.soulgraves.managers.STORAGE_TYPE
+import dev.faultyfunctions.soulgraves.managers.*
 import dev.faultyfunctions.soulgraves.tasks.*
 import org.bukkit.Bukkit
 import org.bukkit.Location
@@ -32,10 +29,10 @@ class Soul(
 	var inventory:MutableList<ItemStack?>,
 	var xp: Int,
 	var timeLeft: Int,
-	val serverId: String = DatabaseManager.serverName,
+	val serverId: String = SERVER_NAME,
 	val expireTime: Long = System.currentTimeMillis() + ((ConfigManager.timeStable + ConfigManager.timeUnstable) * 1000),
 	val deathTime: Long = System.currentTimeMillis(),
-	val isLocal: Boolean = serverId == DatabaseManager.serverName
+	val isLocal: Boolean = serverId == SERVER_NAME
 ) {
 
 	companion object {
@@ -207,6 +204,7 @@ class Soul(
 				renderTask?.cancel()
 				soundTask?.cancel()
 				stateTask?.cancel()
+				validationTask?.cancel()
 				// REMOVE DATA FROM PDC
 				var removeChunk = true
 				for (entityInChunk in location.chunk.entities) {
@@ -236,6 +234,7 @@ class Soul(
 				renderTask?.cancel()
 				soundTask?.cancel()
 				stateTask?.cancel()
+				validationTask?.cancel()
 				// REMOVE DATA FROM DATABASE
 				Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
 					MySQLDatabase.instance.deleteSoul(this)

@@ -6,6 +6,7 @@ import com.zaxxer.hikari.HikariDataSource
 import dev.faultyfunctions.soulgraves.SoulGraves
 import dev.faultyfunctions.soulgraves.managers.ConfigManager
 import dev.faultyfunctions.soulgraves.managers.DatabaseManager
+import dev.faultyfunctions.soulgraves.managers.SERVER_NAME
 import dev.faultyfunctions.soulgraves.utils.Soul
 import org.bukkit.Bukkit
 import org.bukkit.Location
@@ -60,6 +61,7 @@ class MySQLDatabase private constructor() {
                 "z INT, " +
                 "inventory TEXT, " +
                 "xp INT, " +
+                "deathTime BIGINT, " +
                 "expireTime BIGINT, " +
                 "isDeleted BIT(1) DEFAULT 0" +
                 ")"
@@ -77,9 +79,7 @@ class MySQLDatabase private constructor() {
     }
 
     // Read Souls in Current Server
-    private fun initCurrentServerSouls(serverName: String = DatabaseManager.serverName) {
-        val souls = ArrayList<Soul>()
-
+    private fun initCurrentServerSouls(serverName: String = SERVER_NAME) {
         val connection = dataSource.connection
         val sql = "SELECT * FROM $databaseName WHERE serverName = ?"
         val statement = connection.prepareStatement(sql)
@@ -100,7 +100,7 @@ class MySQLDatabase private constructor() {
                 // IF FOUND DELETED TAG, WILL REMOVE.
                 if (resultSet.getBoolean("isDeleted")) soul.delete()
                 // IF SOUL EXPIRE
-                if (soul.timeLeft <= 0) soul.delete()
+                if (soul.timeLeft <= 0) soul.explode()
 
                 soul.startTasks()
                 SoulGraves.soulList.add(soul)
@@ -143,12 +143,13 @@ class MySQLDatabase private constructor() {
         }
     }
 
+
     // Read Souls in Current Server
     fun getAllSouls() : MutableList<Soul> {
         val souls = ArrayList<Soul>()
 
         val connection = dataSource.connection
-        val sql = "SELECT * FROM $databaseName"
+        val sql = "SELECT * FROM $databaseName WHERE serverName != $SERVER_NAME"
         val statement = connection.prepareStatement(sql)
 
         try {
@@ -175,18 +176,23 @@ class MySQLDatabase private constructor() {
             statement.close()
             connection.close()
         }
+        souls.addAll(SoulGraves.soulList)
         return souls
     }
 
 
     // Read Souls From Database
-    fun getPlayerSouls(playerUUID: String) : MutableList<Soul> {
+    fun getPlayerSouls(playerUUID: UUID) : MutableList<Soul> {
         val souls = ArrayList<Soul>()
 
+        // CURRENT SERVER SOULS
+        val currentServerSouls = SoulGraves.soulList.stream().filter { it.ownerUUID == playerUUID }.toList()
+        souls.addAll(currentServerSouls)
+
         val connection = dataSource.connection
-        val sql = "SELECT * FROM $databaseName WHERE ownerUUID = ?"
+        val sql = "SELECT * FROM $databaseName WHERE ownerUUID = ? AND serverName != $SERVER_NAME"
         val statement = connection.prepareStatement(sql)
-        statement.setString(1, playerUUID)
+        statement.setString(1, playerUUID.toString())
 
         try {
             val resultSet = statement.executeQuery()
@@ -217,11 +223,15 @@ class MySQLDatabase private constructor() {
 
 
     // Read Soul From Database
-    fun getSoul(markerUUID: String) : Soul? {
+    fun getSoul(markerUUID: UUID) : Soul? {
+        // IF IN CURRENT SERVER SOULS
+        val currentServerSouls = SoulGraves.soulList.stream().filter { it.markerUUID == markerUUID }.toList()
+        if (currentServerSouls.isNotEmpty()) return currentServerSouls[0]
+
         val connection = dataSource.connection
         val sql = "SELECT * FROM $databaseName WHERE markerUUID = ?"
         val statement = connection.prepareStatement(sql)
-        statement.setString(1, markerUUID)
+        statement.setString(1, markerUUID.toString())
 
         try {
             val resultSet = statement.executeQuery()

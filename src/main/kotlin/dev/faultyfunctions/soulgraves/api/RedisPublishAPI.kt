@@ -5,7 +5,7 @@ import dev.faultyfunctions.soulgraves.database.MessageAction
 import dev.faultyfunctions.soulgraves.database.MySQLDatabase
 import dev.faultyfunctions.soulgraves.database.RedisDatabase
 import dev.faultyfunctions.soulgraves.database.RedisPacket
-import dev.faultyfunctions.soulgraves.managers.DatabaseManager
+import dev.faultyfunctions.soulgraves.managers.SERVER_NAME
 import org.bukkit.Bukkit
 import java.util.UUID
 
@@ -22,7 +22,7 @@ object RedisPublishAPI {
     fun deleteSoul(markerUUID: UUID) {
         Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
             MySQLDatabase.instance.markSoulDelete(markerUUID)
-            RedisDatabase.instance.publish(RedisPacket(DatabaseManager.serverName, MessageAction.REMOVE_SOUL, markerUUID.toString()))
+            RedisDatabase.instance.publish(RedisPacket(SERVER_NAME, MessageAction.REMOVE_SOUL, markerUUID.toString()))
         })
     }
 
@@ -33,7 +33,7 @@ object RedisPublishAPI {
     fun explodeSoul(markerUUID: UUID) {
         Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
             MySQLDatabase.instance.markSoulExplode(markerUUID)
-            RedisDatabase.instance.publish(RedisPacket(DatabaseManager.serverName, MessageAction.EXPLODE_SOUL, markerUUID.toString()))
+            RedisDatabase.instance.publish(RedisPacket(SERVER_NAME, MessageAction.EXPLODE_SOUL, markerUUID.toString()))
         })
     }
 

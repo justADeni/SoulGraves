@@ -52,7 +52,7 @@ object SoulGraveAPI {
     fun getPlayerSoulsCrossServer(ownerUUID: UUID): CompletableFuture<List<Soul>> {
         val future = CompletableFuture<List<Soul>>()
         Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
-            val allSouls = MySQLDatabase.instance.getPlayerSouls(ownerUUID.toString())
+            val allSouls = MySQLDatabase.instance.getPlayerSouls(ownerUUID)
             future.complete(allSouls)
         })
         return future.orTimeout(10, TimeUnit.SECONDS)
@@ -78,7 +78,7 @@ object SoulGraveAPI {
     fun getSoulCrossServer(makerUUID: UUID): CompletableFuture<Soul?> {
         val future = CompletableFuture<Soul?>()
         Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
-            val soul = MySQLDatabase.instance.getSoul(makerUUID.toString())
+            val soul = MySQLDatabase.instance.getSoul(makerUUID)
             future.complete(soul)
         })
         return future.orTimeout(10, TimeUnit.SECONDS)

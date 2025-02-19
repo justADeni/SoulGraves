@@ -2,15 +2,12 @@ package dev.faultyfunctions.soulgraves.tasks
 
 import org.bukkit.scheduler.BukkitRunnable
 import dev.faultyfunctions.soulgraves.SoulGraves
-import dev.faultyfunctions.soulgraves.managers.ConfigManager
-import dev.faultyfunctions.soulgraves.managers.MessageManager
 import dev.faultyfunctions.soulgraves.utils.SoulState
 import dev.faultyfunctions.soulgraves.api.event.SoulPickupEvent
 import dev.faultyfunctions.soulgraves.database.MessageAction
 import dev.faultyfunctions.soulgraves.database.RedisDatabase
 import dev.faultyfunctions.soulgraves.database.RedisPacket
-import dev.faultyfunctions.soulgraves.managers.DatabaseManager
-import dev.faultyfunctions.soulgraves.managers.STORAGE_TYPE
+import dev.faultyfunctions.soulgraves.managers.*
 import dev.faultyfunctions.soulgraves.utils.Soul
 import org.bukkit.Bukkit
 import org.bukkit.GameMode
@@ -88,7 +85,7 @@ class SoulPickupTask(val soul: Soul) : BukkitRunnable() {
 								}
 							}
 							STORAGE_TYPE.DATABASE -> {
-								RedisDatabase.instance.publish(RedisPacket(DatabaseManager.serverName, MessageAction.NOTIFY_SOUL_OTHER_PICKUP, soul.ownerUUID.toString()))
+								RedisDatabase.instance.publish(RedisPacket(SERVER_NAME, MessageAction.NOTIFY_SOUL_OTHER_PICKUP, soul.ownerUUID.toString()))
 							}
 						}
 					}
