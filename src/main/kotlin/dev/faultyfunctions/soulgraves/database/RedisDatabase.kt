@@ -7,14 +7,17 @@ import dev.faultyfunctions.soulgraves.database.MessageAction.*
 import dev.faultyfunctions.soulgraves.managers.ConfigManager
 import dev.faultyfunctions.soulgraves.managers.DatabaseManager
 import dev.faultyfunctions.soulgraves.managers.MessageManager
+import dev.faultyfunctions.soulgraves.utils.Soul
 import io.lettuce.core.RedisClient
 import io.lettuce.core.api.StatefulRedisConnection
 import io.lettuce.core.pubsub.RedisPubSubAdapter
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection
 import org.bukkit.Bukkit
 import java.util.*
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 class RedisDatabase private constructor() {
 
@@ -99,6 +102,7 @@ class RedisDatabase private constructor() {
                         soul?.let { Bukkit.getScheduler().runTask(SoulGraves.plugin, Runnable { soul.delete() }) } // Sync for Bukkit API
                     }
                 }
+
                 // EXPLODE_SOUL
                 // PAYLOAD FORMAT: [MAKER_UUID]
                 EXPLODE_SOUL -> {
@@ -106,6 +110,38 @@ class RedisDatabase private constructor() {
                         val makerUUID = UUID.fromString(packet.payload)
                         val soul = SoulGraveAPI.getSoul(makerUUID)
                         soul?.let { Bukkit.getScheduler().runTask(SoulGraves.plugin, Runnable { soul.explode() }) } // Sync for Bukkit API
+                    }
+                }
+
+                // UPDATE_SOUL
+                // PAYLOAD FORMAT: [MAKER_UUID]
+                UPDATE_SOUL -> {
+                    callbackExecutor!!.execute {
+                        val makerUUID = UUID.fromString(packet.payload)
+                        val soul = SoulGraveAPI.getSoul(makerUUID)
+                        soul?.let {
+                            // get new copy data from database
+                            val future = CompletableFuture<Soul?>()
+                            Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
+                                val soulCopy = MySQLDatabase.instance.getSoul(makerUUID)
+                                future.complete(soulCopy)
+                            })
+                            future.orTimeout(10, TimeUnit.SECONDS)
+                            // update data
+                            future.thenAccept {
+                                // Sync for Bukkit API
+                                Bukkit.getScheduler().runTask(SoulGraves.plugin, Runnable {
+                                    it?.let { copy ->
+                                        soul.markerUUID = copy.markerUUID
+                                        soul.ownerUUID = copy.ownerUUID
+                                        soul.location = copy.location
+                                        soul.inventory = copy.inventory
+                                        soul.xp = copy.xp
+                                        soul.setTimeLeft(copy.timeLeft)
+                                    }
+                                })
+                            }
+                        }
                     }
                 }
 

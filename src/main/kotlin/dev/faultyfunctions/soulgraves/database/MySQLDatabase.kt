@@ -51,9 +51,8 @@ class MySQLDatabase private constructor() {
     private fun createTable() {
         val connection = dataSource.connection
         val sql = "CREATE TABLE IF NOT EXISTS $databaseName (" +
-                "id INT AUTO_INCREMENT PRIMARY KEY, " +
+                "markerUUID VARCHAR(255) PRIMARY KEY, " +
                 "ownerUUID VARCHAR(255), " +
-                "markerUUID VARCHAR(255), " +
                 "serverName VARCHAR(255), " +
                 "world VARCHAR(255), " +
                 "x INT, " +
@@ -88,8 +87,8 @@ class MySQLDatabase private constructor() {
             val resultSet = statement.executeQuery()
             while (resultSet.next()) {
                 val soul = Soul(
-                    ownerUUID = UUID.fromString(resultSet.getString("ownerUUID")),
                     markerUUID = UUID.fromString(resultSet.getString("markerUUID")),
+                    ownerUUID = UUID.fromString(resultSet.getString("ownerUUID")),
                     location = Location(Bukkit.getWorld(resultSet.getString("world")), resultSet.getDouble("x"), resultSet.getDouble("y"), resultSet.getDouble("z")),
                     inventory = ItemTagStream.INSTANCE.listFromBase64(resultSet.getString("inventory")),
                     xp = resultSet.getInt("xp"),
@@ -118,11 +117,28 @@ class MySQLDatabase private constructor() {
     fun saveSoul(soul: Soul) {
         val now = System.currentTimeMillis()
         val connection = dataSource.connection
-        val sql = "INSERT INTO $databaseName (ownerUUID, markerUUID, serverName, world, x, y, z, inventory, xp, deathTime, expireTime, isDeleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        // 修改后的 SQL 语句
+        val sql = """
+        INSERT INTO $databaseName 
+        (markerUUID, ownerUUID, serverName, world, x, y, z, inventory, xp, deathTime, expireTime, isDeleted) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE
+        ownerUUID = VALUES(ownerUUID),
+        serverName = VALUES(serverName),
+        world = VALUES(world),
+        x = VALUES(x),
+        y = VALUES(y),
+        z = VALUES(z),
+        inventory = VALUES(inventory),
+        xp = VALUES(xp),
+        deathTime = VALUES(deathTime),
+        expireTime = VALUES(expireTime),
+        isDeleted = VALUES(isDeleted)
+        """.trimIndent()
         val statement = connection.prepareStatement(sql)
 
-        statement.setString(1, soul.ownerUUID.toString())
-        statement.setString(2, soul.markerUUID.toString())
+        statement.setString(1, soul.markerUUID.toString())
+        statement.setString(2, soul.ownerUUID.toString())
         statement.setString(3, soul.serverId)
         statement.setString(4, soul.location.world?.name)
         statement.setInt(5, soul.location.x.toInt())
@@ -160,8 +176,8 @@ class MySQLDatabase private constructor() {
                 if (resultSet.getBoolean("isDeleted")) continue
                 if (resultSet.getLong("expireTime") <= System.currentTimeMillis()) continue
                 val soul = Soul.createDataCopy(
-                    ownerUUID = UUID.fromString(resultSet.getString("ownerUUID")),
                     markerUUID = UUID.fromString(resultSet.getString("markerUUID")),
+                    ownerUUID = UUID.fromString(resultSet.getString("ownerUUID")),
                     inventory = ItemTagStream.INSTANCE.listFromBase64(resultSet.getString("inventory")),
                     xp = resultSet.getInt("xp"),
                     location = Location(Bukkit.getWorld(resultSet.getString("world")), resultSet.getDouble("x"), resultSet.getDouble("y"), resultSet.getDouble("z")),
@@ -203,8 +219,8 @@ class MySQLDatabase private constructor() {
                 if (resultSet.getBoolean("isDeleted")) continue
                 if (resultSet.getLong("expireTime") <= System.currentTimeMillis()) continue
                 val soul = Soul.createDataCopy(
-                    ownerUUID = UUID.fromString(resultSet.getString("ownerUUID")),
                     markerUUID = UUID.fromString(resultSet.getString("markerUUID")),
+                    ownerUUID = UUID.fromString(resultSet.getString("ownerUUID")),
                     inventory = ItemTagStream.INSTANCE.listFromBase64(resultSet.getString("inventory")),
                     xp = resultSet.getInt("xp"),
                     location = Location(Bukkit.getWorld(resultSet.getString("world")), resultSet.getDouble("x"), resultSet.getDouble("y"), resultSet.getDouble("z")),
@@ -244,8 +260,8 @@ class MySQLDatabase private constructor() {
                 if (resultSet.getLong("expireTime") <= System.currentTimeMillis()) continue
 
                 return Soul.createDataCopy(
-                    ownerUUID = UUID.fromString(resultSet.getString("ownerUUID")),
                     markerUUID = UUID.fromString(resultSet.getString("markerUUID")),
+                    ownerUUID = UUID.fromString(resultSet.getString("ownerUUID")),
                     inventory = ItemTagStream.INSTANCE.listFromBase64(resultSet.getString("inventory")),
                     xp = resultSet.getInt("xp"),
                     location = Location(Bukkit.getWorld(resultSet.getString("world")), resultSet.getDouble("x"), resultSet.getDouble("y"), resultSet.getDouble("z")),

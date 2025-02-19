@@ -3,6 +3,8 @@ package dev.faultyfunctions.soulgraves.api
 import dev.faultyfunctions.soulgraves.SoulGraves
 import dev.faultyfunctions.soulgraves.SoulGraves.Companion.soulList
 import dev.faultyfunctions.soulgraves.database.MySQLDatabase
+import dev.faultyfunctions.soulgraves.managers.STORAGE_MODE
+import dev.faultyfunctions.soulgraves.managers.STORAGE_TYPE
 import dev.faultyfunctions.soulgraves.utils.Soul
 import org.bukkit.Bukkit
 import java.util.*
@@ -20,9 +22,9 @@ object SoulGraveAPI {
 
     /**
      * Returns a list of all souls cross server.
-     * DO NOT USE IT WITH PDC STORE MODE
      */
     fun getAllSoulsCrossServer(): CompletableFuture<List<Soul>> {
+        if (STORAGE_MODE == STORAGE_TYPE.PDC) throw RuntimeException("DO NOT USE CROSS-SERVER API WITH PDC STORAGE MODE!")
         val future = CompletableFuture<List<Soul>>()
         Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
             val allSouls = MySQLDatabase.instance.getAllSouls()
@@ -47,9 +49,9 @@ object SoulGraveAPI {
 
     /**
      * Returns a list of all souls cross server that match the given owner UUID.
-     * DO NOT USE IT WITH PDC STORE MODE
      */
     fun getPlayerSoulsCrossServer(ownerUUID: UUID): CompletableFuture<List<Soul>> {
+        if (STORAGE_MODE == STORAGE_TYPE.PDC) throw RuntimeException("DO NOT USE CROSS-SERVER API WITH PDC STORAGE MODE!")
         val future = CompletableFuture<List<Soul>>()
         Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
             val allSouls = MySQLDatabase.instance.getPlayerSouls(ownerUUID)
@@ -73,9 +75,9 @@ object SoulGraveAPI {
 
     /**
      * Returns a souls cross server that match the given marker UUID.
-     * DO NOT USE IT WITH PDC STORE MODE
      */
     fun getSoulCrossServer(makerUUID: UUID): CompletableFuture<Soul?> {
+        if (STORAGE_MODE == STORAGE_TYPE.PDC) throw RuntimeException("DO NOT USE CROSS-SERVER API WITH PDC STORAGE MODE!")
         val future = CompletableFuture<Soul?>()
         Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
             val soul = MySQLDatabase.instance.getSoul(makerUUID)

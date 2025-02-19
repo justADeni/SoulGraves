@@ -9,7 +9,6 @@ import dev.faultyfunctions.soulgraves.tasks.*
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.entity.Entity
-import org.bukkit.entity.EntityType
 import org.bukkit.entity.Marker
 import org.bukkit.inventory.ItemStack
 import java.util.UUID
@@ -23,18 +22,17 @@ enum class SoulState {
  * 1. Create Instance -> 2. SpawnMarker -> 3. StartTasks -> 4. SaveData
  */
 class Soul(
-	val ownerUUID: UUID,
+	var ownerUUID: UUID,
 	var markerUUID: UUID,
-	val location: Location,
+	var location: Location,
 	var inventory:MutableList<ItemStack?>,
 	var xp: Int,
 	var timeLeft: Int,
 	val serverId: String = SERVER_NAME,
 	val deathTime: Long,
-	val expireTime: Long,
+	var expireTime: Long,
 	val isLocal: Boolean = serverId == SERVER_NAME
 ) {
-
 	companion object {
 
 		// Spawn a Marker Entity upon Soul Created.
@@ -63,7 +61,7 @@ class Soul(
 			return soul
 		}
 
-
+		// Read from database by api.
 		fun createDataCopy(
 			ownerUUID: UUID,
 			markerUUID: UUID,
@@ -86,6 +84,15 @@ class Soul(
 			expireTime = expireTime,
 			isLocal = false
 		)
+	}
+
+	fun setTimeLeft(value: Int) {
+		timeLeft = value.coerceAtLeast(0)
+		expireTime = System.currentTimeMillis() + timeLeft * 1000L
+	}
+	fun setExpireTime(value: Long) {
+		expireTime = value
+		timeLeft = ((expireTime - System.currentTimeMillis()) / 1000).toInt().coerceAtLeast(0)
 	}
 
 	var marker: Entity? = null
@@ -259,10 +266,14 @@ class Soul(
 	}
 
 
-	// TODO.. get a soul data copy modify, then update to database? and send a redis message to notify target server.
-	fun syncData() {
+	/**
+	 * Update Soul, when get a soul data copy from database and modify, then need update database to sync data.
+	 */
+	fun syncSoul() {
 		// local soul and pdc mode do not need to sync to database
 		if (isLocal || STORAGE_MODE == STORAGE_TYPE.PDC) return
+		RedisPublishAPI.syncSoul(this)
 	}
+
 
 }
