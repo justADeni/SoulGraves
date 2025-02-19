@@ -11,7 +11,6 @@ import dev.faultyfunctions.soulgraves.utils.Soul
 import org.bukkit.Bukkit
 import org.bukkit.Particle
 import org.bukkit.entity.ExperienceOrb
-import org.bukkit.entity.Marker
 import org.bukkit.entity.Player
 import org.bukkit.scheduler.BukkitRunnable
 
@@ -78,21 +77,21 @@ class SoulExplodeTask(val soul: Soul) : BukkitRunnable() {
 			}
 
 			// SEND NEARBY PLAYERS A MESSAGE
-			val marker: Marker? = (Bukkit.getEntity(soul.markerUUID!!) as? Marker)
-			marker?.let {
-				if (ConfigManager.notifyNearbyPlayers) {
-					val radii: Double = ConfigManager.notifyRadius.toDouble()
-					for (player in marker.getNearbyEntities(radii, radii, radii)) {
-						if (player.uniqueId != soul.ownerUUID) {
-							if (MessageManager.soulBurstNearbyComponent != null) SoulGraves.plugin.adventure().player(player.uniqueId).sendMessage(MessageManager.soulBurstNearbyComponent!!)
-							if (ConfigManager.notifyNearbySound.enabled) {
-								ConfigManager.notifyNearbySound.sounds.forEachIndexed { index, soundKey ->
-									Bukkit.getPlayer(player.uniqueId)?.playSound(player.location, soundKey, ConfigManager.notifyNearbySound.volumes[index], ConfigManager.notifyNearbySound.pitches[index])
-								}
+			if (ConfigManager.notifyNearbyPlayers) {
+				val radii: Double = ConfigManager.notifyRadius.toDouble()
+				soul.location.world?.getNearbyEntities(soul.location, radii, radii, radii)
+					?.filterIsInstance<Player>()
+					?.filterNot { it.uniqueId == soul.ownerUUID }
+					?.forEach { player ->
+						// Send Message
+						MessageManager.soulBurstNearbyComponent?.let { SoulGraves.plugin.adventure().player(player).sendMessage(it) }
+						// Play Sounds
+						if (ConfigManager.notifyNearbySound.enabled) {
+							ConfigManager.notifyNearbySound.sounds.forEachIndexed { index, soundKey ->
+								player.playSound(player.location, soundKey, ConfigManager.notifyNearbySound.volumes[index], ConfigManager.notifyNearbySound.pitches[index])
 							}
 						}
 					}
-				}
 			}
 
 			// REMOVE SOUL

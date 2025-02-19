@@ -117,7 +117,6 @@ class MySQLDatabase private constructor() {
     fun saveSoul(soul: Soul) {
         val now = System.currentTimeMillis()
         val connection = dataSource.connection
-        // 修改后的 SQL 语句
         val sql = """
         INSERT INTO $databaseName 
         (markerUUID, ownerUUID, serverName, world, x, y, z, inventory, xp, deathTime, expireTime, isDeleted) 
