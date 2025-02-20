@@ -9,7 +9,7 @@ import org.bukkit.scheduler.BukkitRunnable
 
 class SoulSoundTask(val soul: Soul) : BukkitRunnable() {
 	override fun run() {
-		if (!soul.location.world?.isChunkLoaded(soul.location.chunk)!!) { return }
+		if (soul.location.world?.isChunkLoaded(soul.location.chunk) != true) return
 
 		if (soul.state == SoulState.NORMAL) {
 			soul.location.world?.playSound(soul.location, Sound.ENTITY_WARDEN_HEARTBEAT, 3.0f, 1.0f)

@@ -10,6 +10,7 @@ import dev.faultyfunctions.soulgraves.managers.SERVER_NAME
 import dev.faultyfunctions.soulgraves.utils.Soul
 import org.bukkit.Bukkit
 import org.bukkit.Location
+import org.bukkit.entity.Marker
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -86,23 +87,26 @@ class MySQLDatabase private constructor() {
         try {
             val resultSet = statement.executeQuery()
             while (resultSet.next()) {
-                val soul = Soul(
+                // IF FOUND DELETED TAG, SOUL WILL REMOVE.
+                if (resultSet.getBoolean("isDeleted")) {
+                    val markerUUID = UUID.fromString(resultSet.getString("ownerUUID"))
+                    val location = Location(Bukkit.getWorld(resultSet.getString("world")), resultSet.getDouble("x"), resultSet.getDouble("y"), resultSet.getDouble("z"))
+
+                    Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable { deleteSoul(markerUUID) })
+                    location.world?.loadChunk(location.chunk).apply { (Bukkit.getEntity(markerUUID) as? Marker)?.remove() }
+                    continue
+                }
+
+                // INIT SOUL
+                Soul.initAndStart(
                     markerUUID = UUID.fromString(resultSet.getString("markerUUID")),
                     ownerUUID = UUID.fromString(resultSet.getString("ownerUUID")),
                     location = Location(Bukkit.getWorld(resultSet.getString("world")), resultSet.getDouble("x"), resultSet.getDouble("y"), resultSet.getDouble("z")),
                     inventory = ItemTagStream.INSTANCE.listFromBase64(resultSet.getString("inventory")),
                     xp = resultSet.getInt("xp"),
-                    timeLeft = ((resultSet.getLong("expireTime") - System.currentTimeMillis()) / 1000).toInt(),
                     deathTime = resultSet.getLong("deathTime"),
-                    expireTime = resultSet.getLong("expireTime"),
+                    expireTime = resultSet.getLong("expireTime")
                 )
-                // IF FOUND DELETED TAG, WILL REMOVE.
-                if (resultSet.getBoolean("isDeleted")) soul.delete()
-                // IF SOUL EXPIRE
-                if (soul.timeLeft <= 0) soul.explode()
-
-                soul.startTasks()
-                SoulGraves.soulList.add(soul)
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -180,7 +184,6 @@ class MySQLDatabase private constructor() {
                     inventory = ItemTagStream.INSTANCE.listFromBase64(resultSet.getString("inventory")),
                     xp = resultSet.getInt("xp"),
                     location = Location(Bukkit.getWorld(resultSet.getString("world")), resultSet.getDouble("x"), resultSet.getDouble("y"), resultSet.getDouble("z")),
-                    timeLeft = ((resultSet.getLong("expireTime") - System.currentTimeMillis()) / 1000).toInt(),
                     serverId = resultSet.getString("serverName"),
                     deathTime = resultSet.getLong("deathTime"),
                     expireTime = resultSet.getLong("expireTime")
@@ -223,7 +226,6 @@ class MySQLDatabase private constructor() {
                     inventory = ItemTagStream.INSTANCE.listFromBase64(resultSet.getString("inventory")),
                     xp = resultSet.getInt("xp"),
                     location = Location(Bukkit.getWorld(resultSet.getString("world")), resultSet.getDouble("x"), resultSet.getDouble("y"), resultSet.getDouble("z")),
-                    timeLeft = ((resultSet.getLong("expireTime") - System.currentTimeMillis()) / 1000).toInt(),
                     serverId = resultSet.getString("serverName"),
                     deathTime = resultSet.getLong("deathTime"),
                     expireTime = resultSet.getLong("expireTime")
@@ -264,7 +266,6 @@ class MySQLDatabase private constructor() {
                     inventory = ItemTagStream.INSTANCE.listFromBase64(resultSet.getString("inventory")),
                     xp = resultSet.getInt("xp"),
                     location = Location(Bukkit.getWorld(resultSet.getString("world")), resultSet.getDouble("x"), resultSet.getDouble("y"), resultSet.getDouble("z")),
-                    timeLeft = ((resultSet.getLong("expireTime") - System.currentTimeMillis()) / 1000).toInt(),
                     serverId = resultSet.getString("serverName"),
                     deathTime = resultSet.getLong("deathTime"),
                     expireTime = resultSet.getLong("expireTime")
@@ -318,12 +319,13 @@ class MySQLDatabase private constructor() {
 
     // Delete Soul From Database
     fun deleteSoul(soul: Soul) {
-        val uuid = soul.markerUUID.toString()
+        val uuid = soul.markerUUID
+        deleteSoul(uuid)
+    }
+    fun deleteSoul(markerUUID: UUID) {
         val connection = dataSource.connection
-        SoulGraves.plugin.logger.warning("delete maker $uuid")
-        val sql = "DELETE FROM $databaseName WHERE markerUUID = ?"
+        val sql = "DELETE FROM $databaseName WHERE markerUUID = $markerUUID"
         val statement = connection.prepareStatement(sql)
-        statement.setString(1, uuid)
 
         try {
             statement.executeUpdate()

@@ -137,7 +137,7 @@ class RedisDatabase private constructor() {
                                         soul.location = copy.location
                                         soul.inventory = copy.inventory
                                         soul.xp = copy.xp
-                                        soul.setTimeLeft(copy.timeLeft)
+                                        soul.timeLeft = copy.timeLeft
                                     }
                                 })
                             }

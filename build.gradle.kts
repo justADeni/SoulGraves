@@ -22,11 +22,9 @@ dependencies {
     compileOnly("org.spigotmc:spigot-api:1.21.3-R0.1-SNAPSHOT") // Spigot
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8") // Kotlin STD
 
-    // Database
+    // Develop Lib
     compileOnly("com.zaxxer:HikariCP:5.1.0") // Hikari CP
     compileOnly("io.lettuce:lettuce-core:6.5.3.RELEASE") // Lettuce
-
-    // Develop Lib
     implementation("dev.dejvokep:boosted-yaml:1.3.6") // BoostedYaml
 
     // Bukkit Lib

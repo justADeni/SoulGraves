@@ -16,13 +16,6 @@ import org.bukkit.NamespacedKey
 import org.bukkit.plugin.java.JavaPlugin
 import java.util.concurrent.CopyOnWriteArrayList
 
-val soulChunksKey = NamespacedKey(SoulGraves.plugin, "soul-chunks")
-val soulKey = NamespacedKey(SoulGraves.plugin, "soul")
-val soulOwnerKey = NamespacedKey(SoulGraves.plugin, "soul-owner")
-val soulInvKey = NamespacedKey(SoulGraves.plugin, "soul-inv")
-val soulXpKey = NamespacedKey(SoulGraves.plugin, "soul-xp")
-val soulTimeLeftKey = NamespacedKey(SoulGraves.plugin, "soul-time-left")
-
 class SoulGraves : JavaPlugin() {
 	companion object {
 		lateinit var plugin: SoulGraves

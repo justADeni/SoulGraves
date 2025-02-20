@@ -6,6 +6,7 @@ import dev.faultyfunctions.soulgraves.utils.Soul
 import dev.faultyfunctions.soulgraves.*
 import dev.faultyfunctions.soulgraves.api.event.SoulPreSpawnEvent
 import dev.faultyfunctions.soulgraves.api.event.SoulSpawnEvent
+import dev.faultyfunctions.soulgraves.database.*
 import dev.faultyfunctions.soulgraves.utils.SpigotCompatUtils
 import org.bukkit.*
 import org.bukkit.block.Block
@@ -47,7 +48,10 @@ class PlayerDeathListener() : Listener {
 			if (item != null) inventory.add(item)
 		}
 		val xp: Int = SpigotCompatUtils.calculateTotalExperiencePoints(player.level)
-		val timeLeft = ConfigManager.timeStable + ConfigManager.timeUnstable
+
+		// TIME
+		val deathTime = System.currentTimeMillis()
+		val expireTime = deathTime + ((ConfigManager.timeStable + ConfigManager.timeUnstable) * 1000)
 
 		// SPAWN & DEFINE ENTITY
 		val marker: Entity = player.world.spawnEntity(findSafeLocation(player.location), EntityType.MARKER)
@@ -60,11 +64,18 @@ class PlayerDeathListener() : Listener {
 		marker.persistentDataContainer.set(soulOwnerKey, DataType.UUID, player.uniqueId)
 		marker.persistentDataContainer.set(soulInvKey, DataType.ITEM_STACK_ARRAY, inventory.toTypedArray())
 		marker.persistentDataContainer.set(soulXpKey, DataType.INTEGER, xp)
-		marker.persistentDataContainer.set(soulTimeLeftKey, DataType.INTEGER, timeLeft)
+		marker.persistentDataContainer.set(soulDeathTimeKey, DataType.LONG, deathTime)
+		marker.persistentDataContainer.set(soulExpireTimeKey, DataType.LONG, expireTime)
 
 		// CREATE SOUL
-		val deathTime = System.currentTimeMillis()
-		val soul = Soul.createNewForPlayerDeath(player.uniqueId, marker, findSafeLocation(player.location), inventory, xp, deathTime)
+		val soul = Soul.createNewForPlayerDeath(
+			player.uniqueId,
+			marker,
+			findSafeLocation(player.location),
+			inventory,
+			xp,
+			deathTime,
+			expireTime)
 
 		// CANCEL DROPS
 		e.drops.clear()

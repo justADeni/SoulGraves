@@ -4,6 +4,8 @@ import com.jeff_media.morepersistentdatatypes.DataType
 import dev.faultyfunctions.soulgraves.*
 import dev.faultyfunctions.soulgraves.api.RedisPublishAPI
 import dev.faultyfunctions.soulgraves.database.MySQLDatabase
+import dev.faultyfunctions.soulgraves.database.soulChunksKey
+import dev.faultyfunctions.soulgraves.database.soulKey
 import dev.faultyfunctions.soulgraves.managers.*
 import dev.faultyfunctions.soulgraves.tasks.*
 import org.bukkit.Bukkit
@@ -19,30 +21,50 @@ enum class SoulState {
 
 /**
  * Soul Create:
- * 1. Create Instance -> 2. SpawnMarker -> 3. StartTasks -> 4. SaveData
+ * NewDeath -> 1. SpawnMarker -> 2. Create Instance -> 3. StartTasks -> 4. SaveData
+ * DataCopy -> 1. ReadFromMysql -> 2. Create Instance
+ * InitOnStart -> 1. ReadFromMysql/PDC -> 2. Create Instance -> 4. StartTasks
  */
-class Soul(
+class Soul private constructor(
 	var ownerUUID: UUID,
 	var markerUUID: UUID,
 	var location: Location,
 	var inventory:MutableList<ItemStack?>,
 	var xp: Int,
-	var timeLeft: Int,
-	val serverId: String = SERVER_NAME,
+
 	val deathTime: Long,
-	var expireTime: Long,
+	expireTime: Long,
+	timeLeft: Int, // Second
+
+	val serverId: String = SERVER_NAME,
 	val isLocal: Boolean = serverId == SERVER_NAME
 ) {
+
+	var expireTime: Long = expireTime
+		set(value) {
+			field = value
+			timeLeft = ((value - System.currentTimeMillis()) / 1000).toInt().coerceAtLeast(0)
+		}
+
+	var timeLeft: Int = timeLeft
+		set(value) {
+			field = value.coerceAtLeast(0)
+			expireTime = System.currentTimeMillis() + field * 1000L
+		}
+		get() = if (isLocal) field else ((expireTime - System.currentTimeMillis()) / 1000).toInt().coerceAtLeast(0)
+
+
 	companion object {
 
-		// Spawn a Marker Entity upon Soul Created.
+		// Create Soul upon Player Dead.
 		fun createNewForPlayerDeath(
 			ownerUUID: UUID,
 			marker: Entity,
 			location: Location,
 			inventory: MutableList<ItemStack?>,
 			xp: Int,
-			deathTime: Long
+			deathTime: Long,
+			expireTime: Long
 		): Soul {
 			val soul = Soul(
 				ownerUUID = ownerUUID,
@@ -50,11 +72,14 @@ class Soul(
 				location = location,
 				inventory = inventory,
 				xp = xp,
-				timeLeft = ConfigManager.timeStable + ConfigManager.timeUnstable,
+
 				deathTime = deathTime,
 				expireTime = deathTime + ((ConfigManager.timeStable + ConfigManager.timeUnstable) * 1000),
+				timeLeft = ((expireTime - deathTime) / 1000).toInt(),
+
 				isLocal = true
 			)
+			// Init Soul
 			soul.marker = marker
 			soul.startTasks()
 			soul.saveData()
@@ -68,32 +93,55 @@ class Soul(
 			location: Location,
 			inventory: MutableList<ItemStack?>,
 			xp: Int,
-			timeLeft: Int,
 			serverId: String,
 			deathTime: Long,
 			expireTime: Long
 		) = Soul(
+			markerUUID = markerUUID,
 			ownerUUID = ownerUUID,
 			location = location,
-			markerUUID = markerUUID,
 			inventory = inventory,
 			xp = xp,
-			timeLeft = timeLeft,
-			serverId = serverId,
+
 			deathTime = deathTime,
 			expireTime = expireTime,
+			timeLeft = ((expireTime - deathTime) / 1000).toInt(),
+
+			serverId = serverId,
 			isLocal = false
 		)
+
+		// Init from database or PDC
+		fun initAndStart(
+			markerUUID: UUID,
+			ownerUUID: UUID,
+			location: Location,
+			inventory: MutableList<ItemStack?>,
+			xp: Int,
+			deathTime: Long,
+			expireTime: Long,
+		): Soul {
+			val soul = Soul(
+				markerUUID = markerUUID,
+				ownerUUID = ownerUUID,
+				location = location,
+				inventory = inventory,
+				xp = xp,
+
+				deathTime = deathTime,
+				expireTime = expireTime,
+				timeLeft = ((expireTime - deathTime) / 1000).toInt(),
+
+				isLocal = true
+			)
+			// Init Soul
+			SoulGraves.soulList.add(soul)
+			soul.startTasks()
+			return soul
+		}
+
 	}
 
-	fun setTimeLeft(value: Int) {
-		timeLeft = value.coerceAtLeast(0)
-		expireTime = System.currentTimeMillis() + timeLeft * 1000L
-	}
-	fun setExpireTime(value: Long) {
-		expireTime = value
-		timeLeft = ((expireTime - System.currentTimeMillis()) / 1000).toInt().coerceAtLeast(0)
-	}
 
 	var marker: Entity? = null
 	var state: Enum<SoulState> = SoulState.NORMAL
@@ -235,8 +283,9 @@ class Soul(
 					}
 				}
 				// REMOVE ENTITY
-				location.world?.loadChunk(location.chunk)
-				(Bukkit.getEntity(markerUUID) as? Marker)?.remove()
+				location.world?.loadChunk(location.chunk).apply {
+					(Bukkit.getEntity(markerUUID) as? Marker)?.remove()
+				}
 			}
 
 			// DATABASE

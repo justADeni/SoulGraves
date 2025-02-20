@@ -18,7 +18,8 @@ import org.bukkit.inventory.ItemStack
 
 class SoulPickupTask(val soul: Soul) : BukkitRunnable() {
 	override fun run() {
-		if (!soul.location.world?.isChunkLoaded(soul.location.chunk)!! || soul.state == SoulState.EXPLODING) { return }
+		if (soul.state == SoulState.EXPLODING) return
+		if (soul.location.world?.isChunkLoaded(soul.location.chunk) != true) return
 
 		soul.location.world?.getNearbyEntities(soul.location, 0.5,0.5,0.5)
 			?.filterIsInstance<Player>()

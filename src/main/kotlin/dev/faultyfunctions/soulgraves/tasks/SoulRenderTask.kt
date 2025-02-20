@@ -9,7 +9,7 @@ import kotlin.math.sin
 
 class SoulRenderTask(val soul: Soul) : BukkitRunnable() {
 	override fun run() {
-		if (!soul.location.world?.isChunkLoaded(soul.location.chunk)!!) { return }
+		if (soul.location.world?.isChunkLoaded(soul.location.chunk) != true) return
 
 		val endRodOffsetY = sin(System.currentTimeMillis().toDouble() * 0.001) * 0.5
 
