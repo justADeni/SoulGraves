@@ -60,7 +60,7 @@ class SoulExplodeTask(val soul: Soul) : BukkitRunnable() {
 			soul.location.world?.spawnParticle(Particle.SCULK_SOUL, soul.location.clone().add(0.0, 1.0, 0.0), 100, 0.0, 0.0, 0.0, 0.1, null, true)
 
 			// SEND PLAYER MESSAGE
-			when (DatabaseManager.storageMode) {
+			when (STORAGE_MODE) {
 				STORAGE_TYPE.PDC -> {
 					owner?.let {
 						if (MessageManager.soulBurstComponent != null)
