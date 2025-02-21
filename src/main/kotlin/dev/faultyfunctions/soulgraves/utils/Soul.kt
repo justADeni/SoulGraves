@@ -83,6 +83,7 @@ class Soul private constructor(
 			)
 			// Init Soul
 			soul.marker = marker
+			SoulGraves.soulList.add(soul)
 			soul.startTasks()
 			soul.saveData()
 			return soul
@@ -288,6 +289,8 @@ class Soul private constructor(
 				location.world?.loadChunk(location.chunk).apply {
 					(Bukkit.getEntity(markerUUID) as? Marker)?.remove()
 				}
+				// REMOVE RECORD
+				SoulGraves.soulList.remove(this)
 			}
 
 			// DATABASE
@@ -305,8 +308,11 @@ class Soul private constructor(
 					MySQLDatabase.instance.deleteSoul(this)
 				})
 				// REMOVE ENTITY
-				location.world?.loadChunk(location.chunk)
-				(Bukkit.getEntity(markerUUID) as? Marker)?.remove()
+				location.world?.loadChunk(location.chunk).apply {
+					(Bukkit.getEntity(markerUUID) as? Marker)?.remove()
+				}
+				// REMOVE RECORD
+				SoulGraves.soulList.remove(this)
 			}
 
 			// REMOTE
