@@ -22,6 +22,7 @@ class SoulPickupTask(val soul: Soul) : BukkitRunnable() {
 		if (soul.location.world?.isChunkLoaded(soul.location.chunk) != true) return
 
 		soul.location.world?.getNearbyEntities(soul.location, 0.5,0.5,0.5)
+			?.takeIf { Bukkit.getEntity(soul.markerUUID) != null }
 			?.filterIsInstance<Player>()
 			?.filterNot { it.isDead }
 			?.filterNot { it.gameMode == GameMode.SPECTATOR }

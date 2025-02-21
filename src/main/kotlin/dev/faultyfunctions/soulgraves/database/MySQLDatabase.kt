@@ -81,8 +81,9 @@ class MySQLDatabase private constructor() {
     // Read Souls in Current Server
     private fun initCurrentServerSouls() {
         val connection = dataSource.connection
-        val sql = "SELECT * FROM $databaseName WHERE serverName = $SERVER_NAME"
+        val sql = "SELECT * FROM $databaseName WHERE serverName = ?"
         val statement = connection.prepareStatement(sql)
+        statement.setString(1, SERVER_NAME)
 
         try {
             val resultSet = statement.executeQuery()
@@ -169,8 +170,9 @@ class MySQLDatabase private constructor() {
         val souls = ArrayList<Soul>()
 
         val connection = dataSource.connection
-        val sql = "SELECT * FROM $databaseName WHERE serverName != $SERVER_NAME"
+        val sql = "SELECT * FROM $databaseName WHERE serverName != ?"
         val statement = connection.prepareStatement(sql)
+        statement.setString(1, SERVER_NAME)
 
         try {
             val resultSet = statement.executeQuery()
@@ -210,9 +212,10 @@ class MySQLDatabase private constructor() {
         souls.addAll(currentServerSouls)
 
         val connection = dataSource.connection
-        val sql = "SELECT * FROM $databaseName WHERE ownerUUID = ? AND serverName != $SERVER_NAME"
+        val sql = "SELECT * FROM $databaseName WHERE ownerUUID = ? AND serverName != ?"
         val statement = connection.prepareStatement(sql)
         statement.setString(1, playerUUID.toString())
+        statement.setString(2, SERVER_NAME)
 
         try {
             val resultSet = statement.executeQuery()
@@ -324,8 +327,9 @@ class MySQLDatabase private constructor() {
     }
     fun deleteSoul(markerUUID: UUID) {
         val connection = dataSource.connection
-        val sql = "DELETE FROM $databaseName WHERE markerUUID = $markerUUID"
+        val sql = "DELETE FROM $databaseName WHERE markerUUID = ?"
         val statement = connection.prepareStatement(sql)
+        statement.setString(1, markerUUID.toString())
 
         try {
             statement.executeUpdate()

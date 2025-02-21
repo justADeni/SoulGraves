@@ -29,7 +29,7 @@ class Soul private constructor(
 	var ownerUUID: UUID,
 	var markerUUID: UUID,
 	var location: Location,
-	var inventory:MutableList<ItemStack?>,
+	var inventory: MutableList<ItemStack?>,
 	var xp: Int,
 
 	val deathTime: Long,
@@ -39,20 +39,22 @@ class Soul private constructor(
 	val serverId: String = SERVER_NAME,
 	val isLocal: Boolean = serverId == SERVER_NAME
 ) {
+	private var _expireTime: Long = expireTime
+	private var _timeLeft: Int = timeLeft
 
-	var expireTime: Long = expireTime
+	var expireTime: Long
+		get() = _expireTime
 		set(value) {
-			field = value
-			timeLeft = ((value - System.currentTimeMillis()) / 1000).toInt().coerceAtLeast(0)
+			_expireTime = value
+			_timeLeft = ((value - System.currentTimeMillis()) / 1000).toInt().coerceAtLeast(0)
 		}
 
-	var timeLeft: Int = timeLeft
+	var timeLeft: Int
+		get() = if (isLocal) _timeLeft else ((_expireTime - System.currentTimeMillis()) / 1000).toInt().coerceAtLeast(0)
 		set(value) {
-			field = value.coerceAtLeast(0)
-			expireTime = System.currentTimeMillis() + field * 1000L
+			_timeLeft = value.coerceAtLeast(0)
+			_expireTime = System.currentTimeMillis() + _timeLeft * 1000L
 		}
-		get() = if (isLocal) field else ((expireTime - System.currentTimeMillis()) / 1000).toInt().coerceAtLeast(0)
-
 
 	companion object {
 
