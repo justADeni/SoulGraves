@@ -10,7 +10,6 @@ import dev.faultyfunctions.soulgraves.managers.SERVER_NAME
 import dev.faultyfunctions.soulgraves.utils.Soul
 import org.bukkit.Bukkit
 import org.bukkit.Location
-import org.bukkit.entity.Marker
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -88,26 +87,24 @@ class MySQLDatabase private constructor() {
         try {
             val resultSet = statement.executeQuery()
             while (resultSet.next()) {
-                // IF FOUND DELETED TAG, SOUL WILL REMOVE.
-                if (resultSet.getBoolean("isDeleted")) {
-                    val markerUUID = UUID.fromString(resultSet.getString("ownerUUID"))
-                    val location = Location(Bukkit.getWorld(resultSet.getString("world")), resultSet.getDouble("x"), resultSet.getDouble("y"), resultSet.getDouble("z"))
-
-                    Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable { deleteSoul(markerUUID) })
-                    location.world?.loadChunk(location.chunk).apply { (Bukkit.getEntity(markerUUID) as? Marker)?.remove() }
-                    continue
-                }
-
                 // INIT SOUL
-                Soul.initAndStart(
+                val soul = Soul.initAndStart(
                     markerUUID = UUID.fromString(resultSet.getString("markerUUID")),
                     ownerUUID = UUID.fromString(resultSet.getString("ownerUUID")),
-                    location = Location(Bukkit.getWorld(resultSet.getString("world")), resultSet.getDouble("x"), resultSet.getDouble("y"), resultSet.getDouble("z")),
+                    location = Location(
+                        Bukkit.getWorld(resultSet.getString("world")),
+                        resultSet.getDouble("x"),
+                        resultSet.getDouble("y"),
+                        resultSet.getDouble("z")
+                    ),
                     inventory = ItemTagStream.INSTANCE.listFromBase64(resultSet.getString("inventory")),
                     xp = resultSet.getInt("xp"),
                     deathTime = resultSet.getLong("deathTime"),
-                    expireTime = resultSet.getLong("expireTime")
+                    expireTime = resultSet.getLong("expireTime"),
+
                 )
+                // IF FOUND DELETED TAG, SOUL WILL REMOVE.
+                if (resultSet.getBoolean("isDeleted")) { soul.delete() }
             }
         } catch (e: Exception) {
             e.printStackTrace()

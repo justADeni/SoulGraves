@@ -28,6 +28,9 @@ class SoulPickupEvent (var player: Player, var soul: Soul): Event(), Cancellable
     fun getStorageItems(): MutableList<ItemStack?> {
         return soul.inventory
     }
+    fun setStorageItems(items: MutableList<ItemStack?>) {
+        soul.inventory = items
+    }
 
     fun getSoulLocation(): Location {
         return soul.location

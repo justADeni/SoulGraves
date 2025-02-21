@@ -3,6 +3,7 @@ package dev.faultyfunctions.soulgraves.utils
 import com.jeff_media.morepersistentdatatypes.DataType
 import dev.faultyfunctions.soulgraves.*
 import dev.faultyfunctions.soulgraves.api.RedisPublishAPI
+import dev.faultyfunctions.soulgraves.api.event.SoulDeleteEvent
 import dev.faultyfunctions.soulgraves.database.MySQLDatabase
 import dev.faultyfunctions.soulgraves.database.soulChunksKey
 import dev.faultyfunctions.soulgraves.database.soulKey
@@ -291,6 +292,9 @@ class Soul private constructor(
 				}
 				// REMOVE RECORD
 				SoulGraves.soulList.remove(this)
+				// CALL EVENT
+				val event = SoulDeleteEvent(this)
+				Bukkit.getPluginManager().callEvent(event)
 			}
 
 			// DATABASE
@@ -313,6 +317,9 @@ class Soul private constructor(
 				}
 				// REMOVE RECORD
 				SoulGraves.soulList.remove(this)
+				// CALL EVENT
+				val event = SoulDeleteEvent(this)
+				Bukkit.getPluginManager().callEvent(event)
 			}
 
 			// REMOTE

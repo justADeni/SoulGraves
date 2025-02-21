@@ -61,7 +61,6 @@
 							</excludes>
 						</filter>
 					</filters>
-					<outputDirectory>C:\Users\Catnies\Desktop\FirTown Test Server\plugins</outputDirectory>
 					<relocations>
 						<relocation>
 							<pattern>com.jeff_media.morepersistentdatatypes</pattern>
@@ -120,14 +119,19 @@
 			<version>${kotlin.version}</version>
 			<scope>compile</scope>
 		</dependency>
-		<!-- Database -->
+		<!-- Develop Lib -->
 		<dependency>
 			<groupId>com.zaxxer</groupId>
 			<artifactId>HikariCP</artifactId>
 			<version>5.0.1</version>
 			<scope>provided</scope>
 		</dependency>
-		<!-- Develop Lib -->
+		<dependency>
+			<groupId>io.lettuce</groupId>
+			<artifactId>lettuce-core</artifactId>
+			<version>6.5.3.RELEASE</version>
+			<scope>provided</scope>
+		</dependency>
 		<dependency>
 			<groupId>dev.dejvokep</groupId>
 			<artifactId>boosted-yaml</artifactId>

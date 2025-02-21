@@ -12,7 +12,6 @@ import dev.faultyfunctions.soulgraves.utils.Soul
 import org.bukkit.Bukkit
 import org.bukkit.GameMode
 import org.bukkit.Particle
-import org.bukkit.entity.Marker
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 

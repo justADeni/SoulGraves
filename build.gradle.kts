@@ -46,9 +46,6 @@ tasks {
         relocate("org.bstats", "${project.group}.libs.bstats")
         relocate("dev.dejvokep.boostedyaml", "${project.group}.libs.boostedyaml")
         relocate("com.jeff_media.morepersistentdatatypes", "${project.group}.libs.morepersistentdatatypes")
-
-        destinationDirectory.set(file("C:/Users/Catnies/Desktop/FirTown Test Server/plugins"))
-        archiveFileName = "SoulGrave-${version}-all.jar.jar"
     }
 }
 
