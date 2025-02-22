@@ -11,7 +11,7 @@ import org.bukkit.event.HandlerList
  * 2. Soul Explode,
  * 3. API Delete,
  * 4. Valid Check (e.g. Marker Entity Removed, World Unload)
- * 5. Clear Not Valid Soul At Server Start
+ * 5. Clear Not Valid Soul At Server Start (e.g. Has Deleted Tag)
  *
  * The event cannot be cancelled, it is only for notification
  * If you need to modify the soul, please listen to other events
@@ -28,7 +28,7 @@ class SoulDeleteEvent(val soul: Soul): Event() {
     }
 
     override fun getHandlers(): HandlerList {
-        return SoulSpawnEvent.HANDLER_LIST
+        return SoulDeleteEvent.HANDLER_LIST
     }
 
 }
