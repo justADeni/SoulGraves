@@ -30,7 +30,7 @@ object SoulGraveAPI {
             val allSouls = MySQLDatabase.instance.getAllSouls()
             future.complete(allSouls)
         })
-        return future.orTimeout(10, TimeUnit.SECONDS)
+        return future.orTimeout(5, TimeUnit.SECONDS)
     }
 
 
@@ -57,7 +57,7 @@ object SoulGraveAPI {
             val allSouls = MySQLDatabase.instance.getPlayerSouls(ownerUUID)
             future.complete(allSouls)
         })
-        return future.orTimeout(10, TimeUnit.SECONDS)
+        return future.orTimeout(5, TimeUnit.SECONDS)
     }
 
 
@@ -83,7 +83,7 @@ object SoulGraveAPI {
             val soul = MySQLDatabase.instance.getSoul(makerUUID)
             future.complete(soul)
         })
-        return future.orTimeout(10, TimeUnit.SECONDS)
+        return future.orTimeout(5, TimeUnit.SECONDS)
     }
 
 

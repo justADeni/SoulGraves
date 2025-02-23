@@ -1,14 +1,11 @@
 package dev.faultyfunctions.soulgraves
 
 import dev.faultyfunctions.soulgraves.commands.ReloadCommand
-import dev.faultyfunctions.soulgraves.managers.ConfigManager
-import dev.faultyfunctions.soulgraves.managers.MessageManager
 import dev.faultyfunctions.soulgraves.database.MySQLDatabase
 import dev.faultyfunctions.soulgraves.database.PDCDatabase
 import dev.faultyfunctions.soulgraves.database.RedisDatabase
 import dev.faultyfunctions.soulgraves.listeners.PlayerDeathListener
-import dev.faultyfunctions.soulgraves.managers.DatabaseManager
-import dev.faultyfunctions.soulgraves.managers.STORAGE_TYPE
+import dev.faultyfunctions.soulgraves.managers.*
 import dev.faultyfunctions.soulgraves.utils.Soul
 import net.kyori.adventure.platform.bukkit.BukkitAudiences
 import org.bstats.bukkit.Metrics
@@ -37,7 +34,7 @@ class SoulGraves : JavaPlugin() {
 		DatabaseManager.loadConfig()
 
 		// INIT SOULS
-		when (DatabaseManager.storageMode) {
+		when (STORAGE_MODE) {
 			// PDC
 			STORAGE_TYPE.PDC  -> {
 				PDCDatabase.instance

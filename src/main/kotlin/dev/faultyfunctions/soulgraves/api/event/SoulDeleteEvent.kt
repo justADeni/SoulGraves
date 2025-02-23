@@ -28,7 +28,7 @@ class SoulDeleteEvent(val soul: Soul): Event() {
     }
 
     override fun getHandlers(): HandlerList {
-        return SoulDeleteEvent.HANDLER_LIST
+        return HANDLER_LIST
     }
 
 }

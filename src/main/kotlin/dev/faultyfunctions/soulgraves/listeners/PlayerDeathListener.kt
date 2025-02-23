@@ -59,15 +59,7 @@ class PlayerDeathListener() : Listener {
 		marker.isSilent = true
 		marker.isInvulnerable = true
 
-		// STORE DATA
-		marker.persistentDataContainer.set(soulKey, DataType.BOOLEAN, true)
-		marker.persistentDataContainer.set(soulOwnerKey, DataType.UUID, player.uniqueId)
-		marker.persistentDataContainer.set(soulInvKey, DataType.ITEM_STACK_ARRAY, inventory.toTypedArray())
-		marker.persistentDataContainer.set(soulXpKey, DataType.INTEGER, xp)
-		marker.persistentDataContainer.set(soulDeathTimeKey, DataType.LONG, deathTime)
-		marker.persistentDataContainer.set(soulExpireTimeKey, DataType.LONG, expireTime)
-
-		// CREATE SOUL
+		// CREATE SOUL & STORE DATA IN MARKER
 		val soul = Soul.createNewForPlayerDeath(
 			player.uniqueId,
 			marker,

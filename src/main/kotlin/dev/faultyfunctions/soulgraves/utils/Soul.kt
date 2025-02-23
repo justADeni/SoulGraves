@@ -4,9 +4,7 @@ import com.jeff_media.morepersistentdatatypes.DataType
 import dev.faultyfunctions.soulgraves.*
 import dev.faultyfunctions.soulgraves.api.RedisPublishAPI
 import dev.faultyfunctions.soulgraves.api.event.SoulDeleteEvent
-import dev.faultyfunctions.soulgraves.database.MySQLDatabase
-import dev.faultyfunctions.soulgraves.database.soulChunksKey
-import dev.faultyfunctions.soulgraves.database.soulKey
+import dev.faultyfunctions.soulgraves.database.*
 import dev.faultyfunctions.soulgraves.managers.*
 import dev.faultyfunctions.soulgraves.tasks.*
 import org.bukkit.Bukkit
@@ -28,14 +26,15 @@ enum class SoulState {
  */
 class Soul private constructor(
 	var ownerUUID: UUID,
-	var markerUUID: UUID,
-	var location: Location,
+	val markerUUID: UUID,
+	val location: Location,
 	var inventory: MutableList<ItemStack?>,
 	var xp: Int,
 
 	val deathTime: Long,
 	expireTime: Long,
 	timeLeft: Int, // Second
+	var freezeTime: Long = 0, // IF Config offlineOwnerTimerFreeze is True, Will Record Owner Logout Time
 
 	val serverId: String = SERVER_NAME,
 	val isLocal: Boolean = serverId == SERVER_NAME
@@ -83,7 +82,6 @@ class Soul private constructor(
 				isLocal = true
 			)
 			// Init Soul
-			soul.marker = marker
 			SoulGraves.soulList.add(soul)
 			soul.startTasks()
 			soul.saveData()
@@ -99,7 +97,8 @@ class Soul private constructor(
 			xp: Int,
 			serverId: String,
 			deathTime: Long,
-			expireTime: Long
+			expireTime: Long,
+			freezeTime: Long
 		) = Soul(
 			markerUUID = markerUUID,
 			ownerUUID = ownerUUID,
@@ -110,6 +109,7 @@ class Soul private constructor(
 			deathTime = deathTime,
 			expireTime = expireTime,
 			timeLeft = ((expireTime - deathTime) / 1000).toInt(),
+			freezeTime = freezeTime,
 
 			serverId = serverId,
 			isLocal = false
@@ -124,6 +124,7 @@ class Soul private constructor(
 			xp: Int,
 			deathTime: Long,
 			expireTime: Long,
+			freezeTime: Long
 		): Soul {
 			val soul = Soul(
 				markerUUID = markerUUID,
@@ -135,6 +136,7 @@ class Soul private constructor(
 				deathTime = deathTime,
 				expireTime = expireTime,
 				timeLeft = ((expireTime - deathTime) / 1000).toInt(),
+				freezeTime = freezeTime,
 
 				isLocal = true
 			)
@@ -143,11 +145,8 @@ class Soul private constructor(
 			soul.startTasks()
 			return soul
 		}
-
 	}
 
-
-	var marker: Entity? = null
 	var state: Enum<SoulState> = SoulState.NORMAL
 	var implosion: Boolean = false
 
@@ -165,12 +164,7 @@ class Soul private constructor(
 	fun startTasks() {
 		// If not local soul
 		if (!isLocal) return
-
-		// If world is not exist, entity is not exist
-		location.world?.let { world ->
-			world.loadChunk(location.chunk)
-			Bukkit.getEntity(markerUUID) ?: delete()
-		} ?: delete()
+		if (!isValid()) delete()
 
 		// Start Tasks
 		explodeTask ?: SoulExplodeTask(this).also {
@@ -211,48 +205,58 @@ class Soul private constructor(
 
 
 	/**
-	 * Save to Database on Created
+	 * Save to Database, Remember Save After Modified Soul
 	 */
-	private fun saveData() {
+	fun saveData() {
+		// If not local soul
+		if (!isLocal) return
+		if (!isValid()) delete()
+
+		// Save
 		when (STORAGE_MODE) {
 			// PDC
 			STORAGE_TYPE.PDC -> {
-				marker?.let {
-					val chunkList: MutableList<Long>? = it.world.persistentDataContainer.get(soulChunksKey, DataType.asList(DataType.LONG))
-					if (chunkList != null && !chunkList.contains(SpigotCompatUtils.getChunkKey(it.location.chunk))) {
-						chunkList.add(SpigotCompatUtils.getChunkKey(it.location.chunk))
-						it.world.persistentDataContainer.set(soulChunksKey, DataType.asList(DataType.LONG), chunkList)
-					}
-				}
+				PDCDatabase.instance.saveSoul(this)
 			}
 			// DATABASE
 			STORAGE_TYPE.DATABASE -> {
-				marker?.let {
-					Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
-						MySQLDatabase.instance.saveSoul(this)
-					})
-				}
+				Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
+					MySQLDatabase.instance.saveSoul(this)
+				})
 			}
 		}
+	}
+
+
+	fun isValid(): Boolean {
+		// If world is not exist, entity is not exist
+		val world = location.world ?: return false
+		world.loadChunk(location.chunk)
+		Bukkit.getEntity(markerUUID) ?: return false
+		return true
 	}
 
 
 	/**
 	 * Make Soul Explode Now, Will Drop Exp And Items.
 	 */
-	fun explode() {
+	fun explode(): Boolean {
 		when {
 			// Local
 			isLocal -> {
 				this.state = SoulState.EXPLODING
 				this.implosion = true
+				return true
 			}
 
 			// REMOTE
 			STORAGE_MODE == STORAGE_TYPE.DATABASE -> {
 				RedisPublishAPI.explodeSoul(markerUUID)
+				return true
 			}
 		}
+
+		return false
 	}
 
 
@@ -272,20 +276,7 @@ class Soul private constructor(
 				stateTask?.cancel()
 				validationTask?.cancel()
 				// REMOVE DATA FROM PDC
-				var removeChunk = true
-				for (entityInChunk in location.chunk.entities) {
-					if (entityInChunk.persistentDataContainer.has(soulKey) && markerUUID != entityInChunk.uniqueId) {
-						removeChunk = false
-						break
-					}
-				}
-				if (removeChunk) {
-					val chunkList: MutableList<Long>? = location.world?.persistentDataContainer?.get(soulChunksKey, DataType.asList(DataType.LONG))
-					if (chunkList != null) {
-						chunkList.remove(SpigotCompatUtils.getChunkKey(location.chunk))
-						location.world?.persistentDataContainer?.set(soulChunksKey, DataType.asList(DataType.LONG), chunkList)
-					}
-				}
+				PDCDatabase.instance.deleteSoul(this)
 				// REMOVE ENTITY
 				location.world?.loadChunk(location.chunk).apply {
 					(Bukkit.getEntity(markerUUID) as? Marker)?.remove()
@@ -328,16 +319,4 @@ class Soul private constructor(
 			}
 		}
 	}
-
-
-	/**
-	 * Update Soul, when get a soul data copy from database and modify, then need update database to sync data.
-	 */
-	fun syncSoul() {
-		// local soul and pdc mode do not need to sync to database
-		if (isLocal || STORAGE_MODE == STORAGE_TYPE.PDC) return
-		RedisPublishAPI.syncSoul(this)
-	}
-
-
 }

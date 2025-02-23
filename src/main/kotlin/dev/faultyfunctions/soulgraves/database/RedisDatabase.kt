@@ -2,11 +2,13 @@ package dev.faultyfunctions.soulgraves.database
 
 import com.google.gson.JsonSyntaxException
 import dev.faultyfunctions.soulgraves.SoulGraves
+import dev.faultyfunctions.soulgraves.api.RedisPublishAPI.pendingAnswersRequests
 import dev.faultyfunctions.soulgraves.api.SoulGraveAPI
 import dev.faultyfunctions.soulgraves.database.MessageAction.*
 import dev.faultyfunctions.soulgraves.managers.ConfigManager
 import dev.faultyfunctions.soulgraves.managers.DatabaseManager
 import dev.faultyfunctions.soulgraves.managers.MessageManager
+import dev.faultyfunctions.soulgraves.managers.SERVER_NAME
 import dev.faultyfunctions.soulgraves.utils.Soul
 import io.lettuce.core.RedisClient
 import io.lettuce.core.api.StatefulRedisConnection
@@ -94,30 +96,47 @@ class RedisDatabase private constructor() {
             val packet = RedisPacket.fromJson(message)
             when (packet.action) {
                 // REMOVE_SOUL
-                // PAYLOAD FORMAT: [MAKER_UUID]
+                // PAYLOAD FORMAT: [MSG_UUID][TARGET_SERVER][MAKER_UUID]
                 REMOVE_SOUL -> {
                     callbackExecutor!!.execute {
-                        val makerUUID = UUID.fromString(packet.payload)
+                        val split = packet.payload.split("|")
+                        val targetServer = split[1]
+                        if (targetServer != SERVER_NAME) return@execute
+
+                        val msgUUID = split[0]
+                        val makerUUID = UUID.fromString(split[2])
                         val soul = SoulGraveAPI.getSoul(makerUUID)
+                        // TODO , Checks Soul validity and returns Boolean after operation
                         soul?.let { Bukkit.getScheduler().runTask(SoulGraves.plugin, Runnable { soul.delete() }) } // Sync for Bukkit API
                     }
                 }
 
                 // EXPLODE_SOUL
-                // PAYLOAD FORMAT: [MAKER_UUID]
+                // PAYLOAD FORMAT: [MSG_UUID][TARGET_SERVER][MAKER_UUID]
                 EXPLODE_SOUL -> {
                     callbackExecutor!!.execute {
-                        val makerUUID = UUID.fromString(packet.payload)
+                        val split = packet.payload.split("|")
+                        val targetServer = split[1]
+                        if (targetServer != SERVER_NAME) return@execute
+
+                        val msgUUID = split[0]
+                        val makerUUID = UUID.fromString(split[2])
                         val soul = SoulGraveAPI.getSoul(makerUUID)
+                        // TODO , Checks Soul validity and returns Boolean after operation
                         soul?.let { Bukkit.getScheduler().runTask(SoulGraves.plugin, Runnable { soul.explode() }) } // Sync for Bukkit API
                     }
                 }
 
                 // UPDATE_SOUL
-                // PAYLOAD FORMAT: [MAKER_UUID]
+                // PAYLOAD FORMAT: [MSG_UUID][TARGET_SERVER][MAKER_UUID]
                 UPDATE_SOUL -> {
                     callbackExecutor!!.execute {
-                        val makerUUID = UUID.fromString(packet.payload)
+                        val split = packet.payload.split("|")
+                        val targetServer = split[1]
+                        if (targetServer != SERVER_NAME) return@execute
+
+                        val msgUUID = split[0]
+                        val makerUUID = UUID.fromString(split[2])
                         val soul = SoulGraveAPI.getSoul(makerUUID)
                         soul?.let {
                             // get new copy data from database
@@ -126,18 +145,19 @@ class RedisDatabase private constructor() {
                                 val soulCopy = MySQLDatabase.instance.getSoul(makerUUID)
                                 future.complete(soulCopy)
                             })
-                            future.orTimeout(10, TimeUnit.SECONDS)
+                            future.orTimeout(5, TimeUnit.SECONDS)
                             // update data
                             future.thenAccept {
                                 // Sync for Bukkit API
                                 Bukkit.getScheduler().runTask(SoulGraves.plugin, Runnable {
                                     it?.let { copy ->
-                                        soul.markerUUID = copy.markerUUID
                                         soul.ownerUUID = copy.ownerUUID
-                                        soul.location = copy.location
                                         soul.inventory = copy.inventory
                                         soul.xp = copy.xp
-                                        soul.timeLeft = copy.timeLeft
+
+                                        soul.expireTime = copy.expireTime
+                                        soul.timeLeft = (copy.expireTime - System.currentTimeMillis() / 1000).toInt()
+                                        soul.freezeTime = copy.freezeTime
                                     }
                                 })
                             }
@@ -176,6 +196,20 @@ class RedisDatabase private constructor() {
                                 }
                             }
                         }
+                    }
+                }
+
+                // API_ANSWER
+                // PAYLOAD FORMAT: [MSG_UUID][TARGET_SERVER][BOOLEAN]
+                API_ANSWER -> {
+                    callbackExecutor!!.execute {
+                        val split = packet.payload.split("|")
+                        val targetServer = split[1]
+                        if (targetServer != SERVER_NAME) return@execute
+
+                        val msgUUID = split[0]
+                        val answer = split[2].toBoolean()
+                        pendingAnswersRequests[msgUUID]?.complete(answer)
                     }
                 }
             }

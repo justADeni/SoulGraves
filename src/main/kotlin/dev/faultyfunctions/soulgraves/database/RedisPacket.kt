@@ -7,8 +7,11 @@ enum class MessageAction {
     REMOVE_SOUL,
     EXPLODE_SOUL,
     UPDATE_SOUL,
+
     NOTIFY_SOUL_EXPLODE,
-    NOTIFY_SOUL_OTHER_PICKUP
+    NOTIFY_SOUL_OTHER_PICKUP,
+
+    API_ANSWER
 }
 
 
