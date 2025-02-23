@@ -4,6 +4,7 @@ import com.saicone.rtag.item.ItemTagStream
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import dev.faultyfunctions.soulgraves.SoulGraves
+import dev.faultyfunctions.soulgraves.database.RedisDatabase.Companion
 import dev.faultyfunctions.soulgraves.managers.ConfigManager
 import dev.faultyfunctions.soulgraves.managers.DatabaseManager
 import dev.faultyfunctions.soulgraves.managers.SERVER_NAME
@@ -45,6 +46,10 @@ class MySQLDatabase private constructor() {
             initCurrentServerSouls()
             SoulGraves.plugin.logger.info("Connected to MySQL Database!")
         } }
+        @JvmStatic
+        fun getInstanceByJava(): MySQLDatabase {
+            return MySQLDatabase.instance
+        }
     }
 
     // Create Table
@@ -55,6 +60,7 @@ class MySQLDatabase private constructor() {
                 markerUUID VARCHAR(255) PRIMARY KEY,
                 ownerUUID VARCHAR(255),
                 serverName VARCHAR(255),
+                world VARCHAR(255),
                 x INT,
                 y INT,
                 z INT,
@@ -205,7 +211,7 @@ class MySQLDatabase private constructor() {
         dataSource.connection.use{ connection ->
             connection.prepareStatement("""
                 SELECT * FROM $databaseName
-                AND serverName != ?
+                WHERE serverName != ?
                 AND isDeleted = FALSE
                 """.trimIndent()
             ).use { statement ->
@@ -213,8 +219,12 @@ class MySQLDatabase private constructor() {
                 try {
                     val resultSet = statement.executeQuery()
                     while (resultSet.next()) {
-                        // TODO freezeTime?
-                        if (resultSet.getLong("expireTime") <= System.currentTimeMillis()) continue
+                        val freezeTime = resultSet.getLong("freezeTime")
+                        val expireTime = resultSet.getLong("expireTime")
+
+                        if (!ConfigManager.offlineOwnerTimerFreeze) {
+                            if (expireTime <= System.currentTimeMillis()) continue
+                        }
 
                         souls.add(Soul.createDataCopy(
                             markerUUID = UUID.fromString(resultSet.getString("markerUUID")),
@@ -224,8 +234,8 @@ class MySQLDatabase private constructor() {
                             location = Location(Bukkit.getWorld(resultSet.getString("world")), resultSet.getDouble("x"), resultSet.getDouble("y"), resultSet.getDouble("z")),
                             serverId = resultSet.getString("serverName"),
                             deathTime = resultSet.getLong("deathTime"),
-                            expireTime = resultSet.getLong("expireTime"),
-                            freezeTime = resultSet.getLong("freezeTime")
+                            expireTime = expireTime,
+                            freezeTime = freezeTime
                         ))
                     }
                 } catch (e: Exception) {
@@ -256,8 +266,12 @@ class MySQLDatabase private constructor() {
                 try {
                     val resultSet = statement.executeQuery()
                     while (resultSet.next()) {
-                        // TODO freezeTime?
-                        if (resultSet.getLong("expireTime") <= System.currentTimeMillis()) continue
+                        val freezeTime = resultSet.getLong("freezeTime")
+                        val expireTime = resultSet.getLong("expireTime")
+
+                        if (!ConfigManager.offlineOwnerTimerFreeze) {
+                            if (expireTime <= System.currentTimeMillis()) continue
+                        }
 
                         souls.add(Soul.createDataCopy(
                             markerUUID = UUID.fromString(resultSet.getString("markerUUID")),
@@ -267,8 +281,8 @@ class MySQLDatabase private constructor() {
                             location = Location(Bukkit.getWorld(resultSet.getString("world")), resultSet.getDouble("x"), resultSet.getDouble("y"), resultSet.getDouble("z")),
                             serverId = resultSet.getString("serverName"),
                             deathTime = resultSet.getLong("deathTime"),
-                            expireTime = resultSet.getLong("expireTime"),
-                            freezeTime = resultSet.getLong("freezeTime")
+                            expireTime = expireTime,
+                            freezeTime = freezeTime
                         ))
                     }
                 } catch (e: Exception) {
@@ -296,8 +310,14 @@ class MySQLDatabase private constructor() {
                 statement.setString(1, markerUUID.toString())
                 try {
                     val resultSet = statement.executeQuery()
-                    // TODO freezeTime?
-                    if (resultSet.getLong("expireTime") <= System.currentTimeMillis()) return null
+                    resultSet.next()
+
+                    val freezeTime = resultSet.getLong("freezeTime")
+                    val expireTime = resultSet.getLong("expireTime")
+
+                    if (!ConfigManager.offlineOwnerTimerFreeze) {
+                        if (expireTime <= System.currentTimeMillis()) return null
+                    }
 
                     return Soul.createDataCopy(
                         markerUUID = UUID.fromString(resultSet.getString("markerUUID")),
@@ -307,8 +327,8 @@ class MySQLDatabase private constructor() {
                         location = Location(Bukkit.getWorld(resultSet.getString("world")), resultSet.getDouble("x"), resultSet.getDouble("y"), resultSet.getDouble("z")),
                         serverId = resultSet.getString("serverName"),
                         deathTime = resultSet.getLong("deathTime"),
-                        expireTime = resultSet.getLong("expireTime"),
-                        freezeTime = resultSet.getLong("freezeTime")
+                        expireTime = expireTime,
+                        freezeTime = freezeTime
                     )
                 } catch (e: Exception) {
                     e.printStackTrace()

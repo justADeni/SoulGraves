@@ -36,11 +36,13 @@ object RedisPublishAPI {
         val future = CompletableFuture<Boolean>()
         Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
             try {
+                // IF SOUL NOT EXIST
                 val soul = MySQLDatabase.instance.getSoul(markerUUID)
                 if (soul == null) {
                     future.complete(false)
                     return@Runnable
                 }
+                // IF Target Server is Online.
                 if (RedisDatabase.instance.isServerOnline(soul.serverId)) {
                     val msgUUID = UUID.randomUUID()
                     val target = soul.serverId
@@ -74,11 +76,13 @@ object RedisPublishAPI {
         val future = CompletableFuture<Boolean>()
         Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
             try {
+                // IF SOUL NOT EXIST
                 val soul = MySQLDatabase.instance.getSoul(markerUUID)
                 if (soul == null) {
                     future.complete(false)
                     return@Runnable
                 }
+                // IF Target Server is Online.
                 if (RedisDatabase.instance.isServerOnline(soul.serverId)) {
                     val msgUUID = UUID.randomUUID()
                     val target = soul.serverId
@@ -87,7 +91,6 @@ object RedisPublishAPI {
                         pendingAnswersRequests.remove(msgUUID.toString())
                     }
                     RedisDatabase.instance.publish(RedisPacket(SERVER_NAME, MessageAction.EXPLODE_SOUL, "$msgUUID|$target|$markerUUID"))
-
                 // IF Target Server is Offline.
                 } else {
                     MySQLDatabase.instance.markSoulExplode(markerUUID)
@@ -117,13 +120,15 @@ object RedisPublishAPI {
         val future = CompletableFuture<Boolean>()
         Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
             try {
+                // IF SOUL NOT EXIST
                 val checkSoul = MySQLDatabase.instance.getSoul(soul.markerUUID)
                 if (checkSoul == null) {
                     future.complete(false)
                     return@Runnable
                 }
-                MySQLDatabase.instance.saveSoulCopy(soul) // Save Copy
-
+                // Save Copy
+                MySQLDatabase.instance.saveSoulCopy(soul)
+                // Publish Update Message
                 val msgUUID = UUID.randomUUID()
                 pendingAnswersRequests[msgUUID.toString()] = future
                 future.whenComplete { _, _ ->
