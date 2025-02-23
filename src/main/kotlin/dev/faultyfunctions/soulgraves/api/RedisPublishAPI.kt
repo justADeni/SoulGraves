@@ -39,17 +39,18 @@ object RedisPublishAPI {
                 val soul = MySQLDatabase.instance.getSoul(markerUUID)
                 if (soul == null) future.complete(false)
                 if (soul != null) {
-                    // TODO: Check Target Server is Online? HeartBeatSystem
-
                     // IF Target Server is Online.
-                    val msgUUID = UUID.randomUUID()
-                    val target = soul.serverId
-                    RedisDatabase.instance.publish(RedisPacket(SERVER_NAME, MessageAction.REMOVE_SOUL, "$msgUUID|$target|$markerUUID"))
-                    // pendingAnswersRequests[msgUUID] = future
+                    if (RedisDatabase.instance.isServerOnline(soul.serverId)) {
+                        val msgUUID = UUID.randomUUID()
+                        val target = soul.serverId
+                        pendingAnswersRequests[msgUUID.toString()] = future
+                        RedisDatabase.instance.publish(RedisPacket(SERVER_NAME, MessageAction.REMOVE_SOUL, "$msgUUID|$target|$markerUUID"))
 
                     // IF Target Server is Offline.
-                    MySQLDatabase.instance.markSoulDelete(markerUUID)
-                    // future.complete(true)
+                    } else {
+                        MySQLDatabase.instance.markSoulDelete(markerUUID)
+                        future.complete(true)
+                    }
                 }
             } catch (e: Exception) {
                 future.completeExceptionally(e)
@@ -74,17 +75,18 @@ object RedisPublishAPI {
                 val soul = MySQLDatabase.instance.getSoul(markerUUID)
                 if (soul == null) future.complete(false)
                 if (soul != null) {
-                    // TODO: Check Target Server is Online? HeartBeatSystem
-
                     // IF Target Server is Online.
-                    val msgUUID = UUID.randomUUID().toString()
-                    val target = soul.serverId
-                    RedisDatabase.instance.publish(RedisPacket(SERVER_NAME, MessageAction.EXPLODE_SOUL, "$msgUUID|$target|$markerUUID"))
-                    // pendingAnswersRequests[msgUUID] = future
+                    if (RedisDatabase.instance.isServerOnline(soul.serverId)) {
+                        val msgUUID = UUID.randomUUID()
+                        val target = soul.serverId
+                        pendingAnswersRequests[msgUUID.toString()] = future
+                        RedisDatabase.instance.publish(RedisPacket(SERVER_NAME, MessageAction.EXPLODE_SOUL, "$msgUUID|$target|$markerUUID"))
 
                     // IF Target Server is Offline.
-                    MySQLDatabase.instance.markSoulExplode(markerUUID)
-                    // future.complete(true)
+                    } else {
+                        MySQLDatabase.instance.markSoulExplode(markerUUID)
+                        future.complete(true)
+                    }
                 }
             } catch (e: Exception) {
                 future.completeExceptionally(e)
@@ -102,7 +104,7 @@ object RedisPublishAPI {
      * 2. Use this feature carefully to avoid multiple concurrent situations where their data maybe randomly overwrite each other due to network delays.
      * 3. Pay attention to ExpireTime/FreezeTime, perhaps the target soul extended the time/froze the soul on the Origin server.
      *
-     * @return whether the sync is successful
+     * @return whether the auction is successful
      */
     fun syncSoul(soul: Soul): CompletableFuture<Boolean> {
         if (STORAGE_MODE == STORAGE_TYPE.PDC) throw RuntimeException("DO NOT USE REDIS PUBLISH API WITH PDC STORAGE MODE!")
@@ -110,12 +112,12 @@ object RedisPublishAPI {
         val future = CompletableFuture<Boolean>()
         Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
             try {
-                val soulExists = MySQLDatabase.instance.getSoul(markerUUID = soul.markerUUID) != null
-                if (soulExists) {
-                    MySQLDatabase.instance.saveSoul(soul) // TODO : should not save all data
+                val checkSoul = MySQLDatabase.instance.getSoul(soul.markerUUID)
+                if (checkSoul == null) future.complete(false)
+                if (checkSoul != null) {
+                    MySQLDatabase.instance.saveSoulCopy(soul) // Save Copy
                     RedisDatabase.instance.publish(RedisPacket(senderId = SERVER_NAME, action = MessageAction.UPDATE_SOUL, payload = soul.markerUUID.toString()))
                 }
-                future.complete(soulExists)
             } catch (e: Exception) {
                 future.completeExceptionally(e)
             }

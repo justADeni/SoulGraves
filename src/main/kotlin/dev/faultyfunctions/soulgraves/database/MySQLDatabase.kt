@@ -166,6 +166,36 @@ class MySQLDatabase private constructor() {
         }
     }
 
+
+    // Save Soul Copy
+    fun saveSoulCopy(soul: Soul) {
+        dataSource.connection.use { connection ->
+            connection.prepareStatement("""
+            UPDATE $databaseName SET 
+            ownerUUID = ? ,
+            inventory = ? ,
+            xp = ? ,
+            expireTime = ? ,
+            freezeTime = ?
+            WHERE markerUUID = ?
+            """.trimIndent()
+            ).use { statement ->
+                statement.setString(1, soul.ownerUUID.toString())
+                statement.setString(2, ItemTagStream.INSTANCE.listToBase64(soul.inventory))
+                statement.setInt(3, soul.xp)
+                statement.setLong(4, soul.expireTime)
+                statement.setLong(5, soul.freezeTime)
+                try {
+                    statement.executeUpdate()
+                } catch (e: SQLException) {
+                    SoulGraves.plugin.logger.severe("Failed to save soul copy")
+                    e.printStackTrace()
+                }
+            }
+        }
+    }
+
+
     // Read Souls in Current Server
     fun getAllSouls() : MutableList<Soul> {
         val souls = mutableListOf<Soul>()

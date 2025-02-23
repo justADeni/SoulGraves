@@ -5,21 +5,14 @@ import dev.faultyfunctions.soulgraves.SoulGraves
 import dev.faultyfunctions.soulgraves.api.RedisPublishAPI.pendingAnswersRequests
 import dev.faultyfunctions.soulgraves.api.SoulGraveAPI
 import dev.faultyfunctions.soulgraves.database.MessageAction.*
-import dev.faultyfunctions.soulgraves.managers.ConfigManager
-import dev.faultyfunctions.soulgraves.managers.DatabaseManager
-import dev.faultyfunctions.soulgraves.managers.MessageManager
-import dev.faultyfunctions.soulgraves.managers.SERVER_NAME
-import dev.faultyfunctions.soulgraves.utils.Soul
+import dev.faultyfunctions.soulgraves.managers.*
 import io.lettuce.core.RedisClient
 import io.lettuce.core.api.StatefulRedisConnection
 import io.lettuce.core.pubsub.RedisPubSubAdapter
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection
 import org.bukkit.Bukkit
 import java.util.*
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.*
 
 class RedisDatabase private constructor() {
 
@@ -29,6 +22,9 @@ class RedisDatabase private constructor() {
     private var callbackExecutor: ExecutorService? = null
     private val pluginChannel: String = "soulgraves:main"
 
+    private val heartbeatInterval = 5L // Heartbeat Interval (Seconds)
+    private val heartbeatTimeout = 15L // TimeOut Interval (Seconds)
+    private val serverStatus = ConcurrentHashMap<String, Long>()
 
     init {
         val config = DatabaseManager.databaseConfig
@@ -52,6 +48,10 @@ class RedisDatabase private constructor() {
                 }
             })
 
+            // Server Heartbeat
+            startHeartbeatTask()
+            startCleanupTask()
+
             SoulGraves.plugin.logger.info("Redis Database Connect Successed!")
         } catch (e: Exception) {
             SoulGraves.plugin.logger.info("Redis Database Can Not Connect!")
@@ -67,6 +67,43 @@ class RedisDatabase private constructor() {
             return instance
         }
     }
+
+    /**
+     * Server Heartbeats
+     */
+    // Timed publish to Redis current server is online
+    private fun startHeartbeatTask() {
+        Bukkit.getScheduler().runTaskTimerAsynchronously(SoulGraves.plugin, Runnable {
+            val timestamp = System.currentTimeMillis()
+            val message = "$SERVER_NAME|$timestamp"
+            publish(RedisPacket(SERVER_NAME, HEARTBEAT, message))
+        }, 0L, heartbeatInterval * 20) // Convert seconds to ticks
+    }
+    // Timed Clean Expire Server Status Cache
+    private fun startCleanupTask() {
+        Bukkit.getScheduler().runTaskTimerAsynchronously(SoulGraves.plugin, Runnable {
+            val currentTime = System.currentTimeMillis()
+            serverStatus.entries.removeIf { (_, lastSeen) ->
+                currentTime - lastSeen > TimeUnit.SECONDS.toMillis(heartbeatTimeout)
+            }
+        }, 0L, heartbeatTimeout * 10L * 20) // Cleanup interval
+    }
+    // Shutdown Heartbeat at Server Stop
+    private fun shutdownHeartbeat() {
+        publish(RedisPacket(SERVER_NAME, HEARTBEAT_SHUTDOWN, SERVER_NAME))
+    }
+
+    fun isServerOnline(server: String): Boolean {
+        val lastSeen = serverStatus[server] ?: return false
+        return System.currentTimeMillis() - lastSeen < TimeUnit.SECONDS.toMillis(heartbeatTimeout)
+    }
+    fun getOnlineServers(): List<String> {
+        val currentTime = System.currentTimeMillis()
+        return serverStatus.keys.filter { server ->
+            currentTime - (serverStatus[server] ?: 0) < TimeUnit.SECONDS.toMillis(heartbeatTimeout)
+        }
+    }
+
 
 
     /**
@@ -94,36 +131,46 @@ class RedisDatabase private constructor() {
 
         try {
             val packet = RedisPacket.fromJson(message)
+            val sender = packet.senderId
             when (packet.action) {
                 // REMOVE_SOUL
                 // PAYLOAD FORMAT: [MSG_UUID][TARGET_SERVER][MAKER_UUID]
                 REMOVE_SOUL -> {
                     callbackExecutor!!.execute {
-                        val split = packet.payload.split("|")
-                        val targetServer = split[1]
+                        val (msgUUID, targetServer, makerUUID) = packet.payload.split("|", limit = 3)
                         if (targetServer != SERVER_NAME) return@execute
 
-                        val msgUUID = split[0]
-                        val makerUUID = UUID.fromString(split[2])
-                        val soul = SoulGraveAPI.getSoul(makerUUID)
-                        // TODO , Checks Soul validity and returns Boolean after operation
-                        soul?.let { Bukkit.getScheduler().runTask(SoulGraves.plugin, Runnable { soul.delete() }) } // Sync for Bukkit API
+                        // if soul list contain Soul
+                        Bukkit.getScheduler().runTask(SoulGraves.plugin, Runnable {
+                            val soul = SoulGraveAPI.getSoul(UUID.fromString(makerUUID))
+                            if (soul != null) {
+                                soul.delete()
+                                publish(RedisPacket(SERVER_NAME, API_ANSWER, "$msgUUID|$sender|true"))
+                            } else {
+                                publish(RedisPacket(SERVER_NAME, API_ANSWER, "$msgUUID|$sender|false"))
+                            }
+                        }) // Sync for Bukkit API
                     }
+
                 }
 
                 // EXPLODE_SOUL
                 // PAYLOAD FORMAT: [MSG_UUID][TARGET_SERVER][MAKER_UUID]
                 EXPLODE_SOUL -> {
-                    callbackExecutor!!.execute {
-                        val split = packet.payload.split("|")
-                        val targetServer = split[1]
+                    callbackExecutor!!.execute execute@ {
+                        val (msgUUID, targetServer, makerUUID) = packet.payload.split("|", limit = 3)
                         if (targetServer != SERVER_NAME) return@execute
 
-                        val msgUUID = split[0]
-                        val makerUUID = UUID.fromString(split[2])
-                        val soul = SoulGraveAPI.getSoul(makerUUID)
-                        // TODO , Checks Soul validity and returns Boolean after operation
-                        soul?.let { Bukkit.getScheduler().runTask(SoulGraves.plugin, Runnable { soul.explode() }) } // Sync for Bukkit API
+                        // if soul list contain Soul
+                        Bukkit.getScheduler().runTask(SoulGraves.plugin, Runnable {
+                            val soul = SoulGraveAPI.getSoul(UUID.fromString(makerUUID))
+                            if (soul != null) {
+                                soul.explode()
+                                publish(RedisPacket(SERVER_NAME, API_ANSWER, "$msgUUID|$sender|true"))
+                            } else {
+                                publish(RedisPacket(SERVER_NAME, API_ANSWER, "$msgUUID|$sender|false"))
+                            }
+                        }) // Sync for Bukkit API
                     }
                 }
 
@@ -131,36 +178,28 @@ class RedisDatabase private constructor() {
                 // PAYLOAD FORMAT: [MSG_UUID][TARGET_SERVER][MAKER_UUID]
                 UPDATE_SOUL -> {
                     callbackExecutor!!.execute {
-                        val split = packet.payload.split("|")
-                        val targetServer = split[1]
+                        val (msgUUID, targetServer, makerUUID) = packet.payload.split("|", limit = 3)
                         if (targetServer != SERVER_NAME) return@execute
 
-                        val msgUUID = split[0]
-                        val makerUUID = UUID.fromString(split[2])
-                        val soul = SoulGraveAPI.getSoul(makerUUID)
-                        soul?.let {
-                            // get new copy data from database
-                            val future = CompletableFuture<Soul?>()
-                            Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
-                                val soulCopy = MySQLDatabase.instance.getSoul(makerUUID)
-                                future.complete(soulCopy)
-                            })
-                            future.orTimeout(5, TimeUnit.SECONDS)
-                            // update data
-                            future.thenAccept {
-                                // Sync for Bukkit API
-                                Bukkit.getScheduler().runTask(SoulGraves.plugin, Runnable {
-                                    it?.let { copy ->
-                                        soul.ownerUUID = copy.ownerUUID
-                                        soul.inventory = copy.inventory
-                                        soul.xp = copy.xp
+                        val remoteCopySoul = MySQLDatabase.instance.getSoul(UUID.fromString(makerUUID))
+                        if (remoteCopySoul != null) {
+                            Bukkit.getScheduler().runTask(SoulGraves.plugin, Runnable {
+                                val currentServerSoul = SoulGraveAPI.getSoul(UUID.fromString(makerUUID))
+                                if (currentServerSoul != null) {
+                                        currentServerSoul.ownerUUID = remoteCopySoul.ownerUUID
+                                        currentServerSoul.inventory = remoteCopySoul.inventory
+                                        currentServerSoul.xp = remoteCopySoul.xp
 
-                                        soul.expireTime = copy.expireTime
-                                        soul.timeLeft = (copy.expireTime - System.currentTimeMillis() / 1000).toInt()
-                                        soul.freezeTime = copy.freezeTime
-                                    }
-                                })
-                            }
+                                        currentServerSoul.expireTime = remoteCopySoul.expireTime
+                                        currentServerSoul.timeLeft = (remoteCopySoul.expireTime - System.currentTimeMillis() / 1000).toInt()
+                                        currentServerSoul.freezeTime = remoteCopySoul.freezeTime
+                                        publish(RedisPacket(SERVER_NAME, API_ANSWER, "$msgUUID|$sender|true"))
+                                } else {
+                                    publish(RedisPacket(SERVER_NAME, API_ANSWER, "$msgUUID|$sender|false"))
+                                }
+                            })
+                        } else {
+                            publish(RedisPacket(SERVER_NAME, API_ANSWER, "$msgUUID|$sender|false"))
                         }
                     }
                 }
@@ -203,13 +242,29 @@ class RedisDatabase private constructor() {
                 // PAYLOAD FORMAT: [MSG_UUID][TARGET_SERVER][BOOLEAN]
                 API_ANSWER -> {
                     callbackExecutor!!.execute {
-                        val split = packet.payload.split("|")
-                        val targetServer = split[1]
+                        val (msgUUID, targetServer, answer) = packet.payload.split("|", limit = 3)
                         if (targetServer != SERVER_NAME) return@execute
 
-                        val msgUUID = split[0]
-                        val answer = split[2].toBoolean()
-                        pendingAnswersRequests[msgUUID]?.complete(answer)
+                        pendingAnswersRequests[msgUUID]?.complete(answer.toBoolean())
+                    }
+                }
+
+                // HEARTBEAT
+                // PAYLOAD FORMAT: [SERVER_NAME][TIMESTAMP]
+                HEARTBEAT -> {
+                    callbackExecutor!!.execute {
+                        val (server, timestampStr) = packet.payload.split("|", limit = 2)
+                        val timestamp = timestampStr.toLong()
+                        serverStatus[server] = timestamp
+                    }
+                }
+
+                // HEARTBEAT_SHUTDOWN
+                // PAYLOAD FORMAT: [SERVER_NAME]
+                HEARTBEAT_SHUTDOWN -> {
+                    callbackExecutor!!.execute {
+                        val server = packet.payload
+                        serverStatus.remove(server)
                     }
                 }
             }
@@ -226,6 +281,7 @@ class RedisDatabase private constructor() {
      * Disable Redis Connect.
      */
     fun shutdown() {
+        shutdownHeartbeat() // Stop Heartbeat
         callbackExecutor?.shutdown()
         pubSubConnection?.close()
         connection?.close()

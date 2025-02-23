@@ -11,7 +11,9 @@ enum class MessageAction {
     NOTIFY_SOUL_EXPLODE,
     NOTIFY_SOUL_OTHER_PICKUP,
 
-    API_ANSWER
+    API_ANSWER,
+    HEARTBEAT,
+    HEARTBEAT_SHUTDOWN
 }
 
 
