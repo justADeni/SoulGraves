@@ -37,20 +37,22 @@ object RedisPublishAPI {
         Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
             try {
                 val soul = MySQLDatabase.instance.getSoul(markerUUID)
-                if (soul == null) future.complete(false)
-                if (soul != null) {
-                    // IF Target Server is Online.
-                    if (RedisDatabase.instance.isServerOnline(soul.serverId)) {
-                        val msgUUID = UUID.randomUUID()
-                        val target = soul.serverId
-                        pendingAnswersRequests[msgUUID.toString()] = future
-                        RedisDatabase.instance.publish(RedisPacket(SERVER_NAME, MessageAction.REMOVE_SOUL, "$msgUUID|$target|$markerUUID"))
-
-                    // IF Target Server is Offline.
-                    } else {
-                        MySQLDatabase.instance.markSoulDelete(markerUUID)
-                        future.complete(true)
+                if (soul == null) {
+                    future.complete(false)
+                    return@Runnable
+                }
+                if (RedisDatabase.instance.isServerOnline(soul.serverId)) {
+                    val msgUUID = UUID.randomUUID()
+                    val target = soul.serverId
+                    pendingAnswersRequests[msgUUID.toString()] = future
+                    future.whenComplete { _, _ ->
+                        pendingAnswersRequests.remove(msgUUID.toString())
                     }
+                    RedisDatabase.instance.publish(RedisPacket(SERVER_NAME, MessageAction.REMOVE_SOUL, "$msgUUID|$target|$markerUUID"))
+                // IF Target Server is Offline.
+                } else {
+                    MySQLDatabase.instance.markSoulDelete(markerUUID)
+                    future.complete(true)
                 }
             } catch (e: Exception) {
                 future.completeExceptionally(e)
@@ -73,20 +75,23 @@ object RedisPublishAPI {
         Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
             try {
                 val soul = MySQLDatabase.instance.getSoul(markerUUID)
-                if (soul == null) future.complete(false)
-                if (soul != null) {
-                    // IF Target Server is Online.
-                    if (RedisDatabase.instance.isServerOnline(soul.serverId)) {
-                        val msgUUID = UUID.randomUUID()
-                        val target = soul.serverId
-                        pendingAnswersRequests[msgUUID.toString()] = future
-                        RedisDatabase.instance.publish(RedisPacket(SERVER_NAME, MessageAction.EXPLODE_SOUL, "$msgUUID|$target|$markerUUID"))
-
-                    // IF Target Server is Offline.
-                    } else {
-                        MySQLDatabase.instance.markSoulExplode(markerUUID)
-                        future.complete(true)
+                if (soul == null) {
+                    future.complete(false)
+                    return@Runnable
+                }
+                if (RedisDatabase.instance.isServerOnline(soul.serverId)) {
+                    val msgUUID = UUID.randomUUID()
+                    val target = soul.serverId
+                    pendingAnswersRequests[msgUUID.toString()] = future
+                    future.whenComplete { _, _ ->
+                        pendingAnswersRequests.remove(msgUUID.toString())
                     }
+                    RedisDatabase.instance.publish(RedisPacket(SERVER_NAME, MessageAction.EXPLODE_SOUL, "$msgUUID|$target|$markerUUID"))
+
+                // IF Target Server is Offline.
+                } else {
+                    MySQLDatabase.instance.markSoulExplode(markerUUID)
+                    future.complete(true)
                 }
             } catch (e: Exception) {
                 future.completeExceptionally(e)
@@ -113,11 +118,18 @@ object RedisPublishAPI {
         Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
             try {
                 val checkSoul = MySQLDatabase.instance.getSoul(soul.markerUUID)
-                if (checkSoul == null) future.complete(false)
-                if (checkSoul != null) {
-                    MySQLDatabase.instance.saveSoulCopy(soul) // Save Copy
-                    RedisDatabase.instance.publish(RedisPacket(senderId = SERVER_NAME, action = MessageAction.UPDATE_SOUL, payload = soul.markerUUID.toString()))
+                if (checkSoul == null) {
+                    future.complete(false)
+                    return@Runnable
                 }
+                MySQLDatabase.instance.saveSoulCopy(soul) // Save Copy
+
+                val msgUUID = UUID.randomUUID()
+                pendingAnswersRequests[msgUUID.toString()] = future
+                future.whenComplete { _, _ ->
+                    pendingAnswersRequests.remove(msgUUID.toString())
+                }
+                RedisDatabase.instance.publish(RedisPacket(senderId = SERVER_NAME, action = MessageAction.UPDATE_SOUL, payload = soul.markerUUID.toString()))
             } catch (e: Exception) {
                 future.completeExceptionally(e)
             }
