@@ -22,6 +22,7 @@ object SoulGraveAPI {
 
     /**
      * Returns a list of all souls cross server.
+     * 1.if soul is not local, you get that is only copy, if the soul of the original server is modified by other something, your copy of the soul may expire.
      */
     fun getAllSoulsCrossServer(): CompletableFuture<List<Soul>> {
         if (STORAGE_MODE == STORAGE_TYPE.PDC) throw RuntimeException("DO NOT USE CROSS-SERVER API WITH PDC STORAGE MODE!")
@@ -47,8 +48,10 @@ object SoulGraveAPI {
         return souls
     }
 
+
     /**
      * Returns a list of all souls cross server that match the given owner UUID.
+     * 1.if soul is not local, you get that is only copy, if the soul of the original server is modified by other something, your copy of the soul may expire.
      */
     fun getPlayerSoulsCrossServer(ownerUUID: UUID): CompletableFuture<List<Soul>> {
         if (STORAGE_MODE == STORAGE_TYPE.PDC) throw RuntimeException("DO NOT USE CROSS-SERVER API WITH PDC STORAGE MODE!")
@@ -73,8 +76,10 @@ object SoulGraveAPI {
         return null
     }
 
+
     /**
      * Returns a souls cross server that match the given marker UUID.
+     * 1.if soul is not local, you get that is only copy, if the soul of the original server is modified by other something, your copy of the soul may expire.
      */
     fun getSoulCrossServer(makerUUID: UUID): CompletableFuture<Soul?> {
         if (STORAGE_MODE == STORAGE_TYPE.PDC) throw RuntimeException("DO NOT USE CROSS-SERVER API WITH PDC STORAGE MODE!")

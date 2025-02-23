@@ -1,15 +1,16 @@
 package dev.faultyfunctions.soulgraves
 
 import dev.faultyfunctions.soulgraves.commands.ReloadCommand
+import dev.faultyfunctions.soulgraves.compatibilities.WorldGuardHook
 import dev.faultyfunctions.soulgraves.database.MySQLDatabase
 import dev.faultyfunctions.soulgraves.database.PDCDatabase
 import dev.faultyfunctions.soulgraves.database.RedisDatabase
 import dev.faultyfunctions.soulgraves.listeners.PlayerDeathListener
 import dev.faultyfunctions.soulgraves.managers.*
 import dev.faultyfunctions.soulgraves.utils.Soul
+import dev.faultyfunctions.soulgraves.utils.SpigotCompatUtils
 import net.kyori.adventure.platform.bukkit.BukkitAudiences
 import org.bstats.bukkit.Metrics
-import org.bukkit.NamespacedKey
 import org.bukkit.plugin.java.JavaPlugin
 import java.util.concurrent.CopyOnWriteArrayList
 
@@ -22,6 +23,13 @@ class SoulGraves : JavaPlugin() {
 	private lateinit var adventure: BukkitAudiences
 	fun adventure(): BukkitAudiences {
 		return this.adventure
+	}
+
+	override fun onLoad() {
+		// Compatibilities
+		if (SpigotCompatUtils.isPluginLoad("WorldGuard")) {
+			WorldGuardHook.instance.registerFlags()
+		}
 	}
 
 	override fun onEnable() {
@@ -53,6 +61,12 @@ class SoulGraves : JavaPlugin() {
 
 		// LISTENERS
 		server.pluginManager.registerEvents(PlayerDeathListener(), this)
+
+		// Compatibilities
+		if (SpigotCompatUtils.isPluginLoad("WorldGuard")) {
+			WorldGuardHook.instance.registerEvent()
+		}
+
 
 		// COMMANDS
 		getCommand("soulgraves")?.setExecutor(ReloadCommand())

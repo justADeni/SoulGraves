@@ -15,6 +15,7 @@ repositories {
     maven("https://oss.sonatype.org/content/groups/public/") // Kotlin STD
 
     maven("https://jitpack.io") // RTag
+    maven ("https://maven.enginehub.org/repo/") // WorldGuard
 }
 
 dependencies {
@@ -34,6 +35,9 @@ dependencies {
     implementation("net.kyori:adventure-platform-bukkit:4.3.4") // Kyori
     implementation("net.kyori:adventure-text-minimessage:4.17.0") // Kyori
     implementation("com.jeff-media:MorePersistentDataTypes:2.4.0") // MorePersistentDataTypes
+
+    // Compatibilities
+    compileOnly("com.sk89q.worldguard:worldguard-bukkit:7.0.7") // WorldGuard
 }
 
 

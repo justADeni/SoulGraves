@@ -164,39 +164,36 @@ class Soul private constructor(
 	fun startTasks() {
 		// If not local soul
 		if (!isLocal) return
-		if (!isValid()) delete()
+		if (!isValid()) {
+			delete()
+			return
+		}
 
 		// Start Tasks
 		explodeTask ?: SoulExplodeTask(this).also {
 			explodeTask = it
 			it.runTaskTimer(SoulGraves.plugin, 0, 20)
 		}
-
 		particleTask ?: SoulParticleTask(this).also {
 			particleTask = it
 			it.runTaskTimer(SoulGraves.plugin, 0, 50)
 		}
-
 		pickupTask ?: SoulPickupTask(this).also {
 			pickupTask = it
 			it.runTaskTimer(SoulGraves.plugin, 0, 4)
 		}
-
 		renderTask ?: SoulRenderTask(this).also {
 			renderTask = it
 			it.runTaskTimer(SoulGraves.plugin, 0, 1)
 		}
-
 		soundTask ?: SoulSoundTask(this).also {
 			soundTask = it
 			it.runTaskTimer(SoulGraves.plugin, 0, 50)
 		}
-
 		stateTask ?: SoulStateTask(this).also {
 			stateTask = it
 			it.runTaskTimer(SoulGraves.plugin, 0, 20)
 		}
-
 		validationTask ?: SoulValidationTask(this).also {
 			validationTask = it
 			it.runTaskTimer(SoulGraves.plugin, 0, 100)
@@ -208,21 +205,29 @@ class Soul private constructor(
 	 * Save to Database, Remember Save After Modified Soul
 	 */
 	fun saveData() {
-		// If not local soul
-		if (!isLocal) return
-		if (!isValid()) delete()
-
 		// Save
-		when (STORAGE_MODE) {
+		when {
 			// PDC
-			STORAGE_TYPE.PDC -> {
+			isLocal && STORAGE_MODE == STORAGE_TYPE.PDC -> {
+				if (!isValid()) {
+					delete()
+					return
+				}
 				PDCDatabase.instance.saveSoul(this)
 			}
 			// DATABASE
-			STORAGE_TYPE.DATABASE -> {
+			isLocal && STORAGE_MODE == STORAGE_TYPE.DATABASE -> {
+				if (!isValid()) {
+					delete()
+					return
+				}
 				Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
 					MySQLDatabase.instance.saveSoul(this)
+					// TODO Publish Sync Message ?,.
 				})
+			}
+			STORAGE_MODE == STORAGE_TYPE.DATABASE -> {
+				// TODO Publish Sync Message
 			}
 		}
 	}
