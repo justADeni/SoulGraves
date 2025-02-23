@@ -140,9 +140,6 @@ class Soul private constructor(
 
 				isLocal = true
 			)
-			// Init Soul
-			SoulGraves.soulList.add(soul)
-			soul.startTasks()
 			return soul
 		}
 	}
@@ -164,10 +161,6 @@ class Soul private constructor(
 	fun startTasks() {
 		// If not local soul
 		if (!isLocal) return
-		if (!isValid()) {
-			delete()
-			return
-		}
 
 		// Start Tasks
 		explodeTask ?: SoulExplodeTask(this).also {
@@ -209,18 +202,10 @@ class Soul private constructor(
 		when {
 			// PDC
 			isLocal && STORAGE_MODE == STORAGE_TYPE.PDC -> {
-				if (!isValid()) {
-					delete()
-					return
-				}
 				PDCDatabase.instance.saveSoul(this)
 			}
 			// DATABASE
 			isLocal && STORAGE_MODE == STORAGE_TYPE.DATABASE -> {
-				if (!isValid()) {
-					delete()
-					return
-				}
 				Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
 					MySQLDatabase.instance.saveSoul(this)
 					// TODO Publish Sync Message ?,.
@@ -233,11 +218,31 @@ class Soul private constructor(
 	}
 
 
-	fun isValid(): Boolean {
-		// If world is not exist, entity is not exist
+	/**
+	 * Check Soul is Valid
+	 * 1. World is Exist?
+	 * 2. Soul is Expire? (only offlineOwnerTimerFreeze = false to check)
+	 * 3. Marker is Exist? (only when chunk is loaded, or force load)
+	 */
+	fun isValid(forceLoadChunk: Boolean): Boolean {
+		// World is Exist ?
 		val world = location.world ?: return false
-		world.loadChunk(location.chunk)
-		Bukkit.getEntity(markerUUID) ?: return false
+
+		// Soul is Expire ?
+		if (!ConfigManager.offlineOwnerTimerFreeze) {
+			if (System.currentTimeMillis() >= expireTime) return false
+		}
+
+		// MARKER IS EXIST ?
+		if (world.isChunkLoaded(location.chunk)) {
+			markerUUID.let { Bukkit.getEntity(it) } ?: return false
+		} else {
+			if (forceLoadChunk) {
+				world.loadChunk(location.chunk)
+				Bukkit.getEntity(markerUUID) ?: return false
+			}
+		}
+
 		return true
 	}
 

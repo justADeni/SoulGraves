@@ -213,6 +213,7 @@ class MySQLDatabase private constructor() {
                 SELECT * FROM $databaseName
                 WHERE serverName != ?
                 AND isDeleted = FALSE
+                AND expireTime != 1
                 """.trimIndent()
             ).use { statement ->
                 statement.setString(1, SERVER_NAME)
@@ -222,6 +223,7 @@ class MySQLDatabase private constructor() {
                         val freezeTime = resultSet.getLong("freezeTime")
                         val expireTime = resultSet.getLong("expireTime")
 
+                        if (freezeTime >= expireTime) continue
                         if (!ConfigManager.offlineOwnerTimerFreeze) {
                             if (expireTime <= System.currentTimeMillis()) continue
                         }
@@ -259,6 +261,7 @@ class MySQLDatabase private constructor() {
                 WHERE ownerUUID = ?
                 AND serverName != ?
                 AND isDeleted = FALSE
+                AND expireTime != 1
                 """.trimIndent()
             ).use { statement ->
                 statement.setString(1, playerUUID.toString())
@@ -269,6 +272,7 @@ class MySQLDatabase private constructor() {
                         val freezeTime = resultSet.getLong("freezeTime")
                         val expireTime = resultSet.getLong("expireTime")
 
+                        if (freezeTime >= expireTime) continue
                         if (!ConfigManager.offlineOwnerTimerFreeze) {
                             if (expireTime <= System.currentTimeMillis()) continue
                         }
@@ -305,6 +309,7 @@ class MySQLDatabase private constructor() {
                 SELECT * FROM $databaseName
                 WHERE markerUUID = ?
                 AND isDeleted = FALSE
+                AND expireTime != 1
                 """.trimIndent()
             ).use { statement ->
                 statement.setString(1, markerUUID.toString())
@@ -315,6 +320,7 @@ class MySQLDatabase private constructor() {
                     val freezeTime = resultSet.getLong("freezeTime")
                     val expireTime = resultSet.getLong("expireTime")
 
+                    if (freezeTime >= expireTime) return null
                     if (!ConfigManager.offlineOwnerTimerFreeze) {
                         if (expireTime <= System.currentTimeMillis()) return null
                     }
@@ -336,6 +342,27 @@ class MySQLDatabase private constructor() {
             }
         }
         return null
+    }
+
+
+    // Update Soul FreezeTime
+    fun updateSoulFreezeTime(makerUUID: UUID, freezeTime: Long, expireTime: Long) {
+        dataSource.connection.use { connection ->
+            connection.prepareStatement("""
+                UPDATE $databaseName SET freezeTime = ?, expireTime = ? WHERE markerUUID = ?
+            """.trimIndent()
+            ).use { statement ->
+                statement.setLong(1, freezeTime)
+                statement.setLong(2, expireTime)
+                statement.setString(3, makerUUID.toString())
+                try {
+                    statement.executeUpdate()
+                } catch (e: SQLException) {
+                    println("Error while update soul delete: ${e.message}")
+                    e.printStackTrace()
+                }
+            }
+        }
     }
 
 

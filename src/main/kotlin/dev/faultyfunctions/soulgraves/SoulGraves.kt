@@ -5,6 +5,7 @@ import dev.faultyfunctions.soulgraves.compatibilities.WorldGuardHook
 import dev.faultyfunctions.soulgraves.database.MySQLDatabase
 import dev.faultyfunctions.soulgraves.database.PDCDatabase
 import dev.faultyfunctions.soulgraves.database.RedisDatabase
+import dev.faultyfunctions.soulgraves.listeners.PlayerConnectionEvent
 import dev.faultyfunctions.soulgraves.listeners.PlayerDeathListener
 import dev.faultyfunctions.soulgraves.managers.*
 import dev.faultyfunctions.soulgraves.utils.Soul
@@ -61,6 +62,7 @@ class SoulGraves : JavaPlugin() {
 
 		// LISTENERS
 		server.pluginManager.registerEvents(PlayerDeathListener(), this)
+		server.pluginManager.registerEvents(PlayerConnectionEvent(), this)
 
 		// Compatibilities
 		if (SpigotCompatUtils.isPluginLoad("WorldGuard")) {

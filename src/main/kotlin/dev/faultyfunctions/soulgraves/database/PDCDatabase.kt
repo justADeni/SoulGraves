@@ -50,7 +50,7 @@ class PDCDatabase private constructor() {
                             val freezeTime: Long = it.persistentDataContainer.get(soulFreezeTimeKey, DataType.LONG) ?: 0
 
                             // Init Souls
-                            Soul.initAndStart(
+                            val loadSoul = Soul.initAndStart(
                                 markerUUID = it.uniqueId,
                                 ownerUUID = ownerUUID,
                                 location = it.location,
@@ -61,6 +61,12 @@ class PDCDatabase private constructor() {
                                 expireTime = expireTime,
                                 freezeTime = freezeTime
                             )
+                            if (loadSoul.isValid(true)) {
+                                SoulGraves.soulList.add(loadSoul)
+                                loadSoul.startTasks()
+                            } else {
+                                loadSoul.delete()
+                            }
                         }
                 }
             }
