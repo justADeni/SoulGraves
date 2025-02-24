@@ -151,7 +151,6 @@ class RedisDatabase private constructor() {
                             }
                         }) // Sync for Bukkit API
                     }
-
                 }
 
                 // EXPLODE_SOUL

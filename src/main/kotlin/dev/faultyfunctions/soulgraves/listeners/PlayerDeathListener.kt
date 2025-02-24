@@ -1,12 +1,15 @@
 package dev.faultyfunctions.soulgraves.listeners
 
-import com.jeff_media.morepersistentdatatypes.DataType
 import dev.faultyfunctions.soulgraves.managers.ConfigManager
 import dev.faultyfunctions.soulgraves.utils.Soul
 import dev.faultyfunctions.soulgraves.*
+import dev.faultyfunctions.soulgraves.api.RedisPublishAPI
+import dev.faultyfunctions.soulgraves.api.SoulGraveAPI
 import dev.faultyfunctions.soulgraves.api.event.SoulPreSpawnEvent
 import dev.faultyfunctions.soulgraves.api.event.SoulSpawnEvent
-import dev.faultyfunctions.soulgraves.database.*
+import dev.faultyfunctions.soulgraves.managers.MessageManager
+import dev.faultyfunctions.soulgraves.managers.STORAGE_MODE
+import dev.faultyfunctions.soulgraves.managers.STORAGE_TYPE
 import dev.faultyfunctions.soulgraves.utils.SpigotCompatUtils
 import org.bukkit.*
 import org.bukkit.block.Block
@@ -76,6 +79,9 @@ class PlayerDeathListener() : Listener {
 		// CALL EVENT
 		val soulSpawnEvent = SoulSpawnEvent(player, soul)
 		Bukkit.getPluginManager().callEvent(soulSpawnEvent)
+
+		// EXPLODE OLD SOUL
+		if (ConfigManager.maxSoulsPerPlayer > 0) explodeOldestSoul(player)
 	}
 
 	private fun findSafeLocation(locationToCheck: Location): Location {
@@ -101,5 +107,51 @@ class PlayerDeathListener() : Listener {
 		}
 
 		return safeLocation
+	}
+
+	// EXPLODE OLD SOUL
+	private fun explodeOldestSoul(player: Player) {
+		Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
+			when(STORAGE_MODE) {
+				STORAGE_TYPE.PDC -> {
+					SoulGraveAPI.getPlayerSouls(player.uniqueId)
+						.takeIf { it.size > ConfigManager.maxSoulsPerPlayer }
+						?.let { souls ->
+							val sorted = souls.sortedBy { it.expireTime }
+							val toRemove = souls.size - ConfigManager.maxSoulsPerPlayer
+							if (toRemove > 0) {
+								sorted.take(toRemove).forEach { soul ->
+									Bukkit.getScheduler().runTask(SoulGraves.plugin, Runnable {
+										soul.explode()
+									})
+								}
+								// Send Message
+								MessageManager.soulLimitExplodeComponent?.let {
+									SoulGraves.plugin.adventure().player(player).sendMessage(it)
+								}
+							}
+						}
+				}
+
+				STORAGE_TYPE.DATABASE -> {
+					val future = SoulGraveAPI.getPlayerSoulsCrossServer(player.uniqueId)
+					// Database has been sorted.
+					future.thenAccept {
+						if (it.size > ConfigManager.maxSoulsPerPlayer) {
+							val toRemove = it.size - ConfigManager.maxSoulsPerPlayer
+							if (toRemove > 0) {
+								it.take(toRemove).forEach { soul ->
+									RedisPublishAPI.explodeSoul(soul.markerUUID)
+								}
+								// Send Message
+								MessageManager.soulLimitExplodeComponent?.let {
+									SoulGraves.plugin.adventure().player(player).sendMessage(it)
+								}
+							}
+						}
+					}
+				}
+			}
+		})
 	}
 }

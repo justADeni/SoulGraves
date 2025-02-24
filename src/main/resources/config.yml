@@ -12,6 +12,7 @@ time-stable: 240
 time-unstable: 60
 
 # Whether to freeze the timer when the owner of the soul is offline
+# This feature cannot detect the online status of players in other subservers in proxy server.
 offline-owner-timer-freeze: false
 
 # Whether to notify nearby players when a soul bursts
@@ -34,6 +35,10 @@ xp-percentage-burst: 0.2
 
 # Whether souls are only collectible by their owners
 owner-locked: false
+
+# The maximum number of souls a player can hold simultaneously. Set to 0 for unlimited.
+# If the limit is exceeded, the oldest soul will explode
+max-souls-per-player: 0
 
 # Whether souls will drop items when they burst
 souls-drop-items: true

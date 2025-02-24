@@ -4,7 +4,6 @@ import com.saicone.rtag.item.ItemTagStream
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import dev.faultyfunctions.soulgraves.SoulGraves
-import dev.faultyfunctions.soulgraves.database.RedisDatabase.Companion
 import dev.faultyfunctions.soulgraves.managers.ConfigManager
 import dev.faultyfunctions.soulgraves.managers.DatabaseManager
 import dev.faultyfunctions.soulgraves.managers.SERVER_NAME
@@ -48,7 +47,7 @@ class MySQLDatabase private constructor() {
         } }
         @JvmStatic
         fun getInstanceByJava(): MySQLDatabase {
-            return MySQLDatabase.instance
+            return instance
         }
     }
 
@@ -98,8 +97,13 @@ class MySQLDatabase private constructor() {
                 try {
                     val resultSet = statement.executeQuery()
                     while (resultSet.next()) {
-                        // TODO freezeTime?
-                        if (resultSet.getLong("expireTime") <= System.currentTimeMillis()) continue
+                        val freezeTime = resultSet.getLong("freezeTime")
+                        val expireTime = resultSet.getLong("expireTime")
+
+                        if (freezeTime >= expireTime) continue
+                        if (!ConfigManager.offlineOwnerTimerFreeze) {
+                            if (expireTime <= System.currentTimeMillis()) continue
+                        }
 
                         val soul = Soul.initAndStart(
                             markerUUID = UUID.fromString(resultSet.getString("markerUUID")),
@@ -262,6 +266,7 @@ class MySQLDatabase private constructor() {
                 AND serverName != ?
                 AND isDeleted = FALSE
                 AND expireTime != 1
+                ORDER BY expireTime ASC
                 """.trimIndent()
             ).use { statement ->
                 statement.setString(1, playerUUID.toString())
