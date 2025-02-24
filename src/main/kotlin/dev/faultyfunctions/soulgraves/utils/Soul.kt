@@ -1,18 +1,21 @@
 package dev.faultyfunctions.soulgraves.utils
 
-import com.jeff_media.morepersistentdatatypes.DataType
-import dev.faultyfunctions.soulgraves.*
+import dev.faultyfunctions.soulgraves.SoulGraves
 import dev.faultyfunctions.soulgraves.api.RedisPublishAPI
 import dev.faultyfunctions.soulgraves.api.event.SoulDeleteEvent
-import dev.faultyfunctions.soulgraves.database.*
-import dev.faultyfunctions.soulgraves.managers.*
+import dev.faultyfunctions.soulgraves.database.MySQLDatabase
+import dev.faultyfunctions.soulgraves.database.PDCDatabase
+import dev.faultyfunctions.soulgraves.managers.ConfigManager
+import dev.faultyfunctions.soulgraves.managers.SERVER_NAME
+import dev.faultyfunctions.soulgraves.managers.STORAGE_MODE
+import dev.faultyfunctions.soulgraves.managers.STORAGE_TYPE
 import dev.faultyfunctions.soulgraves.tasks.*
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.entity.Entity
 import org.bukkit.entity.Marker
 import org.bukkit.inventory.ItemStack
-import java.util.UUID
+import java.util.*
 
 enum class SoulState {
 	NORMAL, PANIC, EXPLODING
@@ -208,11 +211,7 @@ class Soul private constructor(
 			isLocal && STORAGE_MODE == STORAGE_TYPE.DATABASE -> {
 				Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
 					MySQLDatabase.instance.saveSoul(this)
-					// TODO Publish Sync Message ?,.
 				})
-			}
-			STORAGE_MODE == STORAGE_TYPE.DATABASE -> {
-				// TODO Publish Sync Message
 			}
 		}
 	}

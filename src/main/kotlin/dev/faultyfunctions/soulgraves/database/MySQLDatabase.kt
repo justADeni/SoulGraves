@@ -97,14 +97,6 @@ class MySQLDatabase private constructor() {
                 try {
                     val resultSet = statement.executeQuery()
                     while (resultSet.next()) {
-                        val freezeTime = resultSet.getLong("freezeTime")
-                        val expireTime = resultSet.getLong("expireTime")
-
-                        if (freezeTime >= expireTime) continue
-                        if (!ConfigManager.offlineOwnerTimerFreeze) {
-                            if (expireTime <= System.currentTimeMillis()) continue
-                        }
-
                         val soul = Soul.initAndStart(
                             markerUUID = UUID.fromString(resultSet.getString("markerUUID")),
                             ownerUUID = UUID.fromString(resultSet.getString("ownerUUID")),
@@ -122,6 +114,14 @@ class MySQLDatabase private constructor() {
                         )
                         // IF FOUND DELETED TAG, SOUL WILL REMOVE.
                         if (resultSet.getBoolean("isDeleted")) { soul.delete() }
+
+                        // CHECK VALID
+                        if (soul.isValid(true)) {
+                            SoulGraves.soulList.add(soul)
+                            soul.startTasks()
+                        } else {
+                            soul.delete()
+                        }
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -320,27 +320,27 @@ class MySQLDatabase private constructor() {
                 statement.setString(1, markerUUID.toString())
                 try {
                     val resultSet = statement.executeQuery()
-                    resultSet.next()
+                    while (resultSet.next()) {
+                        val freezeTime = resultSet.getLong("freezeTime")
+                        val expireTime = resultSet.getLong("expireTime")
 
-                    val freezeTime = resultSet.getLong("freezeTime")
-                    val expireTime = resultSet.getLong("expireTime")
+                        if (freezeTime >= expireTime) return null
+                        if (!ConfigManager.offlineOwnerTimerFreeze) {
+                            if (expireTime <= System.currentTimeMillis()) return null
+                        }
 
-                    if (freezeTime >= expireTime) return null
-                    if (!ConfigManager.offlineOwnerTimerFreeze) {
-                        if (expireTime <= System.currentTimeMillis()) return null
+                        return Soul.createDataCopy(
+                            markerUUID = UUID.fromString(resultSet.getString("markerUUID")),
+                            ownerUUID = UUID.fromString(resultSet.getString("ownerUUID")),
+                            inventory = ItemTagStream.INSTANCE.listFromBase64(resultSet.getString("inventory")),
+                            xp = resultSet.getInt("xp"),
+                            location = Location(Bukkit.getWorld(resultSet.getString("world")), resultSet.getDouble("x"), resultSet.getDouble("y"), resultSet.getDouble("z")),
+                            serverId = resultSet.getString("serverName"),
+                            deathTime = resultSet.getLong("deathTime"),
+                            expireTime = expireTime,
+                            freezeTime = freezeTime
+                        )
                     }
-
-                    return Soul.createDataCopy(
-                        markerUUID = UUID.fromString(resultSet.getString("markerUUID")),
-                        ownerUUID = UUID.fromString(resultSet.getString("ownerUUID")),
-                        inventory = ItemTagStream.INSTANCE.listFromBase64(resultSet.getString("inventory")),
-                        xp = resultSet.getInt("xp"),
-                        location = Location(Bukkit.getWorld(resultSet.getString("world")), resultSet.getDouble("x"), resultSet.getDouble("y"), resultSet.getDouble("z")),
-                        serverId = resultSet.getString("serverName"),
-                        deathTime = resultSet.getLong("deathTime"),
-                        expireTime = expireTime,
-                        freezeTime = freezeTime
-                    )
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
