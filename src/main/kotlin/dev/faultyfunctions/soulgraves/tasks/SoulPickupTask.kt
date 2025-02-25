@@ -1,19 +1,18 @@
 package dev.faultyfunctions.soulgraves.tasks
 
-import org.bukkit.scheduler.BukkitRunnable
 import dev.faultyfunctions.soulgraves.SoulGraves
-import dev.faultyfunctions.soulgraves.utils.SoulState
 import dev.faultyfunctions.soulgraves.api.event.SoulPickupEvent
 import dev.faultyfunctions.soulgraves.database.MessageAction
 import dev.faultyfunctions.soulgraves.database.RedisDatabase
 import dev.faultyfunctions.soulgraves.database.RedisPacket
 import dev.faultyfunctions.soulgraves.managers.*
 import dev.faultyfunctions.soulgraves.utils.Soul
+import dev.faultyfunctions.soulgraves.utils.SoulState
 import org.bukkit.Bukkit
 import org.bukkit.GameMode
 import org.bukkit.Particle
 import org.bukkit.entity.Player
-import org.bukkit.inventory.ItemStack
+import org.bukkit.scheduler.BukkitRunnable
 
 class SoulPickupTask(val soul: Soul) : BukkitRunnable() {
 	override fun run() {
@@ -34,20 +33,8 @@ class SoulPickupTask(val soul: Soul) : BukkitRunnable() {
 				if (soulPickupEvent.isCancelled) { return@forEach }
 
 				// HANDLE INVENTORY
-				val missedItems: MutableList<ItemStack> = mutableListOf()
-				soul.inventory.forEachIndexed { index, item ->
-					if (item != null) {
-						if (player.inventory.getItem(index) == null) {
-							player.inventory.setItem(index, item)
-						} else {
-							missedItems.add(item)
-						}
-					}
-				}
-				val missHashMap = player.inventory.addItem(*missedItems.toTypedArray())
-				missHashMap.forEach { (_, item) ->
-					soul.location.world!!.dropItem(soul.location, item)
-				}
+				val failedItems = player.inventory.addItem(*soul.inventory.filterNotNull().toTypedArray())
+				failedItems.values.forEach { soul.location.world!!.dropItem(soul.location, it) }
 
 				// HANDLE XP
 				val owner: Player? = Bukkit.getPlayer(soul.ownerUUID)
