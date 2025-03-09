@@ -12,6 +12,7 @@ import org.bukkit.Bukkit
 import org.bukkit.GameMode
 import org.bukkit.Particle
 import org.bukkit.entity.Player
+import org.bukkit.inventory.ItemStack
 import org.bukkit.scheduler.BukkitRunnable
 
 class SoulPickupTask(val soul: Soul) : BukkitRunnable() {
@@ -33,8 +34,20 @@ class SoulPickupTask(val soul: Soul) : BukkitRunnable() {
 				if (soulPickupEvent.isCancelled) { return@forEach }
 
 				// HANDLE INVENTORY
-				val failedItems = player.inventory.addItem(*soul.inventory.filterNotNull().toTypedArray())
-				failedItems.values.forEach { soul.location.world!!.dropItem(soul.location, it) }
+				val missedItems: MutableList<ItemStack> = mutableListOf()
+				soul.inventory.forEachIndexed { index, item ->
+					if (item != null) {
+						if (player.inventory.getItem(index) == null) {
+							player.inventory.setItem(index, item)
+						} else {
+							missedItems.add(item)
+						}
+					}
+				}
+				val missHashMap = player.inventory.addItem(*missedItems.toTypedArray())
+				missHashMap.forEach { (_, item) ->
+					soul.location.world!!.dropItem(soul.location, item)
+				}
 
 				// HANDLE XP
 				val owner: Player? = Bukkit.getPlayer(soul.ownerUUID)
