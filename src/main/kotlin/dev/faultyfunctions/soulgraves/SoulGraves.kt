@@ -83,7 +83,7 @@ class SoulGraves : JavaPlugin() {
 
 	override fun onDisable() {
 		this.adventure.close()
-		RedisDatabase.instance.shutdown()
+		if (STORAGE_MODE == STORAGE_TYPE.DATABASE) { RedisDatabase.instance.shutdown() }
 		logger.info("Disabled!")
 	}
 }
