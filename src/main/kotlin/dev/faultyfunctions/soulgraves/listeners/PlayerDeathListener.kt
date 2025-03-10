@@ -47,8 +47,12 @@ class PlayerDeathListener() : Listener {
 
 		// DATA
 		val inventory: MutableList<ItemStack?> = mutableListOf()
-		e.drops.forEach items@ { item ->
-			if (item != null) inventory.add(item)
+		player.inventory.forEach { item ->
+			if (item != null) {
+				inventory.add(item)
+			} else {
+				inventory.add(null) // This is to make sure we keep the same item slot index when we restore items later
+			}
 		}
 		val xp: Int = SpigotCompatUtils.calculateTotalExperiencePoints(player.level)
 
