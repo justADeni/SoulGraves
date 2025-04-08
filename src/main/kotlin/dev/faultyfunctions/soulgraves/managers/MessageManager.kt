@@ -23,6 +23,7 @@ object MessageManager {
 	var soulBurstNearbyComponent: Component? = null
 	var soulCollectComponent: Component? = null
 	var soulCollectOtherComponent: Component? = null
+	var soulLimitExplodeComponent: Component? = null
 
 	fun loadMessages() {
 		try {
@@ -56,5 +57,8 @@ object MessageManager {
 			soulCollectComponent = miniMessage.deserialize(messageConfig.getString("soul-collect").toString())
 		if (messageConfig.getString("soul-collect-other") != "")
 			soulCollectOtherComponent = miniMessage.deserialize(messageConfig.getString("soul-collect-other").toString())
+		if (messageConfig.getString("soul-limit-explode") != "")
+			soulLimitExplodeComponent = miniMessage.deserialize(messageConfig.getString("soul-limit-explode")
+				.replace("%max%", ConfigManager.maxSoulsPerPlayer.toString(), false))
 	}
 }

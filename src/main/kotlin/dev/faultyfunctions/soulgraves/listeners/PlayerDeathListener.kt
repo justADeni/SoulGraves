@@ -2,15 +2,19 @@ package dev.faultyfunctions.soulgraves.listeners
 
 import dev.faultyfunctions.soulgraves.managers.ConfigManager
 import dev.faultyfunctions.soulgraves.utils.Soul
-import com.jeff_media.morepersistentdatatypes.DataType
 import dev.faultyfunctions.soulgraves.*
+import dev.faultyfunctions.soulgraves.api.RedisPublishAPI
+import dev.faultyfunctions.soulgraves.api.SoulGraveAPI
 import dev.faultyfunctions.soulgraves.api.event.SoulPreSpawnEvent
 import dev.faultyfunctions.soulgraves.api.event.SoulSpawnEvent
+import dev.faultyfunctions.soulgraves.managers.MessageManager
+import dev.faultyfunctions.soulgraves.managers.STORAGE_MODE
+import dev.faultyfunctions.soulgraves.managers.STORAGE_TYPE
 import dev.faultyfunctions.soulgraves.utils.SpigotCompatUtils
 import org.bukkit.*
 import org.bukkit.block.Block
+import org.bukkit.entity.Entity
 import org.bukkit.entity.EntityType
-import org.bukkit.entity.Marker
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -41,43 +45,32 @@ class PlayerDeathListener() : Listener {
 		Bukkit.getPluginManager().callEvent(soulPreSpawnEvent)
 		if (soulPreSpawnEvent.isCancelled) return
 
-		// SPAWN & DEFINE ENTITY
-		val marker: Marker = player.world.spawnEntity(findSafeLocation(player.location), EntityType.MARKER) as Marker
-		marker.isPersistent = true
-		marker.isSilent = true
-		marker.isInvulnerable = true
-
-		// STORE CHUNK LOCATION IN WORLD'S PERSISTENT DATA CONTAINER FOR LOADING LATER
-		val chunkList: MutableList<Long>? = marker.world.persistentDataContainer.get(soulChunksKey, DataType.asList(DataType.LONG))
-		if (chunkList != null && !chunkList.contains(SoulGraves.compat.getChunkKey(marker.location.chunk))) {
-			chunkList.add(SoulGraves.compat.getChunkKey(marker.location.chunk))
-			marker.world.persistentDataContainer.set(soulChunksKey, DataType.asList(DataType.LONG), chunkList)
-		}
-
-		// TAG ENTITY WITH SOUL KEY
-		marker.persistentDataContainer.set(soulKey, DataType.BOOLEAN, true)
-
-		// STORE PLAYER UUID
-		marker.persistentDataContainer.set(soulOwnerKey, DataType.UUID, player.uniqueId)
-
-		// CREATE INVENTORY
+		// DATA
 		val inventory: MutableList<ItemStack?> = mutableListOf()
 		e.drops.forEach items@ { item ->
 			if (item != null) inventory.add(item)
 		}
-		marker.persistentDataContainer.set(soulInvKey, DataType.ITEM_STACK_ARRAY, inventory.toTypedArray())
-
-		// MANAGE XP
 		val xp: Int = SpigotCompatUtils.calculateTotalExperiencePoints(player.level)
-		marker.persistentDataContainer.set(soulXpKey, DataType.INTEGER, xp)
 
-		// MANAGE TIME LEFT
-		val timeLeft = ConfigManager.timeStable + ConfigManager.timeUnstable
-		marker.persistentDataContainer.set(soulTimeLeftKey, DataType.INTEGER, timeLeft)
+		// TIME
+		val deathTime = System.currentTimeMillis()
+		val expireTime = deathTime + ((ConfigManager.timeStable + ConfigManager.timeUnstable) * 1000)
 
-		// CREATE SOUL DATA
-		val soul = Soul(player.uniqueId, marker.uniqueId, marker.location, inventory, xp, timeLeft)
-		SoulGraves.soulList.add(soul)
+		// SPAWN & DEFINE ENTITY
+		val marker: Entity = player.world.spawnEntity(findSafeLocation(player.location), EntityType.MARKER)
+		marker.isPersistent = true
+		marker.isSilent = true
+		marker.isInvulnerable = true
+
+		// CREATE SOUL & STORE DATA IN MARKER
+		val soul = Soul.createNewForPlayerDeath(
+			player.uniqueId,
+			marker,
+			findSafeLocation(player.location),
+			inventory,
+			xp,
+			deathTime,
+			expireTime)
 
 		// CANCEL DROPS
 		e.drops.clear()
@@ -86,6 +79,9 @@ class PlayerDeathListener() : Listener {
 		// CALL EVENT
 		val soulSpawnEvent = SoulSpawnEvent(player, soul)
 		Bukkit.getPluginManager().callEvent(soulSpawnEvent)
+
+		// EXPLODE OLD SOUL
+		if (ConfigManager.maxSoulsPerPlayer > 0) explodeOldestSoul(player)
 	}
 
 	private fun findSafeLocation(locationToCheck: Location): Location {
@@ -111,5 +107,51 @@ class PlayerDeathListener() : Listener {
 		}
 
 		return safeLocation
+	}
+
+	// EXPLODE OLD SOUL
+	private fun explodeOldestSoul(player: Player) {
+		Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
+			when(STORAGE_MODE) {
+				STORAGE_TYPE.PDC -> {
+					SoulGraveAPI.getPlayerSouls(player.uniqueId)
+						.takeIf { it.size > ConfigManager.maxSoulsPerPlayer }
+						?.let { souls ->
+							val sorted = souls.sortedBy { it.expireTime }
+							val toRemove = souls.size - ConfigManager.maxSoulsPerPlayer
+							if (toRemove > 0) {
+								sorted.take(toRemove).forEach { soul ->
+									Bukkit.getScheduler().runTask(SoulGraves.plugin, Runnable {
+										soul.explode()
+									})
+								}
+								// Send Message
+								MessageManager.soulLimitExplodeComponent?.let {
+									SoulGraves.plugin.adventure().player(player).sendMessage(it)
+								}
+							}
+						}
+				}
+
+				STORAGE_TYPE.DATABASE -> {
+					val future = SoulGraveAPI.getPlayerSoulsCrossServer(player.uniqueId)
+					// Database has been sorted.
+					future.thenAccept {
+						if (it.size > ConfigManager.maxSoulsPerPlayer) {
+							val toRemove = it.size - ConfigManager.maxSoulsPerPlayer
+							if (toRemove > 0) {
+								it.take(toRemove).forEach { soul ->
+									RedisPublishAPI.explodeSoul(soul.markerUUID)
+								}
+								// Send Message
+								MessageManager.soulLimitExplodeComponent?.let {
+									SoulGraves.plugin.adventure().player(player).sendMessage(it)
+								}
+							}
+						}
+					}
+				}
+			}
+		})
 	}
 }

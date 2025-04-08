@@ -9,7 +9,6 @@ import org.bukkit.inventory.ItemStack
 
 class SoulSpawnEvent (var player: Player, var soul: Soul): Event() {
 
-
     companion object {
         val HANDLER_LIST = HandlerList()
         @JvmStatic

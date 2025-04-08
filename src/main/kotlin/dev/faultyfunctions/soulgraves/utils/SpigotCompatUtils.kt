@@ -1,5 +1,6 @@
 package dev.faultyfunctions.soulgraves.utils
 
+import org.bukkit.Bukkit
 import org.bukkit.Chunk
 import org.bukkit.World
 
@@ -21,5 +22,9 @@ object SpigotCompatUtils {
 			(level <= 31) -> (2.5 * level * level - 40.5 * level + 360).toInt()
 			else -> (4.5 * level * level - 162.5 * level + 2220).toInt()
 		}
+	}
+
+	fun isPluginLoad(plugin: String): Boolean {
+		return Bukkit.getPluginManager().getPlugin(plugin) != null
 	}
 }

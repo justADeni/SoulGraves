@@ -1,5 +1,5 @@
 # DO NOT EDIT file-version DIRECTLY
-file-version: 1
+file-version: 2
 
 # If set true, players will require "soulgraves.spawn" permission to spawn a soul upon death
 permission-required: false
@@ -12,6 +12,7 @@ time-stable: 240
 time-unstable: 60
 
 # Whether to freeze the timer when the owner of the soul is offline
+# This feature cannot detect the online status of players in other subservers in proxy server.
 offline-owner-timer-freeze: false
 
 # Whether to notify nearby players when a soul bursts
@@ -34,6 +35,10 @@ xp-percentage-burst: 0.2
 
 # Whether souls are only collectible by their owners
 owner-locked: false
+
+# The maximum number of souls a player can hold simultaneously. Set to 0 for unlimited.
+# If the limit is exceeded, the oldest soul will explode
+max-souls-per-player: 0
 
 # Whether souls will drop items when they burst
 souls-drop-items: true
@@ -93,3 +98,16 @@ notify-owner-pickup-sound:
 #  - world_nether
 #  - world_the_end
 disabled-worlds: []
+
+# When Player Nearby own souls, plugin will show particles to lead to nearest soul's location.
+particles:
+  enabled: true
+  # Set to 0 for unlimited.
+  follow-radius: 50
+  particle:
+    type: "soul_fire_flame"
+    init-distance: 2.5
+    speed: 0.005
+    speed-bound: 0.003
+    max-amount: 5
+    offset-bound: 1.5
