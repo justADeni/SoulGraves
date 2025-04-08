@@ -5,6 +5,7 @@ import org.bukkit.Location
 import org.bukkit.entity.Player
 import org.bukkit.event.Event
 import org.bukkit.event.HandlerList
+import org.bukkit.event.entity.PlayerDeathEvent
 import org.bukkit.inventory.ItemStack
 
 class SoulSpawnEvent (var player: Player, var soul: Soul): Event() {

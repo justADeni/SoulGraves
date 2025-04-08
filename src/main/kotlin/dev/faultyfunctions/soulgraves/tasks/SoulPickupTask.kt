@@ -39,14 +39,14 @@ class SoulPickupTask(val soul: Soul) : BukkitRunnable() {
 					if (item != null) {
 						if (player.inventory.getItem(index) == null) {
 							player.inventory.setItem(index, item)
-						} else {
+						} else { // if there is already an item in the slot, add to missed items list
 							missedItems.add(item)
 						}
 					}
 				}
-				val missHashMap = player.inventory.addItem(*missedItems.toTypedArray())
+				val missHashMap = player.inventory.addItem(*missedItems.toTypedArray()) // try to place items into player's inventory if they can fit
 				missHashMap.forEach { (_, item) ->
-					soul.location.world!!.dropItem(soul.location, item)
+					soul.location.world!!.dropItem(soul.location, item) // drop items on ground that couldn't fit
 				}
 
 				// HANDLE XP

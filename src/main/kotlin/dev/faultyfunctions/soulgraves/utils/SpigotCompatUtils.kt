@@ -24,7 +24,7 @@ object SpigotCompatUtils {
 		}
 	}
 
-	fun isPluginLoad(plugin: String): Boolean {
+	fun isPluginLoaded(plugin: String): Boolean {
 		return Bukkit.getPluginManager().getPlugin(plugin) != null
 	}
 }

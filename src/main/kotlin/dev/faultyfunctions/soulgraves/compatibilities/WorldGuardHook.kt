@@ -39,13 +39,13 @@ class WorldGuardHook : Listener {
         }
     }
 
-    fun registerEvent() {
+    fun registerEvents() {
         if (!flagRegisteredSuccess) {
-            SoulGraves.plugin.logger.warning("Worldguard has registered the soulgraves-spawning flag!")
+            SoulGraves.plugin.logger.warning("WorldGuard has registered the soulgraves-spawning flag!")
             return
         }
         SoulGraves.plugin.server.pluginManager.registerEvents(WorldGuardHook(), SoulGraves.plugin)
-        SoulGraves.plugin.logger.info("[√] Worldguard Hooked!")
+        SoulGraves.plugin.logger.info("[√] WorldGuard Hooked!")
     }
 
 
