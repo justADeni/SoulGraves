@@ -33,8 +33,6 @@ class PDCDatabase private constructor() {
                 val chunkKeyList: List<Long>? = world.persistentDataContainer.get(
                     soulChunksKey, DataType.asList(
                         DataType.LONG))?.distinct()
-                // RESET CHUNK LIST IN WORLD PDC
-                world.persistentDataContainer.set(soulChunksKey, DataType.asList(DataType.LONG), mutableListOf<Long>())
 
                 chunkKeyList?.forEach chunkKeyLoop@{ chunkKey ->
                     SpigotCompatUtils.getChunkAt(chunkKey, world).entities
