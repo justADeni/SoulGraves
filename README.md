@@ -21,13 +21,16 @@ Special thanks to [Catnies](https://github.com/killertuling) for their contribut
 - Visual cue to indicate when the soul is about to burst
 - Audible heartbeat to make finding your soul easier
 - Soul Graves will avoid spawning a soul in liquids, the void, and non-solid blocks
-- Players can have multiple souls possible at the same time
+- Optional hint particles to lead players to their soul
+- Players can have a customizable number of souls active at the same time
+- Cross-server support with MySQL + Redis
 - Option to only let owners retrieve their souls
 - Option to toggle if souls drop items or xp when they burst
 - Customizable XP return percentages
 - Customizable messages with MiniMessage support
 - Customizable sounds
 - Custom Event API
+- WorldGuard integration
 
 ## GIFs
 A stable soul waiting to be collected:
@@ -44,7 +47,7 @@ A destabilizing soul that bursts and drops its contents:
 
 ```yml
 # DO NOT EDIT file-version DIRECTLY
-file-version: 1
+file-version: 2
 
 # If set true, players will require "soulgraves.spawn" permission to spawn a soul upon death
 permission-required: false
@@ -57,6 +60,7 @@ time-stable: 240
 time-unstable: 60
 
 # Whether to freeze the timer when the owner of the soul is offline
+# This feature cannot detect the online status of players in other subservers on a proxy server
 offline-owner-timer-freeze: false
 
 # Whether to notify nearby players when a soul bursts
@@ -79,6 +83,10 @@ xp-percentage-burst: 0.2
 
 # Whether souls are only collectible by their owners
 owner-locked: false
+
+# The maximum number of souls a player can hold simultaneously. Set to 0 for unlimited.
+# If the limit is exceeded, the oldest soul will explode
+max-souls-per-player: 0
 
 # Whether souls will drop items when they burst
 souls-drop-items: true
@@ -138,6 +146,54 @@ notify-owner-pickup-sound:
 #  - world_nether
 #  - world_the_end
 disabled-worlds: []
+
+# Controls particles that will lead the player to their soul
+hint-particles:
+  enabled: true
+  activation-radius: 128 # The radius around the soul to show hint particles, set to 0 to always show hint particles
+  tracked-soul: 'OLDEST' # Which soul should we track if the player has multiple? Options: OLDEST, NEWEST
+  particle-type: 'END_ROD'
+  start-distance: 5 # How far away from the player the particles should start
+  mode: 'TRAIL' # Options: TRAIL, WANDER
+  trail:
+    length: 8 # How long the particle trail towards the soul should be
+    density: 2 # How many particles to spawn per block distance
+  wander:
+    count: 5 # How many particles should be spawned
+    min-speed: 0.2 # The minimum speed of the particles
+    max-speed: 0.6 # The maximum speed of the particles
+```
+
+</details>
+
+<details>
+<summary>database.yml</summary>
+
+```yml
+# DO NOT EDIT file-version DIRECTLY
+file-version: 1
+
+# NOTE: If you change this config, you'll need to restart the server in order for the changes to take effect.
+
+# Options: PDC, CROSS_SERVER
+# If you use CROSS_SERVER, you must set configure both the MySQL and Redis sections
+storage-mode: PDC
+
+# Server name for cross-server storage
+# Ensure that each server's name is unique when using CROSS_SERVER storage
+# WARNING: Changing this value after initializing the database will cause data loss
+server-name: "lobby"
+
+# Database config for cross-server storage
+MySQL:
+  jdbc-url: "jdbc:mysql://localhost:3306/minecraft?useSSL=false&autoReconnect=true"
+  jdbc-class: "com.mysql.cj.jdbc.Driver"
+  properties:
+    user: "root"
+    password: "password"
+
+Redis:
+  uri: "redis://localhost:6379/0"
 ```
 
 </details>
