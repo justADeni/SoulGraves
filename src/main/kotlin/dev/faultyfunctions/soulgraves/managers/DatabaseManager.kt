@@ -12,8 +12,8 @@ import java.io.File
 import java.io.IOException
 import kotlin.properties.Delegates
 
-enum class STORAGE_TYPE {
-    PDC, DATABASE
+enum class StorageType {
+    PDC, CROSS_SERVER
 }
 
 val STORAGE_MODE = DatabaseManager.storageMode
@@ -24,7 +24,7 @@ object DatabaseManager {
     lateinit var databaseConfig: YamlDocument
 
     // CONFIG VALUES
-    var storageMode by Delegates.notNull<STORAGE_TYPE>()
+    var storageMode by Delegates.notNull<StorageType>()
     var serverName by Delegates.notNull<String>()
 
     fun loadConfig() {
@@ -46,7 +46,7 @@ object DatabaseManager {
         }
 
         // LOAD VALUES
-        storageMode = STORAGE_TYPE.valueOf(databaseConfig.getString("storage-mode", "PDC"))
+        storageMode = StorageType.valueOf(databaseConfig.getString("storage-mode", "PDC"))
         serverName = databaseConfig.getString("server-name")
     }
 

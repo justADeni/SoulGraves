@@ -61,7 +61,7 @@ class SoulExplodeTask(val soul: Soul) : BukkitRunnable() {
 
 			// SEND PLAYER MESSAGE
 			when (STORAGE_MODE) {
-				STORAGE_TYPE.PDC -> {
+				StorageType.PDC -> {
 					owner?.let {
 						if (MessageManager.soulBurstComponent != null)
 							SoulGraves.plugin.adventure().player(owner).sendMessage(MessageManager.soulBurstComponent!!)
@@ -71,7 +71,7 @@ class SoulExplodeTask(val soul: Soul) : BukkitRunnable() {
 							SoulGraves.plugin.adventure().player(owner).sendMessage(MessageManager.soulBurstLoseItemsComponent!!)
 					}
 				}
-				STORAGE_TYPE.DATABASE -> {
+				StorageType.CROSS_SERVER -> {
 					RedisDatabase.instance.publish(RedisPacket(SERVER_NAME, MessageAction.NOTIFY_SOUL_EXPLODE, soul.ownerUUID.toString()))
 				}
 			}

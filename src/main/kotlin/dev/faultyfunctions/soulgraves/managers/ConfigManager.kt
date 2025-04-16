@@ -1,11 +1,14 @@
 package dev.faultyfunctions.soulgraves.managers
 
 import dev.dejvokep.boostedyaml.YamlDocument
+import dev.dejvokep.boostedyaml.block.Comments
 import dev.dejvokep.boostedyaml.dvs.versioning.BasicVersioning
 import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings
 import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings
+import dev.dejvokep.boostedyaml.settings.updater.MergeRule
 import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings
+import dev.dejvokep.boostedyaml.utils.format.NodeRole
 import dev.faultyfunctions.soulgraves.SoulGraves
 import org.bukkit.Bukkit
 import org.bukkit.Particle
@@ -18,6 +21,12 @@ class SoundConfig() {
 	val sounds = mutableListOf<String>()
 	val volumes = mutableListOf<Float>()
 	val pitches = mutableListOf<Float>()
+
+	fun clear() {
+		sounds.clear()
+		volumes.clear()
+		pitches.clear()
+	}
 }
 
 object ConfigManager {
@@ -45,15 +54,17 @@ object ConfigManager {
 	val notifyOwnerPickupSound = SoundConfig()
 	lateinit var disabledWorlds: List<String>
 	// PARTICLES CONFIG
-	var enableParticles by Delegates.notNull<Boolean>()
-	var particlesFollowRadius by Delegates.notNull<Double>()
-	var particleType by Delegates.notNull<Particle>()
-	var particlesInitDistance by Delegates.notNull<Double>()
-	var particleSpeed by Delegates.notNull<Double>()
-	var particleSpeedBound by Delegates.notNull<Double>()
-	var particleMaxAmount by Delegates.notNull<Int>()
-	var particleOffsetBound by Delegates.notNull<Double>()
-
+	var hintParticlesEnabled by Delegates.notNull<Boolean>()
+	var hintParticlesActivationRadius by Delegates.notNull<Int>()
+	var hintParticlesTrackedSoul by Delegates.notNull<String>()
+	var hintParticlesParticleType by Delegates.notNull<String>()
+	var hintParticlesStartDistance by Delegates.notNull<Int>()
+	var hintParticlesMode by Delegates.notNull<String>()
+	var hintParticlesTrailLength by Delegates.notNull<Int>()
+	var hintParticlesTrailDensity by Delegates.notNull<Int>()
+	var hintParticlesWanderCount by Delegates.notNull<Int>()
+	var hintParticlesWanderMinSpeed by Delegates.notNull<Double>()
+	var hintParticlesWanderMaxSpeed by Delegates.notNull<Double>()
 
 	fun loadConfig() {
 		try {
@@ -88,6 +99,7 @@ object ConfigManager {
 		soulsDropItems = config.getBoolean("souls-drop-items")
 		soulsDropXP = config.getBoolean("souls-drop-xp")
 		pickupSound.enabled = config.getBoolean("pickup-sound.enabled")
+		pickupSound.clear()
 		val pickupSounds = config.getStringList("pickup-sound.sounds")
 		for (sound in pickupSounds) {
 			val split = sound.split(",")
@@ -96,6 +108,7 @@ object ConfigManager {
 			pickupSound.pitches.add(split[2].toFloat())
 		}
 		burstSound.enabled = config.getBoolean("burst-sound.enabled")
+		burstSound.clear()
 		val burstSounds = config.getStringList("burst-sound.sounds")
 		for (sound in burstSounds) {
 			val split = sound.split(",")
@@ -104,6 +117,7 @@ object ConfigManager {
 			burstSound.pitches.add(split[2].toFloat())
 		}
 		notifyNearbySound.enabled = config.getBoolean("notify-nearby-sound.enabled")
+		notifyNearbySound.clear()
 		val notifyNearbySounds = config.getStringList("notify-nearby-sound.sounds")
 		for (sound in notifyNearbySounds) {
 			val split = sound.split(",")
@@ -112,6 +126,7 @@ object ConfigManager {
 			notifyNearbySound.pitches.add(split[2].toFloat())
 		}
 		notifyOwnerBurstSound.enabled = config.getBoolean("notify-owner-burst-sound.enabled")
+		notifyOwnerBurstSound.clear()
 		val notifyOwnerBurstSounds = config.getStringList("notify-owner-burst-sound.sounds")
 		for (sound in notifyOwnerBurstSounds) {
 			val split = sound.split(",")
@@ -120,6 +135,7 @@ object ConfigManager {
 			notifyOwnerBurstSound.pitches.add(split[2].toFloat())
 		}
 		notifyOwnerPickupSound.enabled = config.getBoolean("notify-owner-pickup-sound.enabled")
+		notifyOwnerPickupSound.clear()
 		val notifyOwnerPickupSounds = config.getStringList("notify-owner-pickup-sound.sounds")
 		for (sound in notifyOwnerPickupSounds) {
 			val split = sound.split(",")
@@ -129,13 +145,16 @@ object ConfigManager {
 		}
 		disabledWorlds = config.getStringList("disabled-worlds")
 		// PARTICLES CONFIG
-		enableParticles = config.getBoolean("particles.enabled", true)
-		particlesFollowRadius = config.getDouble("particles.follow-radius", 50.0)
-		particleType = Particle.valueOf(config.getString("particles.particle.type", "soul_fire_flame")!!)
-		particlesInitDistance = config.getDouble("particles.particle.init-distance", 2.5)
-		particleSpeed = config.getDouble("particles.particle.speed", 0.005)
-		particleSpeedBound = config.getDouble("particles.particle.speed-bound", 0.005)
-		particleMaxAmount  = config.getInt("particles.particle.max-amount", 5)
-		particleOffsetBound = config.getDouble("particles.particle.offset-bound", 1.5)
+		hintParticlesEnabled = config.getBoolean("hint-particles.enabled")
+		hintParticlesActivationRadius = config.getInt("hint-particles.activation-radius")
+		hintParticlesTrackedSoul = config.getString("hint-particles.tracked-soul")
+		hintParticlesParticleType = config.getString("hint-particles.particle-type")
+		hintParticlesStartDistance = config.getInt("hint-particles.start-distance")
+		hintParticlesMode = config.getString("hint-particles.mode")
+		hintParticlesTrailLength = config.getInt("hint-particles.trail.length")
+		hintParticlesTrailDensity = config.getInt("hint-particles.trail.density")
+		hintParticlesWanderCount = config.getInt("hint-particles.wander.count")
+		hintParticlesWanderMinSpeed = config.getDouble("hint-particles.wander.min-speed")
+		hintParticlesWanderMaxSpeed = config.getDouble("hint-particles.wander.max-speed")
 	}
 }

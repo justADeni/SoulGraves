@@ -12,7 +12,7 @@ time-stable: 240
 time-unstable: 60
 
 # Whether to freeze the timer when the owner of the soul is offline
-# This feature cannot detect the online status of players in other subservers in proxy server.
+# This feature cannot detect the online status of players in other subservers on a proxy server
 offline-owner-timer-freeze: false
 
 # Whether to notify nearby players when a soul bursts
@@ -99,15 +99,18 @@ notify-owner-pickup-sound:
 #  - world_the_end
 disabled-worlds: []
 
-# When Player Nearby own souls, plugin will show particles to lead to nearest soul's location.
-particles:
+# Controls particles that will lead the player to their soul
+hint-particles:
   enabled: true
-  # Set to 0 for unlimited.
-  follow-radius: 50
-  particle:
-    type: "soul_fire_flame"
-    init-distance: 2.5
-    speed: 0.005
-    speed-bound: 0.003
-    max-amount: 5
-    offset-bound: 1.5
+  activation-radius: 128 # The radius around the soul to show hint particles, set to 0 to always show hint particles
+  tracked-soul: 'OLDEST' # Which soul should we track if the player has multiple? Options: OLDEST, NEWEST
+  particle-type: 'END_ROD'
+  start-distance: 5 # How far away from the player the particles should start
+  mode: 'TRAIL' # Options: TRAIL, WANDER
+  trail:
+    length: 8 # How long the particle trail towards the soul should be
+    density: 2 # How many particles to spawn per block distance
+  wander:
+    count: 5 # How many particles should be spawned
+    min-speed: 0.2 # The minimum speed of the particles
+    max-speed: 0.6 # The maximum speed of the particles

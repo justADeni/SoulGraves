@@ -71,7 +71,7 @@ class SoulPickupTask(val soul: Soul) : BukkitRunnable() {
 				// SEND MESSAGE TO OWNER IF NEEDED
 				if (player.uniqueId != soul.ownerUUID && ConfigManager.notifyOwnerPickup) {
 					when (DatabaseManager.storageMode) {
-						STORAGE_TYPE.PDC  -> {
+						StorageType.PDC  -> {
 							owner?.let {
 								if (MessageManager.soulBurstComponent != null)
 									SoulGraves.plugin.adventure().player(owner).sendMessage(MessageManager.soulBurstComponent!!)
@@ -81,7 +81,7 @@ class SoulPickupTask(val soul: Soul) : BukkitRunnable() {
 									SoulGraves.plugin.adventure().player(owner).sendMessage(MessageManager.soulBurstLoseItemsComponent!!)
 							}
 						}
-						STORAGE_TYPE.DATABASE -> {
+						StorageType.CROSS_SERVER -> {
 							RedisDatabase.instance.publish(RedisPacket(SERVER_NAME, MessageAction.NOTIFY_SOUL_OTHER_PICKUP, soul.ownerUUID.toString()))
 						}
 					}

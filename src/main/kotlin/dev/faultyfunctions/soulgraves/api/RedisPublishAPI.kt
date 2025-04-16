@@ -7,7 +7,7 @@ import dev.faultyfunctions.soulgraves.database.RedisDatabase
 import dev.faultyfunctions.soulgraves.database.RedisPacket
 import dev.faultyfunctions.soulgraves.managers.SERVER_NAME
 import dev.faultyfunctions.soulgraves.managers.STORAGE_MODE
-import dev.faultyfunctions.soulgraves.managers.STORAGE_TYPE
+import dev.faultyfunctions.soulgraves.managers.StorageType
 import dev.faultyfunctions.soulgraves.utils.Soul
 import org.bukkit.Bukkit
 import java.util.UUID
@@ -31,7 +31,7 @@ object RedisPublishAPI {
      * @return whether the auction is successful
      */
     fun deleteSoul(markerUUID: UUID): CompletableFuture<Boolean> {
-        if (STORAGE_MODE == STORAGE_TYPE.PDC) throw RuntimeException("DO NOT USE REDIS PUBLISH API WITH PDC STORAGE MODE!")
+        if (STORAGE_MODE == StorageType.PDC) throw RuntimeException("DO NOT USE REDIS PUBLISH API WITH PDC STORAGE MODE!")
 
         val future = CompletableFuture<Boolean>()
         Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
@@ -71,7 +71,7 @@ object RedisPublishAPI {
      * @return whether the auction is successful
      */
     fun explodeSoul(markerUUID: UUID): CompletableFuture<Boolean> {
-        if (STORAGE_MODE == STORAGE_TYPE.PDC) throw RuntimeException("DO NOT USE REDIS PUBLISH API WITH PDC STORAGE MODE!")
+        if (STORAGE_MODE == StorageType.PDC) throw RuntimeException("DO NOT USE REDIS PUBLISH API WITH PDC STORAGE MODE!")
 
         val future = CompletableFuture<Boolean>()
         Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
@@ -115,7 +115,7 @@ object RedisPublishAPI {
      * @return whether the auction is successful
      */
     fun syncSoul(soul: Soul): CompletableFuture<Boolean> {
-        if (STORAGE_MODE == STORAGE_TYPE.PDC) throw RuntimeException("DO NOT USE REDIS PUBLISH API WITH PDC STORAGE MODE!")
+        if (STORAGE_MODE == StorageType.PDC) throw RuntimeException("DO NOT USE REDIS PUBLISH API WITH PDC STORAGE MODE!")
 
         val future = CompletableFuture<Boolean>()
         Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {

@@ -9,7 +9,7 @@ import dev.faultyfunctions.soulgraves.api.event.SoulPreSpawnEvent
 import dev.faultyfunctions.soulgraves.api.event.SoulSpawnEvent
 import dev.faultyfunctions.soulgraves.managers.MessageManager
 import dev.faultyfunctions.soulgraves.managers.STORAGE_MODE
-import dev.faultyfunctions.soulgraves.managers.STORAGE_TYPE
+import dev.faultyfunctions.soulgraves.managers.StorageType
 import dev.faultyfunctions.soulgraves.utils.SpigotCompatUtils
 import org.bukkit.*
 import org.bukkit.block.Block
@@ -117,7 +117,7 @@ class PlayerDeathListener() : Listener {
 	private fun explodeOldestSoul(player: Player) {
 		Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
 			when(STORAGE_MODE) {
-				STORAGE_TYPE.PDC -> {
+				StorageType.PDC -> {
 					SoulGraveAPI.getPlayerSouls(player.uniqueId)
 						.takeIf { it.size > ConfigManager.maxSoulsPerPlayer }
 						?.let { souls ->
@@ -137,7 +137,7 @@ class PlayerDeathListener() : Listener {
 						}
 				}
 
-				STORAGE_TYPE.DATABASE -> {
+				StorageType.CROSS_SERVER -> {
 					val future = SoulGraveAPI.getPlayerSoulsCrossServer(player.uniqueId)
 					// Database has been sorted.
 					future.thenAccept {

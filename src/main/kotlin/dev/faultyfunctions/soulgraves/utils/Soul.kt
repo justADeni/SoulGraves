@@ -8,7 +8,7 @@ import dev.faultyfunctions.soulgraves.database.PDCDatabase
 import dev.faultyfunctions.soulgraves.managers.ConfigManager
 import dev.faultyfunctions.soulgraves.managers.SERVER_NAME
 import dev.faultyfunctions.soulgraves.managers.STORAGE_MODE
-import dev.faultyfunctions.soulgraves.managers.STORAGE_TYPE
+import dev.faultyfunctions.soulgraves.managers.StorageType
 import dev.faultyfunctions.soulgraves.tasks.*
 import org.bukkit.Bukkit
 import org.bukkit.Location
@@ -151,7 +151,7 @@ class Soul private constructor(
 	var implosion: Boolean = false
 
 	private var explodeTask: SoulExplodeTask? = null
-	private var particleTask: SoulParticleTask? = null
+	private var particleTask: SoulHintParticlesTask? = null
 	private var pickupTask: SoulPickupTask? = null
 	private var renderTask: SoulRenderTask? = null
 	private var soundTask: SoulSoundTask? = null
@@ -170,9 +170,9 @@ class Soul private constructor(
 			explodeTask = it
 			it.runTaskTimer(SoulGraves.plugin, 0, 20)
 		}
-		particleTask ?: SoulParticleTask(this).also {
+		particleTask ?: SoulHintParticlesTask(this).also {
 			particleTask = it
-			it.runTaskTimer(SoulGraves.plugin, 0, 50)
+			it.runTaskTimer(SoulGraves.plugin, 0, 100)
 		}
 		pickupTask ?: SoulPickupTask(this).also {
 			pickupTask = it
@@ -204,11 +204,11 @@ class Soul private constructor(
 		// Save
 		when {
 			// PDC
-			isLocal && STORAGE_MODE == STORAGE_TYPE.PDC -> {
+			isLocal && STORAGE_MODE == StorageType.PDC -> {
 				PDCDatabase.instance.saveSoul(this)
 			}
 			// DATABASE
-			isLocal && STORAGE_MODE == STORAGE_TYPE.DATABASE -> {
+			isLocal && STORAGE_MODE == StorageType.CROSS_SERVER -> {
 				Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
 					MySQLDatabase.instance.saveSoul(this)
 				})
@@ -259,7 +259,7 @@ class Soul private constructor(
 			}
 
 			// REMOTE
-			STORAGE_MODE == STORAGE_TYPE.DATABASE -> {
+			STORAGE_MODE == StorageType.CROSS_SERVER -> {
 				RedisPublishAPI.explodeSoul(markerUUID)
 				return true
 			}
@@ -273,9 +273,10 @@ class Soul private constructor(
 	 * Delete Soul, Stop All Task of Soul, Will Drop Nothing.
 	 */
 	fun delete() {
+		SoulGraves.plugin.logger.info("SOUL DELETED!")
 		when {
 			// PDC
-			isLocal && STORAGE_MODE == STORAGE_TYPE.PDC -> {
+			isLocal && STORAGE_MODE == StorageType.PDC -> {
 				// CANCEL TASKS
 				explodeTask?.cancel()
 				particleTask?.cancel()
@@ -298,7 +299,7 @@ class Soul private constructor(
 			}
 
 			// DATABASE
-			isLocal && STORAGE_MODE == STORAGE_TYPE.DATABASE -> {
+			isLocal && STORAGE_MODE == StorageType.CROSS_SERVER -> {
 				// CANCEL TASKS
 				explodeTask?.cancel()
 				particleTask?.cancel()
@@ -323,7 +324,7 @@ class Soul private constructor(
 			}
 
 			// REMOTE
-			STORAGE_MODE == STORAGE_TYPE.DATABASE -> {
+			STORAGE_MODE == StorageType.CROSS_SERVER -> {
 				RedisPublishAPI.deleteSoul(markerUUID)
 			}
 		}

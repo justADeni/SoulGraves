@@ -46,11 +46,11 @@ class SoulGraves : JavaPlugin() {
 		// INIT SOULS
 		when (STORAGE_MODE) {
 			// PDC
-			STORAGE_TYPE.PDC  -> {
+			StorageType.PDC  -> {
 				PDCDatabase.instance
 			}
 			// MYSQL + REDIS
-			STORAGE_TYPE.DATABASE -> {
+			StorageType.CROSS_SERVER -> {
 				MySQLDatabase.instance
 				RedisDatabase.instance
 			}
@@ -87,7 +87,7 @@ class SoulGraves : JavaPlugin() {
 
 	override fun onDisable() {
 		this.adventure.close()
-		if (STORAGE_MODE == STORAGE_TYPE.DATABASE) { RedisDatabase.instance.shutdown() }
+		if (STORAGE_MODE == StorageType.CROSS_SERVER) { RedisDatabase.instance.shutdown() }
 		logger.info("Disabled!")
 	}
 }

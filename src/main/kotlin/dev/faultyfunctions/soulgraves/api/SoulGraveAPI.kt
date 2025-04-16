@@ -4,7 +4,7 @@ import dev.faultyfunctions.soulgraves.SoulGraves
 import dev.faultyfunctions.soulgraves.SoulGraves.Companion.soulList
 import dev.faultyfunctions.soulgraves.database.MySQLDatabase
 import dev.faultyfunctions.soulgraves.managers.STORAGE_MODE
-import dev.faultyfunctions.soulgraves.managers.STORAGE_TYPE
+import dev.faultyfunctions.soulgraves.managers.StorageType
 import dev.faultyfunctions.soulgraves.utils.Soul
 import org.bukkit.Bukkit
 import java.util.*
@@ -25,7 +25,7 @@ object SoulGraveAPI {
      * 1.if soul is not local, you get that is only copy, if the soul of the original server is modified by other something, your copy of the soul may expire.
      */
     fun getAllSoulsCrossServer(): CompletableFuture<List<Soul>> {
-        if (STORAGE_MODE == STORAGE_TYPE.PDC) throw RuntimeException("DO NOT USE CROSS-SERVER API WITH PDC STORAGE MODE!")
+        if (STORAGE_MODE == StorageType.PDC) throw RuntimeException("DO NOT USE CROSS-SERVER API WITH PDC STORAGE MODE!")
         val future = CompletableFuture<List<Soul>>()
         Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
             val allSouls = MySQLDatabase.instance.getAllSouls()
@@ -54,7 +54,7 @@ object SoulGraveAPI {
      * 1.if soul is not local, you get that is only copy, if the soul of the original server is modified by other something, your copy of the soul may expire.
      */
     fun getPlayerSoulsCrossServer(ownerUUID: UUID): CompletableFuture<List<Soul>> {
-        if (STORAGE_MODE == STORAGE_TYPE.PDC) throw RuntimeException("DO NOT USE CROSS-SERVER API WITH PDC STORAGE MODE!")
+        if (STORAGE_MODE == StorageType.PDC) throw RuntimeException("DO NOT USE CROSS-SERVER API WITH PDC STORAGE MODE!")
         val future = CompletableFuture<List<Soul>>()
         Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
             val allSouls = MySQLDatabase.instance.getPlayerSouls(ownerUUID)
@@ -82,7 +82,7 @@ object SoulGraveAPI {
      * 1.if soul is not local, you get that is only copy, if the soul of the original server is modified by other something, your copy of the soul may expire.
      */
     fun getSoulCrossServer(makerUUID: UUID): CompletableFuture<Soul?> {
-        if (STORAGE_MODE == STORAGE_TYPE.PDC) throw RuntimeException("DO NOT USE CROSS-SERVER API WITH PDC STORAGE MODE!")
+        if (STORAGE_MODE == StorageType.PDC) throw RuntimeException("DO NOT USE CROSS-SERVER API WITH PDC STORAGE MODE!")
         val future = CompletableFuture<Soul?>()
         Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
             val soul = MySQLDatabase.instance.getSoul(makerUUID)
