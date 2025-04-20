@@ -11,7 +11,6 @@ import org.bukkit.Particle
 import org.bukkit.World
 import org.bukkit.entity.Player
 import org.bukkit.scheduler.BukkitRunnable
-import org.bukkit.util.Vector
 import kotlin.random.Random
 
 class SoulHintParticlesTask(private val soul: Soul) : BukkitRunnable() {
@@ -58,6 +57,9 @@ class SoulHintParticlesTask(private val soul: Soul) : BukkitRunnable() {
 
     private fun startHintParticles(targetPlayer: Player) {
         Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
+            // CHECK IF PLAYER IS IN THE SAME WORLD AS SOUL
+            if (targetPlayer.world != soul.location.world) { return@Runnable }
+
             // COMMON VALUES
             val eyeDirectionVector = targetPlayer.eyeLocation.direction.apply { y = 0.0 }
             val particleStartLocation = targetPlayer.eyeLocation.add(eyeDirectionVector.multiply(ConfigManager.hintParticlesStartDistance)).subtract(0.0, 1.0, 0.0)
@@ -75,9 +77,7 @@ class SoulHintParticlesTask(private val soul: Soul) : BukkitRunnable() {
                 particleStartLocation.add(soulDirectionVector.clone().multiply(1.0 / ConfigManager.hintParticlesTrailDensity))
             }
 
-            if (targetPlayer.location.distance(soul.location) < 8) {
-                return@Runnable
-            }
+            if (targetPlayer.location.distance(soul.location) < 8) { return@Runnable }
 
             when (ConfigManager.hintParticlesMode) {
                 "WANDER" -> {

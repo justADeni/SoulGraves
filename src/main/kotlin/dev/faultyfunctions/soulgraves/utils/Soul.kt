@@ -273,7 +273,6 @@ class Soul private constructor(
 	 * Delete Soul, Stop All Task of Soul, Will Drop Nothing.
 	 */
 	fun delete() {
-		SoulGraves.plugin.logger.info("SOUL DELETED!")
 		when {
 			// PDC
 			isLocal && STORAGE_MODE == StorageType.PDC -> {
