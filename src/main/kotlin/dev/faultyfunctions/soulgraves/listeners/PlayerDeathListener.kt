@@ -49,6 +49,7 @@ class PlayerDeathListener() : Listener {
 		val inventory: MutableList<ItemStack?> = mutableListOf()
 		player.inventory.forEach { item ->
 			if (item != null) {
+				if (item.enchantments.filter { it.key.key.toString() == "minecraft:vanishing_curse" }.isNotEmpty()) return@forEach
 				inventory.add(item)
 			} else {
 				inventory.add(null) // This is to make sure we keep the same item slot index when we restore items later
