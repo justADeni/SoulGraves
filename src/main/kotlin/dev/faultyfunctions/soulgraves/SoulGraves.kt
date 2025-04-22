@@ -1,6 +1,7 @@
 package dev.faultyfunctions.soulgraves
 
 import dev.faultyfunctions.soulgraves.commands.ReloadCommand
+import dev.faultyfunctions.soulgraves.compatibilities.ExcellentEnchantsHook
 import dev.faultyfunctions.soulgraves.compatibilities.VaneEnchantmentsHook
 import dev.faultyfunctions.soulgraves.compatibilities.WorldGuardHook
 import dev.faultyfunctions.soulgraves.database.MySQLDatabase
@@ -72,6 +73,10 @@ class SoulGraves : JavaPlugin() {
 
 		if (SpigotCompatUtils.isPluginLoaded("vane-enchantments")) {
 			VaneEnchantmentsHook.instance.registerEvents()
+		}
+
+		if (SpigotCompatUtils.isPluginLoaded("ExcellentEnchants")) {
+			ExcellentEnchantsHook.instance.registerEvents()
 		}
 
 		// COMMANDS

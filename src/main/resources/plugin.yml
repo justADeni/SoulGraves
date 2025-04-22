@@ -8,7 +8,7 @@ description: A unique graves plugin where players collect their souls to retriev
 libraries:
   - com.zaxxer:HikariCP:5.1.0
   - io.lettuce:lettuce-core:6.5.3.RELEASE
-softdepend: [WorldGuard, vane-enchantments]
+softdepend: [WorldGuard, vane-enchantments, ExcellentEnchants]
 commands:
   soulgraves:
     description: Main command for SoulGraves
