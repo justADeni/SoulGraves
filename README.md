@@ -1,6 +1,6 @@
 
 # 🪦Soul Graves🪦
-[![Static Badge](https://img.shields.io/badge/release-1.4.1-bisque)]()
+[![Static Badge](https://img.shields.io/badge/release-1.4.2-bisque)]()
 [![Static Badge](https://img.shields.io/badge/license-MIT-plum)](https://github.com/FaultyFunctions/SoulGraves/blob/main/LICENSE.md)
 [![Static Badge](https://img.shields.io/badge/paper-1.20.6%20--%201.21.x-skyblue)](https://papermc.org)
 [![Static Badge](https://img.shields.io/badge/purpur-1.20.6%20--%201.21.x-e533ff)](https://purpurmc.org)
@@ -12,7 +12,7 @@
 
 A unique graves plugin where players collect their souls to retrieve their belongings when they die. A soul will spawn at your death location that provides audio and visual feedback to help you locate it. Once you find it you can retrieve your items by walking into your soul. Be careful though, wait too long and your soul will burst dropping all your items!
 
-Special thanks to [Catnies](https://github.com/killertuling) for their contributions to the project!
+Special thanks to [Catnies](https://github.com/killertuling) and [ShiroKazane](https://github.com/ShiroKazane) for their contributions to the project!
 
 ## Features
 - Additional Minecraft death mechanics
@@ -30,7 +30,11 @@ Special thanks to [Catnies](https://github.com/killertuling) for their contribut
 - Customizable messages with MiniMessage support
 - Customizable sounds
 - Custom Event API
-- WorldGuard integration
+
+## Compatible With
+- WorldGuard (soul spawning flag)
+- Vane (soulbound enchantment)
+- ExcellentEnchants (soulbound enchantment)
 
 ## GIFs
 A stable soul waiting to be collected:
