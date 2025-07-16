@@ -21,10 +21,10 @@ val soulFreezeTimeKey = NamespacedKey(SoulGraves.plugin, "soul-freeze-time")
 class PDCDatabase private constructor() {
 
     companion object {
-        val instance by lazy { PDCDatabase().apply { initSouls() } }
+        val instance by lazy { PDCDatabase() }
     }
 
-    private fun initSouls() {
+    fun initSouls() {
         for (world in Bukkit.getWorlds()) {
             if (!world.persistentDataContainer.has(soulChunksKey)) {
                 world.persistentDataContainer.set(soulChunksKey, DataType.asList(DataType.LONG), mutableListOf<Long>())
@@ -32,7 +32,9 @@ class PDCDatabase private constructor() {
                 // GET CHUNK KEY LIST AND MAKE SURE THEY ARE UNIQUE
                 val chunkKeyList: List<Long>? = world.persistentDataContainer.get(
                     soulChunksKey, DataType.asList(
-                        DataType.LONG))?.distinct()
+                        DataType.LONG
+                    )
+                )?.distinct()
 
                 chunkKeyList?.forEach chunkKeyLoop@{ chunkKey ->
                     SpigotCompatUtils.getChunkAt(chunkKey, world).entities

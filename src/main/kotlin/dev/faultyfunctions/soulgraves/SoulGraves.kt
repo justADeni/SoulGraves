@@ -48,7 +48,7 @@ class SoulGraves : JavaPlugin() {
 		when (STORAGE_MODE) {
 			// PDC
 			StorageType.PDC  -> {
-				PDCDatabase.instance
+				PDCDatabase.instance.initSouls()
 			}
 			// MYSQL + REDIS
 			StorageType.CROSS_SERVER -> {
@@ -57,7 +57,7 @@ class SoulGraves : JavaPlugin() {
 			}
 			// OTHER NOT VALID MODE
 			else -> {
-				logger.severe("ERROR STORE MODE! PLUGIN WILL DISABLED!")
+				logger.severe("STORAGE MODE ERROR! PLUGIN WILL NOW DISABLE ITSELF!")
 				server.pluginManager.disablePlugin(this)
 			}
 		}
