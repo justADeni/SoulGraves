@@ -22,28 +22,15 @@ class ExcellentEnchantsHook : Listener {
      */
     @EventHandler
     fun onSoulSpawn(event: SoulSpawnEvent) {
-        // STORE SOULBOUND ITEMS
-        val soulboundInventory: MutableList<ItemStack?> = mutableListOf()
+        // Remove soulbound items from the soul's inventory
         event.soul.inventory.forEachIndexed { index, item ->
             if (item != null) {
-                if (item.enchantments.filter { it.key.key.toString() == "minecraft:soulbound" }.isNotEmpty()) {
+                if (item.enchantments.filter { it.key.key.toString() == "excellentenchants:soulbound" }.isNotEmpty()) {
                     event.soul.inventory[index] = null
-                    soulboundInventory.add(item)
                 }
-            } else {
-                soulboundInventory.add(null)
             }
         }
 
-        // RESTORE SOULBOUND ITEMS 1 TICK LATER
-        if (soulboundInventory.isNotEmpty()) {
-            Bukkit.getScheduler().runTaskLater(SoulGraves.plugin, Runnable {
-                soulboundInventory.forEachIndexed { index, item ->
-                    if (item != null) {
-                        event.player.inventory.setItem(index, item)
-                    }
-                }
-            }, 1L)
-        }
+        // Don't need to restore soulbound items for EcoEnchants, as it handles them automatically.
     }
 }
