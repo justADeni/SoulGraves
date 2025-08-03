@@ -1,6 +1,7 @@
 package dev.faultyfunctions.soulgraves
 
 import dev.faultyfunctions.soulgraves.commands.ReloadCommand
+import dev.faultyfunctions.soulgraves.compatibilities.EcoEnchantsHook
 import dev.faultyfunctions.soulgraves.compatibilities.ExcellentEnchantsHook
 import dev.faultyfunctions.soulgraves.compatibilities.VaneEnchantmentsHook
 import dev.faultyfunctions.soulgraves.compatibilities.WorldGuardHook
@@ -77,6 +78,10 @@ class SoulGraves : JavaPlugin() {
 
 		if (SpigotCompatUtils.isPluginLoaded("ExcellentEnchants")) {
 			ExcellentEnchantsHook.instance.registerEvents()
+		}
+
+		if (SpigotCompatUtils.isPluginLoaded("EcoEnchants")) {
+			EcoEnchantsHook.instance.registerEvents()
 		}
 
 		// COMMANDS
