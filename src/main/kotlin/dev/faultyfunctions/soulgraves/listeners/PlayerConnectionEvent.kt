@@ -4,6 +4,8 @@ import dev.faultyfunctions.soulgraves.SoulGraves
 import dev.faultyfunctions.soulgraves.api.SoulGraveAPI
 import dev.faultyfunctions.soulgraves.database.MySQLDatabase
 import dev.faultyfunctions.soulgraves.managers.ConfigManager
+import dev.faultyfunctions.soulgraves.managers.STORAGE_MODE
+import dev.faultyfunctions.soulgraves.managers.StorageType
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -21,9 +23,11 @@ class PlayerConnectionEvent : Listener {
             val offlineTime = now - it.freezeTime
             it.expireTime += offlineTime
             it.freezeTime = 0L
-            Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
-                MySQLDatabase.instance.updateSoulFreezeTime(it.markerUUID, 0L, it.expireTime)
-            })
+            if (STORAGE_MODE == StorageType.CROSS_SERVER) {
+                Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
+                    MySQLDatabase.instance.updateSoulFreezeTime(it.markerUUID, 0L, it.expireTime)
+                })
+            }
         }
     }
 
@@ -35,9 +39,11 @@ class PlayerConnectionEvent : Listener {
         val playerSouls = SoulGraveAPI.getPlayerSouls(event.player.uniqueId)
         playerSouls.forEach {
             it.freezeTime = now
-            Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
-                MySQLDatabase.instance.updateSoulFreezeTime(it.markerUUID, now, it.expireTime)
-            })
+            if (STORAGE_MODE == StorageType.CROSS_SERVER) {
+                Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
+                    MySQLDatabase.instance.updateSoulFreezeTime(it.markerUUID, now, it.expireTime)
+                })
+            }
         }
     }
 }
