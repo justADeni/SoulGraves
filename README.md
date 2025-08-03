@@ -1,6 +1,6 @@
 
 # 🪦Soul Graves🪦
-[![Static Badge](https://img.shields.io/badge/release-1.4.3-bisque)]()
+[![Static Badge](https://img.shields.io/badge/release-1.4.4-bisque)]()
 [![Static Badge](https://img.shields.io/badge/license-MIT-plum)](https://github.com/FaultyFunctions/SoulGraves/blob/main/LICENSE.md)
 [![Static Badge](https://img.shields.io/badge/paper-1.20.6%20--%201.21.x-skyblue)](https://papermc.org)
 [![Static Badge](https://img.shields.io/badge/purpur-1.20.6%20--%201.21.x-e533ff)](https://purpurmc.org)
@@ -35,6 +35,7 @@ Special thanks to [Catnies](https://github.com/killertuling) and [ShiroKazane](h
 - WorldGuard (soul spawning flag)
 - Vane (soulbound enchantment)
 - ExcellentEnchants (soulbound enchantment)
+- EcoEnchants (soulbound enchantment)
 
 ## GIFs
 A stable soul waiting to be collected:
