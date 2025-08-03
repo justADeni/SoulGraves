@@ -29,6 +29,8 @@ class VaneEnchantmentsHook : Listener {
 				if (item.enchantments.filter { it.key.key.toString() == "vane_enchantments:soulbound" }.isNotEmpty()) {
 					event.soul.inventory[index] = null
 					soulboundInventory.add(item)
+				} else {
+					soulboundInventory.add(null)
 				}
 			} else {
 				soulboundInventory.add(null)

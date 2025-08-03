@@ -2,10 +2,8 @@ package dev.faultyfunctions.soulgraves.compatibilities
 
 import dev.faultyfunctions.soulgraves.SoulGraves
 import dev.faultyfunctions.soulgraves.api.event.SoulSpawnEvent
-import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
-import org.bukkit.inventory.ItemStack
 
 class EcoEnchantsHook : Listener {
 	companion object {
