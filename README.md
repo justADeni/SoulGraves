@@ -14,6 +14,7 @@ Special thanks to [Catnies](https://github.com/killertuling) and [ShiroKazane](h
 
 ## Features
 - Additional Minecraft death mechanics
+- Back command with economy support
 - Fun particle effects
 - Soul persists through restarts
 - Visual cue to indicate when the soul is about to burst
@@ -31,6 +32,7 @@ Special thanks to [Catnies](https://github.com/killertuling) and [ShiroKazane](h
 
 ## Compatible With
 - WorldGuard (soul spawning flag)
+- Towny (keep inventory options)
 - Vane (soulbound enchantment)
 - ExcellentEnchants (soulbound enchantment)
 - EcoEnchants (soulbound enchantment)
