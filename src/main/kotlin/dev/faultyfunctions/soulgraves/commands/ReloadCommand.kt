@@ -1,43 +1,28 @@
 package dev.faultyfunctions.soulgraves.commands
+
 import dev.faultyfunctions.soulgraves.SoulGraves
 import dev.faultyfunctions.soulgraves.managers.ConfigManager
 import dev.faultyfunctions.soulgraves.managers.MessageManager
-import org.bukkit.Bukkit
-import org.bukkit.command.Command
-import org.bukkit.command.CommandExecutor
-import org.bukkit.command.CommandSender
-import org.bukkit.command.TabExecutor
-import org.bukkit.entity.Player
+import revxrsal.commands.annotation.Description
+import revxrsal.commands.annotation.Subcommand
+import revxrsal.commands.bukkit.actor.BukkitCommandActor
+import revxrsal.commands.bukkit.annotation.CommandPermission
+import revxrsal.commands.orphan.OrphanCommand
 
-class ReloadCommand: CommandExecutor, TabExecutor {
-	override fun onTabComplete(sender: CommandSender, command: Command, label: String, args: Array<out String>): MutableList<String>? {
-		val completionList: MutableList<String> = mutableListOf()
-
-		if (args.size == 1) {
-			completionList.add("reload")
-			return completionList
-		}
-
-		return null
-	}
-
-	override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
-		if (args.isEmpty()) {
-			Bukkit.dispatchCommand(sender, "version SoulGraves")
-		}
-
-		if (args.size == 1) {
-			if (args[0].equals("reload", ignoreCase = true)) {
-				ConfigManager.loadConfig()
-				MessageManager.loadMessages()
-				if (sender is Player) {
-					sender.sendMessage("[SoulGraves] Config reloaded!")
-				}
-
-				SoulGraves.plugin.logger.info("Config reloaded!")
+class ReloadCommand : OrphanCommand {
+	@Subcommand("reload")
+	@Description("Reloads the SoulGraves configuration and messages")
+	@CommandPermission("soulgraves.command.reload")
+	fun reloadCommand(actor: BukkitCommandActor) {
+		ConfigManager.loadConfig()
+		MessageManager.loadMessages()
+		val reloadComponent = MessageManager.soulGravesReloadComponent
+		if (reloadComponent != null) {
+			if (actor.isPlayer) {
+				actor.asPlayer()?.let { SoulGraves.plugin.adventure().player(it) }?.sendMessage(reloadComponent)
+			} else {
+				SoulGraves.plugin.adventure().console().sendMessage(reloadComponent)
 			}
 		}
-
-		return true
 	}
 }

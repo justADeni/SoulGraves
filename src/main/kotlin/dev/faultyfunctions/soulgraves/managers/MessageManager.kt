@@ -24,6 +24,11 @@ object MessageManager {
 	var soulCollectComponent: Component? = null
 	var soulCollectOtherComponent: Component? = null
 	var soulLimitExplodeComponent: Component? = null
+	var soulGravesReloadComponent: Component? = null
+	var commandBackNoSoulComponent: Component? = null
+	var commandBackNoFundsComponent: Component? = null
+	var commandBackSuccessFree: Component? = null
+	var commandBackSuccessPaid: Component? = null
 
 	fun loadMessages() {
 		try {
@@ -37,7 +42,7 @@ object MessageManager {
 
 			messageConfig.update()
 			messageConfig.save()
-		} catch (e: IOException) {
+		} catch (_: IOException) {
 			SoulGraves.plugin.logger.severe("Failed to load messages.yml! The plugin will now shut down.")
 			Bukkit.getServer().pluginManager.disablePlugin(SoulGraves.plugin)
 		}
@@ -59,6 +64,17 @@ object MessageManager {
 			soulCollectOtherComponent = miniMessage.deserialize(messageConfig.getString("soul-collect-other").toString())
 		if (messageConfig.getString("soul-limit-explode") != "")
 			soulLimitExplodeComponent = miniMessage.deserialize(messageConfig.getString("soul-limit-explode")
-				.replace("%max%", ConfigManager.maxSoulsPerPlayer.toString(), false))
+				.replace("%max%", ConfigManager.maxSoulsPerPlayer.toString()))
+		if (messageConfig.getString("soulgraves-reload") != "")
+			soulGravesReloadComponent = miniMessage.deserialize(messageConfig.getString("soul-graves-reload").toString())
+		if (messageConfig.getString("command-back-no-soul") != "")
+			commandBackNoSoulComponent = miniMessage.deserialize(messageConfig.getString("command-back-no-soul").toString())
+		if (messageConfig.getString("command-back-no-funds") != "")
+			commandBackNoFundsComponent = miniMessage.deserialize(messageConfig.getString("command-back-no-funds").toString())
+		if (messageConfig.getString("command-back-success-free") != "")
+			commandBackSuccessFree = miniMessage.deserialize(messageConfig.getString("command-back-success-free").toString())
+		if (messageConfig.getString("command-back-success-paid") != "")
+			commandBackSuccessPaid = miniMessage.deserialize(messageConfig.getString("command-back-success-paid")
+				.replace("%cost%", ConfigManager.teleportCost.toPlainString()))
 	}
 }

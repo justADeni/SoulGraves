@@ -56,8 +56,8 @@ object RedisPublishAPI {
                     MySQLDatabase.instance.markSoulDelete(markerUUID)
                     future.complete(true)
                 }
-            } catch (e: Exception) {
-                future.completeExceptionally(e)
+            } catch (ex: Exception) {
+                future.completeExceptionally(ex)
             }
         })
         return future.orTimeout(5, TimeUnit.SECONDS)
@@ -96,8 +96,8 @@ object RedisPublishAPI {
                     MySQLDatabase.instance.markSoulExplode(markerUUID)
                     future.complete(true)
                 }
-            } catch (e: Exception) {
-                future.completeExceptionally(e)
+            } catch (ex: Exception) {
+                future.completeExceptionally(ex)
             }
         })
         return future.orTimeout(5, TimeUnit.SECONDS)
@@ -135,8 +135,8 @@ object RedisPublishAPI {
                     pendingAnswersRequests.remove(msgUUID.toString())
                 }
                 RedisDatabase.instance.publish(RedisPacket(senderId = SERVER_NAME, action = MessageAction.UPDATE_SOUL, payload = soul.markerUUID.toString()))
-            } catch (e: Exception) {
-                future.completeExceptionally(e)
+            } catch (ex: Exception) {
+                future.completeExceptionally(ex)
             }
         })
 

@@ -10,7 +10,7 @@ class EcoEnchantsHook : Listener {
 		val instance: EcoEnchantsHook by lazy { EcoEnchantsHook() }
 	}
 
-	fun registerEvents() {
+	fun init() {
 		SoulGraves.plugin.server.pluginManager.registerEvents(EcoEnchantsHook(), SoulGraves.plugin)
 		SoulGraves.plugin.logger.info("[√] EcoEnchants hook loaded!")
 	}
@@ -19,12 +19,12 @@ class EcoEnchantsHook : Listener {
 	 * Makes sure soulbound items are not dropped on death
 	 */
 	@EventHandler
-	fun onSoulSpawn(event: SoulSpawnEvent) {
+	fun onSoulSpawn(e: SoulSpawnEvent) {
 		// Remove soulbound items from the soul's inventory
-		event.soul.inventory.forEachIndexed { index, item ->
+		e.soul.inventory.forEachIndexed { index, item ->
 			if (item != null) {
 				if (item.enchantments.filter { it.key.key.toString() == "minecraft:soulbound" }.isNotEmpty()) {
-					event.soul.inventory[index] = null
+					e.soul.inventory[index] = null
 				}
 			}
 		}

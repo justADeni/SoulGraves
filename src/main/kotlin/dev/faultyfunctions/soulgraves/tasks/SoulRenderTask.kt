@@ -3,39 +3,64 @@ package dev.faultyfunctions.soulgraves.tasks
 import dev.faultyfunctions.soulgraves.SoulGraves
 import dev.faultyfunctions.soulgraves.utils.Soul
 import dev.faultyfunctions.soulgraves.utils.SoulState
+import org.bukkit.Location
 import org.bukkit.Particle
+import org.bukkit.World
 import org.bukkit.scheduler.BukkitRunnable
 import kotlin.math.sin
 
 class SoulRenderTask(val soul: Soul) : BukkitRunnable() {
-	override fun run() {
-		if (soul.location.world?.isChunkLoaded(soul.location.chunk) != true) return
+	private val particleLocation = Location(null, 0.0, 0.0, 0.0)
 
-		val endRodOffsetY = sin(System.currentTimeMillis().toDouble() * 0.001) * 0.5
+	override fun run() {
+		val world = soul.location.world ?: return
+		if (!world.isChunkLoaded(soul.location.chunk)) return
+
+		particleLocation.world = world
+		particleLocation.x = soul.location.x
+		particleLocation.y = soul.location.y + 1.0
+		particleLocation.z = soul.location.z
 
 		when (soul.state) {
-			SoulState.NORMAL -> {
-				soul.location.world?.spawnParticle(Particle.END_ROD, soul.location.clone().add(0.0, 1.0 + endRodOffsetY, 0.0), 5, 0.01, 0.01, 0.01, 0.01, null, true)
-				soul.location.world?.spawnParticle(Particle.SCULK_SOUL, soul.location.clone().add(0.0, 1.0, 0.0), 1, 0.3, 0.5, 0.3, 0.01, null, true)
-				soul.location.world?.spawnParticle(Particle.ELECTRIC_SPARK, soul.location.clone().add(0.0, 1.0, 0.0), 1, 0.8, 0.5, 0.8, 0.0, null, true)
-			}
-			SoulState.PANIC -> {
-				if (soul.timeLeft > 1) {
-					soul.location.world?.spawnParticle(Particle.SCULK_SOUL, soul.location.clone().add(0.0, 1.0, 0.0), soul.timeLeft / 4, 0.01, 0.01, 0.01, 0.1, null, true)
-					soul.location.world?.spawnParticle(Particle.END_ROD, soul.location.clone().add(0.0, 1.0, 0.0), 1, 0.01, 0.01, 0.01, 0.01, null, true)
+			SoulState.NORMAL -> renderNormalState(world)
+			SoulState.PANIC -> renderPanicState(world)
+			SoulState.EXPLODING -> handleExplosion(world)
+		}
+	}
+
+	private fun renderNormalState(world: World) {
+		particleLocation.y = soul.location.y + 1.0 + sin(System.currentTimeMillis() * 0.001) * 0.5
+		world.spawnParticle(Particle.END_ROD, particleLocation, 5, 0.01, 0.01, 0.01, 0.01, null, true)
+
+		particleLocation.y = soul.location.y + 1.0
+		world.spawnParticle(Particle.SCULK_SOUL, particleLocation, 1, 0.3, 0.5, 0.3, 0.01, null, true)
+
+		// Shine green if soul only contains XP
+		val shineParticle = if (soul.isOnlyXP) Particle.COMPOSTER else Particle.ELECTRIC_SPARK
+		world.spawnParticle(shineParticle, particleLocation, 1, 0.8, 0.5, 0.8, 0.0, null, true)
+	}
+
+	private fun renderPanicState(world: World) {
+		if (soul.timeLeft > 1) {
+			world.spawnParticle(Particle.SCULK_SOUL, particleLocation, soul.timeLeft / 4, 0.01, 0.01, 0.01, 0.1, null, true)
+			world.spawnParticle(Particle.END_ROD, particleLocation, 1, 0.01, 0.01, 0.01, 0.01, null, true)
+		}
+	}
+
+	private fun handleExplosion(world: World) {
+		if (!soul.implosion) {
+			soul.implosion = true
+
+			val x = particleLocation.x
+			val y = particleLocation.y
+			val z = particleLocation.z
+
+			object : BukkitRunnable() {
+				override fun run() {
+					world.spawnParticle(Particle.SONIC_BOOM, Location(world, x, y, z), 1, 0.0, 0.0, 0.0, 0.0, null, true)
+					cancel()
 				}
-			}
-			SoulState.EXPLODING -> {
-				if (!soul.implosion) {
-					soul.implosion = true
-					object : BukkitRunnable() {
-						override fun run() {
-							soul.location.world?.spawnParticle(Particle.SONIC_BOOM, soul.location.clone().add(0.0, 1.0, 0.0), 1, 0.0, 0.0, 0.0, 0.0, null, true)
-							this.cancel()
-						}
-					}.runTaskLater(SoulGraves.plugin, 8)
-				}
-			}
+			}.runTaskLater(SoulGraves.plugin, 8)
 		}
 	}
 }

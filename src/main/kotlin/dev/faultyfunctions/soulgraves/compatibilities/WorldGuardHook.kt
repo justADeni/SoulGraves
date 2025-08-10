@@ -27,10 +27,10 @@ class WorldGuardHook : Listener {
             registry.register(flag)
             soulGravesSpawningFlag = flag
             flagRegisteredSuccess = true
-        } catch (e: FlagConflictException) {
+        } catch (_: FlagConflictException) {
             val existing = registry.get("my-custom-flag")
             if (existing is StateFlag) {
-                soulGravesSpawningFlag = existing as StateFlag
+                soulGravesSpawningFlag = existing
                 flagRegisteredSuccess = true
             } else {
                 flagRegisteredSuccess = false
@@ -39,7 +39,7 @@ class WorldGuardHook : Listener {
         }
     }
 
-    fun registerEvents() {
+    fun init() {
         if (!flagRegisteredSuccess) {
             SoulGraves.plugin.logger.warning("WorldGuard has registered the soulgraves-spawning flag!")
             return
@@ -53,15 +53,15 @@ class WorldGuardHook : Listener {
      * If current region flag "soulgraves-spawning" state is deny, cancel soul spawn.
      */
     @EventHandler
-    fun onSoulPreSpawn(event: SoulPreSpawnEvent) {
-        val localPlayer = WorldGuardPlugin.inst().wrapPlayer(event.player)
+    fun onSoulPreSpawn(e: SoulPreSpawnEvent) {
+        val localPlayer = WorldGuardPlugin.inst().wrapPlayer(e.deathEvent.entity)
         val container = WorldGuard.getInstance().platform.regionContainer
         val query = container.createQuery()
         val regions = query.getApplicableRegions(localPlayer.location)
 
         val value = regions.queryValue(localPlayer, soulGravesSpawningFlag)
         if (value == StateFlag.State.DENY) {
-            event.isCancelled = true
+            e.isCancelled = true
         }
     }
 

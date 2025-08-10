@@ -74,9 +74,9 @@ class MySQLDatabase private constructor() {
                 try {
                     statement.executeUpdate()
                     println("Table '$databaseName' created successfully.")
-                } catch (e: SQLException) {
-                    println("Error while creating table: ${e.message}")
-                    e.printStackTrace()
+                } catch (ex: SQLException) {
+                    println("Error while creating table: ${ex.message}")
+                    ex.printStackTrace()
                 }
             }
         }
@@ -123,8 +123,8 @@ class MySQLDatabase private constructor() {
                             soul.delete()
                         }
                     }
-                } catch (e: Exception) {
-                    e.printStackTrace()
+                } catch (ex: Exception) {
+                    ex.printStackTrace()
                 }
             }
         }
@@ -168,9 +168,9 @@ class MySQLDatabase private constructor() {
                 statement.setBoolean(13, false)
                 try {
                     statement.executeUpdate()
-                } catch (e: SQLException) {
+                } catch (ex: SQLException) {
                     SoulGraves.plugin.logger.severe("Failed to save soul")
-                    e.printStackTrace()
+                    ex.printStackTrace()
                 }
             }
         }
@@ -197,9 +197,9 @@ class MySQLDatabase private constructor() {
                 statement.setLong(5, soul.freezeTime)
                 try {
                     statement.executeUpdate()
-                } catch (e: SQLException) {
+                } catch (ex: SQLException) {
                     SoulGraves.plugin.logger.severe("Failed to save soul copy")
-                    e.printStackTrace()
+                    ex.printStackTrace()
                 }
             }
         }
@@ -244,8 +244,8 @@ class MySQLDatabase private constructor() {
                             freezeTime = freezeTime
                         ))
                     }
-                } catch (e: Exception) {
-                    e.printStackTrace()
+                } catch (ex: Exception) {
+                    ex.printStackTrace()
                 }
             }
         }
@@ -294,8 +294,8 @@ class MySQLDatabase private constructor() {
                             freezeTime = freezeTime
                         ))
                     }
-                } catch (e: Exception) {
-                    e.printStackTrace()
+                } catch (ex: Exception) {
+                    ex.printStackTrace()
                 }
             }
         }
@@ -341,8 +341,8 @@ class MySQLDatabase private constructor() {
                             freezeTime = freezeTime
                         )
                     }
-                } catch (e: Exception) {
-                    e.printStackTrace()
+                } catch (ex: Exception) {
+                    ex.printStackTrace()
                 }
             }
         }
@@ -362,9 +362,9 @@ class MySQLDatabase private constructor() {
                 statement.setString(3, makerUUID.toString())
                 try {
                     statement.executeUpdate()
-                } catch (e: SQLException) {
-                    println("Error while update soul delete: ${e.message}")
-                    e.printStackTrace()
+                } catch (ex: SQLException) {
+                    println("Error while update soul delete: ${ex.message}")
+                    ex.printStackTrace()
                 }
             }
         }
@@ -381,9 +381,9 @@ class MySQLDatabase private constructor() {
                 statement.setString(1, makerUUID.toString())
                 try {
                     statement.executeUpdate()
-                } catch (e: SQLException) {
-                    println("Error while mark soul delete: ${e.message}")
-                    e.printStackTrace()
+                } catch (ex: SQLException) {
+                    println("Error while mark soul delete: ${ex.message}")
+                    ex.printStackTrace()
                 }
             }
         }
@@ -400,9 +400,9 @@ class MySQLDatabase private constructor() {
                 statement.setString(1, makerUUID.toString())
                 try {
                     statement.executeUpdate()
-                } catch (e: SQLException) {
-                    println("Error while mark soul explode: ${e.message}")
-                    e.printStackTrace()
+                } catch (ex: SQLException) {
+                    println("Error while mark soul explode: ${ex.message}")
+                    ex.printStackTrace()
                 }
             }
         }
@@ -423,9 +423,9 @@ class MySQLDatabase private constructor() {
                 statement.setString(1, markerUUID.toString())
                 try {
                     statement.executeUpdate()
-                } catch (e: SQLException) {
-                    println("Error while delete soul: ${e.message}")
-                    e.printStackTrace()
+                } catch (ex: SQLException) {
+                    println("Error while delete soul: ${ex.message}")
+                    ex.printStackTrace()
                 }
             }
         }

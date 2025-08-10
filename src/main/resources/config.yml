@@ -1,5 +1,5 @@
 # DO NOT EDIT file-version DIRECTLY
-file-version: 2
+file-version: 3
 
 # If set true, players will require "soulgraves.spawn" permission to spawn a soul upon death
 permission-required: false
@@ -10,6 +10,9 @@ time-stable: 240
 # Time in seconds for how long a soul will show the unstable animation for before bursting
 # The total time the soul is available to collect is time-stable + time-unstable
 time-unstable: 60
+
+# How much it costs to teleport to your soul, set to 0.0 to disable
+teleport-cost: 0.0
 
 # Whether to freeze the timer when the owner of the soul is offline
 # This feature cannot detect the online status of players in other subservers on a proxy server
@@ -45,6 +48,14 @@ souls-drop-items: true
 
 # Whether souls will drop XP when they burst
 souls-drop-xp: true
+
+# Whether souls will store items when they are created
+# If both souls-store-items and souls-store-xp are false, souls will not spawn
+souls-store-items: true
+
+# Whether souls will store XP when they are created
+# If both souls-store-items and souls-store-xp are false, souls will not spawn
+souls-store-xp: true
 
 # What sounds to play when a soul is collected
 # The format is 'soundEvent, volume, pitch'

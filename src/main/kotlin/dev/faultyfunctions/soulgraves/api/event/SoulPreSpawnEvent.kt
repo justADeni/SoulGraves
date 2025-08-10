@@ -1,14 +1,16 @@
 package dev.faultyfunctions.soulgraves.api.event
 
-import org.bukkit.entity.Player
 import org.bukkit.event.Cancellable
 import org.bukkit.event.Event
 import org.bukkit.event.HandlerList
 import org.bukkit.event.entity.PlayerDeathEvent
 
-class SoulPreSpawnEvent (var player: Player, var deathEvent: PlayerDeathEvent): Event(), Cancellable {
-
+class SoulPreSpawnEvent (var deathEvent: PlayerDeathEvent): Event(), Cancellable {
     private var isCancelled = false
+    val isNotCancelled: Boolean
+		get() = !isCancelled
+    var keepInventory: Boolean = false
+    var keepLevel: Boolean = false
 
     companion object {
         val HANDLER_LIST = HandlerList()
@@ -29,5 +31,4 @@ class SoulPreSpawnEvent (var player: Player, var deathEvent: PlayerDeathEvent): 
     override fun setCancelled(cancel: Boolean) {
         isCancelled = cancel
     }
-
 }

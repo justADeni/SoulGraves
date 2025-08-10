@@ -11,7 +11,11 @@ import dev.faultyfunctions.soulgraves.managers.MessageManager
 import dev.faultyfunctions.soulgraves.managers.STORAGE_MODE
 import dev.faultyfunctions.soulgraves.managers.StorageType
 import dev.faultyfunctions.soulgraves.utils.SpigotCompatUtils
-import org.bukkit.*
+import org.bukkit.Bukkit
+import org.bukkit.GameRule
+import org.bukkit.Location
+import org.bukkit.Material
+import org.bukkit.World
 import org.bukkit.block.Block
 import org.bukkit.entity.Entity
 import org.bukkit.entity.EntityType
@@ -21,12 +25,45 @@ import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.PlayerDeathEvent
 import org.bukkit.inventory.ItemStack
+import java.util.UUID
+import kotlin.collections.forEach
 
-class PlayerDeathListener() : Listener {
-	@EventHandler(priority = EventPriority.NORMAL)
-	fun onPlayerDeathEvent(e: PlayerDeathEvent) {
-		// READABILITY VARIABLES
+class PlayerDeathListener : Listener {
+	val soulPreSpawnEventMap = HashMap<UUID, SoulPreSpawnEvent>()
+
+	@EventHandler(priority = EventPriority.LOWEST)
+	fun onLowestPlayerDeathEvent(e: PlayerDeathEvent) {
+		// CALL PRE-SPAWN EVENT
+		val soulPreSpawnEvent = SoulPreSpawnEvent(e)
+		Bukkit.getPluginManager().callEvent(soulPreSpawnEvent)
+		if (soulPreSpawnEvent.isNotCancelled) {
+			soulPreSpawnEventMap[e.entity.uniqueId] = soulPreSpawnEvent
+		}
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
+	fun onHighestPlayerDeathEvent(e: PlayerDeathEvent) {
+		// CHECK IF PRE-SPAWN EVENT EXISTS
+		if (soulPreSpawnEventMap[e.entity.uniqueId] == null) { return }
+
+		// Remove only drops that match the inventory contents so we don't delete items from other plugins
+		if (ConfigManager.soulsStoreItems) {
+			SoulGraves.plugin.logger.info("CALL e.drops.remove(item)")
+			for (item in e.entity.inventory.contents) {
+				if (item != null) {
+					e.drops.remove(item)
+				}
+			}
+		}
+		if (ConfigManager.soulsStoreXP) {
+			e.droppedExp = 0
+		}
+	}
+
+	@EventHandler(priority = EventPriority.MONITOR)
+	fun onMonitorPlayerDeathEvent(e: PlayerDeathEvent) {
 		val player: Player = e.entity
+		val soulPreSpawnEvent = soulPreSpawnEventMap.remove(player.uniqueId) ?: return
 
 		// CHECK PLAYER HAS PERMISSION
 		if (ConfigManager.permissionRequired && !player.hasPermission("soulgraves.spawn")) return
@@ -34,59 +71,85 @@ class PlayerDeathListener() : Listener {
 		// CHECK TO MAKE SURE WE ARE IN AN ENABLED WORLD
 		if (ConfigManager.disabledWorlds.contains(player.world.name)) return
 
-		// CHECK PLAYER IS NOT KEEP INVENTORY
-		if (e.keepInventory || player.world.getGameRuleValue(GameRule.KEEP_INVENTORY) == true) return
-
-		// CHECK PLAYER HAVE ITEMS OR XP
-		if (player.level == 0 && e.drops.isEmpty()) return
-
-		// CALL EVENT
-		val soulPreSpawnEvent = SoulPreSpawnEvent(player, e)
-		Bukkit.getPluginManager().callEvent(soulPreSpawnEvent)
-		if (soulPreSpawnEvent.isCancelled) return
-
-		// DATA
-		val inventory: MutableList<ItemStack?> = mutableListOf()
-		player.inventory.forEach { item ->
-			if (item != null) {
-				if (item.enchantments.filter { it.key.key.toString() == "minecraft:vanishing_curse" }.isNotEmpty()) return@forEach
-				inventory.add(item)
-			} else {
-				inventory.add(null) // This is to make sure we keep the same item slot index when we restore items later
-			}
+		// CHECK KEEP INVENTORY
+		var storeInventory = true
+		val isInventoryEmpty = player.inventory.contents.all { it == null || it.type == Material.AIR }
+		val keepInventoryGameRule = player.world.getGameRuleValue(GameRule.KEEP_INVENTORY) ?: false
+		if (!ConfigManager.soulsStoreItems || soulPreSpawnEvent.keepInventory || e.keepInventory || keepInventoryGameRule || isInventoryEmpty) {
+			storeInventory = false
 		}
-		val xp: Int = SpigotCompatUtils.calculateTotalExperiencePoints(player.level)
 
-		// TIME
-		val deathTime = System.currentTimeMillis()
-		val expireTime = deathTime + ((ConfigManager.timeStable + ConfigManager.timeUnstable) * 1000)
+		// CHECK KEEP XP
+		var storeXP = true
+		if (!ConfigManager.soulsStoreXP || soulPreSpawnEvent.keepLevel || e.keepLevel || player.level == 0) {
+			storeXP = false
+		}
 
-		// SPAWN & DEFINE ENTITY
-		val marker: Entity = player.world.spawnEntity(findSafeLocation(player.location), EntityType.MARKER)
-		marker.isPersistent = true
-		marker.isSilent = true
-		marker.isInvulnerable = true
+		// CHECK TO MAKE SURE WE NEED TO SPAWN A SOUL
+		if (!storeInventory && !storeXP) return
 
-		// CREATE SOUL & STORE DATA IN MARKER
-		val soul = Soul.createNewForPlayerDeath(
-			player.uniqueId,
-			marker,
-			findSafeLocation(player.location),
-			inventory,
-			xp,
-			deathTime,
-			expireTime)
+		// PROCESS DATA
+		val inventoryCopy = player.inventory.contents.map { deepCopyItemStack(it) }
+		val deathInfo = DeathInfo(player, inventoryCopy, player.level, player.location)
 
-		// CANCEL DROPS
-		e.drops.clear()
-		e.droppedExp = 0
+		// SPAWN SOUL NEXT TICK (TO AVOID ISSUES WITH OTHER PLUGINS)
+		spawnSoulNextTick(deathInfo, storeInventory, storeXP)
+	}
 
-		// CALL EVENT
-		val soulSpawnEvent = SoulSpawnEvent(player, soul)
-		Bukkit.getPluginManager().callEvent(soulSpawnEvent)
+	private fun spawnSoulNextTick(deathInfo: DeathInfo, storeInventory: Boolean, storeXP: Boolean) {
+		Bukkit.getScheduler().runTask(SoulGraves.plugin, Runnable {
+			val soulInventory: MutableList<ItemStack?> = mutableListOf()
 
-		// EXPLODE OLD SOUL
-		if (ConfigManager.maxSoulsPerPlayer > 0) explodeOldestSoul(player)
+			if (storeInventory) {
+				deathInfo.inventoryContents.forEach { item ->
+					if (item != null) {
+						if (item.enchantments.filter { it.key.key.toString() == "minecraft:vanishing_curse" }.isNotEmpty()) return@forEach
+						soulInventory.add(item)
+					} else {
+						soulInventory.add(null) // This is to make sure we keep the same item slot index when we restore items later
+					}
+				}
+			}
+
+			var xp = 0
+			if (storeXP) {
+				xp = SpigotCompatUtils.calculateTotalExperiencePoints(deathInfo.level)
+			}
+
+			// TIME
+			val deathTime = System.currentTimeMillis()
+			val expireTime = deathTime + ((ConfigManager.timeStable + ConfigManager.timeUnstable) * 1000)
+
+			// SPAWN & DEFINE ENTITY
+			val safeLocation: Location = findSafeLocation(deathInfo.location.clone())
+			val marker: Entity = deathInfo.location.world?.spawnEntity(safeLocation, EntityType.MARKER) ?: return@Runnable
+			marker.isPersistent = true
+			marker.isSilent = true
+			marker.isInvulnerable = true
+
+			// CREATE SOUL & STORE DATA IN MARKER
+			val soul = Soul.createNewForPlayerDeath(
+				deathInfo.player.uniqueId,
+				marker,
+				safeLocation,
+				soulInventory,
+				xp,
+				deathTime,
+				expireTime
+			)
+
+			// CALL EVENT
+			val soulSpawnEvent = SoulSpawnEvent(deathInfo.player, soul)
+			Bukkit.getPluginManager().callEvent(soulSpawnEvent)
+
+			// EXPLODE OLD SOUL
+			if (ConfigManager.maxSoulsPerPlayer > 0) explodeOldestSoul(deathInfo.player)
+		})
+	}
+
+	private fun deepCopyItemStack(item: ItemStack?): ItemStack? {
+		if (item == null || item.type == Material.AIR) return null
+		return ItemStack.deserialize(item.serialize())
 	}
 
 	private fun findSafeLocation(locationToCheck: Location): Location {
@@ -94,7 +157,7 @@ class PlayerDeathListener() : Listener {
 		var block: Block = safeLocation.block
 
 		// CHECK IF ABOVE THE MAX HEIGHT!!!
-		val environment = locationToCheck.world!!.getEnvironment()
+		val environment = locationToCheck.world!!.environment
 		while (block.type.isSolid || block.isLiquid || block.type == Material.VOID_AIR) {
 			// NETHER
 			if (environment == World.Environment.NETHER) {
@@ -141,11 +204,11 @@ class PlayerDeathListener() : Listener {
 				StorageType.CROSS_SERVER -> {
 					val future = SoulGraveAPI.getPlayerSoulsCrossServer(player.uniqueId)
 					// Database has been sorted.
-					future.thenAccept {
-						if (it.size > ConfigManager.maxSoulsPerPlayer) {
-							val toRemove = it.size - ConfigManager.maxSoulsPerPlayer
+					future.thenAccept { soulList ->
+						if (soulList.size > ConfigManager.maxSoulsPerPlayer) {
+							val toRemove = soulList.size - ConfigManager.maxSoulsPerPlayer
 							if (toRemove > 0) {
-								it.take(toRemove).forEach { soul ->
+								soulList.take(toRemove).forEach { soul ->
 									RedisPublishAPI.explodeSoul(soul.markerUUID)
 								}
 								// Send Message
@@ -160,3 +223,10 @@ class PlayerDeathListener() : Listener {
 		})
 	}
 }
+
+private data class DeathInfo (
+	val player: Player,
+	val inventoryContents: List<ItemStack?>,
+	val level: Int,
+	val location: Location
+)

@@ -40,7 +40,7 @@ object DatabaseManager {
             )
             databaseConfig.update()
             databaseConfig.save()
-        } catch (e: IOException) {
+        } catch (_: IOException) {
             SoulGraves.plugin.logger.severe("Failed to load database.yml! The plugin will now shut down.")
             Bukkit.getServer().pluginManager.disablePlugin(SoulGraves.plugin)
         }

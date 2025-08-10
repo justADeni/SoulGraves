@@ -1,7 +1,9 @@
 package dev.faultyfunctions.soulgraves.compatibilities
 
 import dev.faultyfunctions.soulgraves.SoulGraves
+import dev.faultyfunctions.soulgraves.api.event.SoulPreSpawnEvent
 import dev.faultyfunctions.soulgraves.api.event.SoulSpawnEvent
+import dev.faultyfunctions.soulgraves.managers.ConfigManager
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -12,22 +14,34 @@ class VaneEnchantmentsHook : Listener {
 		val instance: VaneEnchantmentsHook by lazy { VaneEnchantmentsHook() }
 	}
 
-	fun registerEvents() {
+	fun init() {
 		SoulGraves.plugin.server.pluginManager.registerEvents(VaneEnchantmentsHook(), SoulGraves.plugin)
 		SoulGraves.plugin.logger.info("[√] Vane Enchantments hook loaded!")
 	}
 
-	/**
-	 * Makes sure soulbound items are not dropped on death
-	 */
+	// Make sure we don't spawn a soul if the player only has soulbound items in their inventory and no xp
 	@EventHandler
-	fun onSoulSpawn(event: SoulSpawnEvent) {
+	fun onSoulPreSpawn(e: SoulPreSpawnEvent) {
+		if (e.deathEvent.entity.level != 0 && ConfigManager.soulsStoreXP) {
+			return
+		}
+		for (item in e.deathEvent.entity.inventory.contents) {
+			if (item != null && item.enchantments.filter { it.key.key.toString() == "vane_enchantments:soulbound" }.isEmpty()) {
+				return
+			}
+		}
+		e.isCancelled = true
+	}
+
+	// Make sure soulbound items aren't dropped on death
+	@EventHandler
+	fun onSoulSpawn(e: SoulSpawnEvent) {
 		// STORE SOULBOUND ITEMS
 		val soulboundInventory: MutableList<ItemStack?> = mutableListOf()
-		event.soul.inventory.forEachIndexed { index, item ->
+		e.soul.inventory.forEachIndexed { index, item ->
 			if (item != null) {
 				if (item.enchantments.filter { it.key.key.toString() == "vane_enchantments:soulbound" }.isNotEmpty()) {
-					event.soul.inventory[index] = null
+					e.soul.inventory[index] = null
 					soulboundInventory.add(item)
 				} else {
 					soulboundInventory.add(null)
@@ -42,7 +56,7 @@ class VaneEnchantmentsHook : Listener {
 			Bukkit.getScheduler().runTaskLater(SoulGraves.plugin, Runnable {
 				soulboundInventory.forEachIndexed { index, item ->
 					if (item != null) {
-						event.player.inventory.setItem(index, item)
+						e.player.inventory.setItem(index, item)
 					}
 				}
 			}, 1L)

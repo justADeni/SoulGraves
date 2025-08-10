@@ -15,10 +15,10 @@ import org.bukkit.event.player.PlayerQuitEvent
 class PlayerConnectionEvent : Listener {
 
     @EventHandler
-    fun onPlayerJoin(event: PlayerJoinEvent) {
+    fun onPlayerJoin(e: PlayerJoinEvent) {
         if (!ConfigManager.offlineOwnerTimerFreeze) return
         val now = System.currentTimeMillis()
-        val playerSouls = SoulGraveAPI.getPlayerSouls(event.player.uniqueId)
+        val playerSouls = SoulGraveAPI.getPlayerSouls(e.player.uniqueId)
         playerSouls.forEach {
             val offlineTime = now - it.freezeTime
             it.expireTime += offlineTime
@@ -33,10 +33,10 @@ class PlayerConnectionEvent : Listener {
 
 
     @EventHandler
-    fun onPlayerLeave(event: PlayerQuitEvent) {
+    fun onPlayerLeave(e: PlayerQuitEvent) {
         if (!ConfigManager.offlineOwnerTimerFreeze) return
         val now = System.currentTimeMillis()
-        val playerSouls = SoulGraveAPI.getPlayerSouls(event.player.uniqueId)
+        val playerSouls = SoulGraveAPI.getPlayerSouls(e.player.uniqueId)
         playerSouls.forEach {
             it.freezeTime = now
             if (STORAGE_MODE == StorageType.CROSS_SERVER) {

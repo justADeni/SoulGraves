@@ -53,9 +53,9 @@ class RedisDatabase private constructor() {
             startCleanupTask()
 
             SoulGraves.plugin.logger.info("Redis Database Connect Successed!")
-        } catch (e: Exception) {
+        } catch (ex: Exception) {
             SoulGraves.plugin.logger.info("Redis Database Can Not Connect!")
-            e.printStackTrace()
+            ex.printStackTrace()
             SoulGraves.plugin.server.pluginManager.disablePlugin(SoulGraves.plugin)
         }
     }
@@ -267,11 +267,11 @@ class RedisDatabase private constructor() {
                     }
                 }
             }
-        } catch (e: JsonSyntaxException) {
-            SoulGraves.plugin.logger.severe("JSON PARSED FAILED: ${e.message}")
+        } catch (ex: JsonSyntaxException) {
+            SoulGraves.plugin.logger.severe("JSON PARSED FAILED: ${ex.message}")
             SoulGraves.plugin.logger.severe("ORIGIN MESSAGE: ${message.take(200)}...")
-        } catch (e: Exception) {
-            SoulGraves.plugin.logger.severe("Unexpected Error: ${e.javaClass.simpleName} - ${e.message}")
+        } catch (ex: Exception) {
+            SoulGraves.plugin.logger.severe("Unexpected Error: ${ex.javaClass.simpleName} - ${ex.message}")
         }
     }
 

@@ -44,6 +44,7 @@ class Soul private constructor(
 ) {
 	private var _expireTime: Long = expireTime
 	private var _timeLeft: Int = timeLeft
+	private var _isOnlyXP: Boolean? = null
 
 	var expireTime: Long
 		get() = _expireTime
@@ -57,6 +58,14 @@ class Soul private constructor(
 		set(value) {
 			_timeLeft = value.coerceAtLeast(0)
 			_expireTime = System.currentTimeMillis() + _timeLeft * 1000L
+		}
+
+	val isOnlyXP: Boolean
+		get() {
+			if (_isOnlyXP == null) {
+				_isOnlyXP = inventory.all { it == null } && xp != 0
+			}
+			return _isOnlyXP!!
 		}
 
 	companion object {

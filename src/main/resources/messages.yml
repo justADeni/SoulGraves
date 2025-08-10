@@ -1,17 +1,27 @@
 # DO NOT EDIT file-version DIRECTLY
-file-version: 2
+file-version: 3
 
+# Message to send the player when they run the reload commands
+soul-graves-reload: "[<dark_aqua>Soul Graves</dark_aqua>] Config reloaded!"
 # Message to send to the owner when their soul bursts
-soul-burst: "<dark_aqua>☠ Your soul has burst!"
+soul-burst: "<dark_aqua>☠ Your soul has burst!</dark_aqua>"
 # Message to send to the owner when their soul bursts and souls-drop-items is true
-soul-burst-drop-items: "<red>☀ Any belongings inside have been scattered!"
+soul-burst-drop-items: "<red>☀ Any belongings inside have been scattered!</red>"
 # Message to send to the owner when their soul bursts and souls-drop-items is false
-soul-burst-lose-items: "<red>✖ Any belongings inside have been destroyed!"
+soul-burst-lose-items: "<red>✖ Any belongings inside have been destroyed!</red>"
 # Message to send when a soul bursts nearby
-soul-burst-nearby: "<dark_aqua>☠ A soul has burst nearby!"
+soul-burst-nearby: "<dark_aqua>☠ A soul has burst nearby.</dark_aqua>"
 # Message to send when a soul is collected
-soul-collect: "<green>✦ You've collected the soul's contents!"
+soul-collect: "<green>✦ You've collected the soul's contents!</green>"
 # Message to send to the owner when another player has collected their soul
-soul-collect-other: "<light_purple>⚑ Someone else has collected your soul!"
+soul-collect-other: "<light_purple>⚑ Someone else has collected your soul!</light_purple>"
 # Message to send when spawn a new soul would exceed the player's limit (oldest will explode)
-soul-limit-explode: "<yellow>⚠ Reached soul limit (%max%), oldest soul has been exploded!</yellow>"
+soul-limit-explode: "<yellow>⚠ Reached soul limit (%max%), your oldest soul has burst!</yellow>"
+# Message to send when a player tries to return to their soul but has no soul
+command-back-no-soul: "<yellow>✖ You don't have a soul to teleport to.</yellow>"
+# Message to send when a player doesn't have enough funds to return to their soul
+command-back-no-funds: "<red>✖ You don't have enough funds to teleport to your soul.</red>"
+# Message to send when a player successfully returns to their soul without a cost
+command-back-success-free: "<gold>✔ You have teleported to your soul.</gold>"
+# Message to send when a player successfully returns to their soul
+command-back-success-paid: "<gold>✔ You have teleported to your soul for %cost% coins.</gold>"

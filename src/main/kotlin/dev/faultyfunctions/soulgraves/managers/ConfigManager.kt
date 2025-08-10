@@ -1,19 +1,16 @@
 package dev.faultyfunctions.soulgraves.managers
 
 import dev.dejvokep.boostedyaml.YamlDocument
-import dev.dejvokep.boostedyaml.block.Comments
 import dev.dejvokep.boostedyaml.dvs.versioning.BasicVersioning
 import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings
 import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings
-import dev.dejvokep.boostedyaml.settings.updater.MergeRule
 import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings
-import dev.dejvokep.boostedyaml.utils.format.NodeRole
 import dev.faultyfunctions.soulgraves.SoulGraves
 import org.bukkit.Bukkit
-import org.bukkit.Particle
 import java.io.File
 import java.io.IOException
+import java.math.BigDecimal
 import kotlin.properties.Delegates
 
 class SoundConfig() {
@@ -36,6 +33,7 @@ object ConfigManager {
 	var permissionRequired by Delegates.notNull<Boolean>()
 	var timeStable by Delegates.notNull<Int>()
 	var timeUnstable by Delegates.notNull<Int>()
+	var teleportCost by Delegates.notNull<BigDecimal>()
 	var offlineOwnerTimerFreeze by Delegates.notNull<Boolean>()
 	var notifyNearbyPlayers by Delegates.notNull<Boolean>()
 	var notifyRadius by Delegates.notNull<Int>()
@@ -47,6 +45,8 @@ object ConfigManager {
 	var maxSoulsPerPlayer by Delegates.notNull<Int>()
 	var soulsDropItems by Delegates.notNull<Boolean>()
 	var soulsDropXP by Delegates.notNull<Boolean>()
+	var soulsStoreItems by Delegates.notNull<Boolean>()
+	var soulsStoreXP by Delegates.notNull<Boolean>()
 	val pickupSound = SoundConfig()
 	val burstSound = SoundConfig()
 	val notifyNearbySound = SoundConfig()
@@ -78,7 +78,7 @@ object ConfigManager {
 
 			config.update()
 			config.save()
-		} catch (e: IOException) {
+		} catch (_: IOException) {
 			SoulGraves.plugin.logger.severe("Failed to load config.yml! The plugin will now shut down.")
 			Bukkit.getServer().pluginManager.disablePlugin(SoulGraves.plugin)
 		}
@@ -87,6 +87,7 @@ object ConfigManager {
 		permissionRequired = config.getBoolean("permission-required")
 		timeStable = config.getInt("time-stable")
 		timeUnstable = config.getInt("time-unstable")
+		teleportCost = BigDecimal(config.getString("teleport-cost"))
 		offlineOwnerTimerFreeze = config.getBoolean("offline-owner-timer-freeze")
 		notifyNearbyPlayers = config.getBoolean("notify-nearby-players")
 		notifyRadius = config.getInt("notify-radius")
@@ -98,6 +99,8 @@ object ConfigManager {
 		maxSoulsPerPlayer = config.getInt("max-souls-per-player")
 		soulsDropItems = config.getBoolean("souls-drop-items")
 		soulsDropXP = config.getBoolean("souls-drop-xp")
+		soulsStoreItems = config.getBoolean("souls-store-items")
+		soulsStoreXP = config.getBoolean("souls-store-xp")
 		pickupSound.enabled = config.getBoolean("pickup-sound.enabled")
 		pickupSound.clear()
 		val pickupSounds = config.getStringList("pickup-sound.sounds")
