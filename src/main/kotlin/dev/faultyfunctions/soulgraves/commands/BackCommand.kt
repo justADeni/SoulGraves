@@ -42,6 +42,7 @@ class BackCommand : OrphanCommand {
 										SoulGraves.plugin.adventure().player(sender).sendMessage(it)
 									}
 									sender.teleport(newestSoul.location)
+									return@Runnable
 								}
 								VaultHook.instance.let { vaultHook ->
 									if (vaultHook.has(sender, ConfigManager.teleportCost)) {
