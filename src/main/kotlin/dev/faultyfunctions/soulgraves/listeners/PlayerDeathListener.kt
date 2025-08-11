@@ -4,7 +4,7 @@ import dev.faultyfunctions.soulgraves.managers.ConfigManager
 import dev.faultyfunctions.soulgraves.utils.Soul
 import dev.faultyfunctions.soulgraves.*
 import dev.faultyfunctions.soulgraves.api.RedisPublishAPI
-import dev.faultyfunctions.soulgraves.api.SoulGraveAPI
+import dev.faultyfunctions.soulgraves.api.SoulGravesAPI
 import dev.faultyfunctions.soulgraves.api.event.SoulPreSpawnEvent
 import dev.faultyfunctions.soulgraves.api.event.SoulSpawnEvent
 import dev.faultyfunctions.soulgraves.managers.MessageManager
@@ -182,7 +182,7 @@ class PlayerDeathListener : Listener {
 		Bukkit.getScheduler().runTaskAsynchronously(SoulGraves.plugin, Runnable {
 			when(STORAGE_MODE) {
 				StorageType.PDC -> {
-					SoulGraveAPI.getPlayerSouls(player.uniqueId)
+					SoulGravesAPI.getPlayerSouls(player.uniqueId)
 						.takeIf { it.size > ConfigManager.maxSoulsPerPlayer }
 						?.let { souls ->
 							val sorted = souls.sortedBy { it.expireTime }
@@ -202,7 +202,7 @@ class PlayerDeathListener : Listener {
 				}
 
 				StorageType.CROSS_SERVER -> {
-					val future = SoulGraveAPI.getPlayerSoulsCrossServer(player.uniqueId)
+					val future = SoulGravesAPI.getPlayerSoulsCrossServer(player.uniqueId)
 					// Database has been sorted.
 					future.thenAccept { soulList ->
 						if (soulList.size > ConfigManager.maxSoulsPerPlayer) {

@@ -18,19 +18,24 @@ import dev.faultyfunctions.soulgraves.managers.DatabaseManager
 import dev.faultyfunctions.soulgraves.managers.MessageManager
 import dev.faultyfunctions.soulgraves.managers.STORAGE_MODE
 import dev.faultyfunctions.soulgraves.managers.StorageType
+import dev.faultyfunctions.soulgraves.messengers.PluginConnectMessenger
 import dev.faultyfunctions.soulgraves.utils.Soul
 import dev.faultyfunctions.soulgraves.utils.SpigotCompatUtils
 import net.kyori.adventure.platform.bukkit.BukkitAudiences
 import org.bstats.bukkit.Metrics
+import org.bukkit.Location
 import org.bukkit.plugin.java.JavaPlugin
 import revxrsal.commands.bukkit.BukkitLamp
 import revxrsal.commands.orphan.Orphans
+import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 
 class SoulGraves : JavaPlugin() {
 	companion object {
 		lateinit var plugin: SoulGraves
 		var soulList = CopyOnWriteArrayList<Soul>()
+		var pendingTeleports = ConcurrentHashMap<UUID, Location>()
 	}
 
 	private lateinit var adventure: BukkitAudiences
@@ -41,7 +46,7 @@ class SoulGraves : JavaPlugin() {
 	override fun onLoad() {
 		// Compatibilities
 		if (SpigotCompatUtils.isPluginLoaded("WorldGuard")) {
-			WorldGuardHook.instance.registerFlags()
+			WorldGuardHook.registerFlags()
 		}
 	}
 
@@ -64,6 +69,9 @@ class SoulGraves : JavaPlugin() {
 			StorageType.CROSS_SERVER -> {
 				MySQLDatabase.instance
 				RedisDatabase.instance
+				// REGISTER PLUGIN MESSAGE CHANNEL
+				server.messenger.registerOutgoingPluginChannel(this, "BungeeCord")
+				server.messenger.registerIncomingPluginChannel(this, "BungeeCord", PluginConnectMessenger)
 			}
 			// OTHER NOT VALID MODE
 			else -> {
@@ -77,11 +85,11 @@ class SoulGraves : JavaPlugin() {
 		server.pluginManager.registerEvents(PlayerConnectionEvent(), this)
 
 		// COMPATIBILITY HOOKS
-		if (SpigotCompatUtils.isPluginLoaded("WorldGuard")) { WorldGuardHook.instance.init() }
-		if (SpigotCompatUtils.isPluginLoaded("vane-enchantments")) { VaneEnchantmentsHook.instance.init() }
-		if (SpigotCompatUtils.isPluginLoaded("ExcellentEnchants")) { ExcellentEnchantsHook.instance.init() }
-		if (SpigotCompatUtils.isPluginLoaded("EcoEnchants")) { EcoEnchantsHook.instance.init() }
-		if (SpigotCompatUtils.isPluginLoaded("Vault")) { VaultHook.instance.init() }
+		if (SpigotCompatUtils.isPluginLoaded("WorldGuard")) { WorldGuardHook.init() }
+		if (SpigotCompatUtils.isPluginLoaded("vane-enchantments")) { VaneEnchantmentsHook.init() }
+		if (SpigotCompatUtils.isPluginLoaded("ExcellentEnchants")) { ExcellentEnchantsHook.init() }
+		if (SpigotCompatUtils.isPluginLoaded("EcoEnchants")) { EcoEnchantsHook.init() }
+		if (SpigotCompatUtils.isPluginLoaded("Vault")) { VaultHook.init() }
 
 		// COMMANDS
 		val lamp = BukkitLamp.builder(this).build()

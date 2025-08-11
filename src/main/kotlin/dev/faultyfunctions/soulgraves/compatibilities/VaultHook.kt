@@ -4,11 +4,7 @@ import dev.faultyfunctions.soulgraves.SoulGraves
 import org.bukkit.entity.Player
 import java.math.BigDecimal
 
-class VaultHook {
-	companion object {
-		val instance: VaultHook by lazy { VaultHook() }
-	}
-
+object VaultHook {
 	private var economy: Any? = null
 	private var isVaultUnlocked: Boolean = false
 

@@ -9,13 +9,9 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.inventory.ItemStack
 
-class VaneEnchantmentsHook : Listener {
-	companion object {
-		val instance: VaneEnchantmentsHook by lazy { VaneEnchantmentsHook() }
-	}
-
+object VaneEnchantmentsHook : Listener {
 	fun init() {
-		SoulGraves.plugin.server.pluginManager.registerEvents(VaneEnchantmentsHook(), SoulGraves.plugin)
+		SoulGraves.plugin.server.pluginManager.registerEvents(VaneEnchantmentsHook, SoulGraves.plugin)
 		SoulGraves.plugin.logger.info("[√] Vane Enchantments hook loaded!")
 	}
 

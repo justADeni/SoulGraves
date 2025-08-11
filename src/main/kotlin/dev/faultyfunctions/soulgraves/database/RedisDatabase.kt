@@ -3,7 +3,7 @@ package dev.faultyfunctions.soulgraves.database
 import com.google.gson.JsonSyntaxException
 import dev.faultyfunctions.soulgraves.SoulGraves
 import dev.faultyfunctions.soulgraves.api.RedisPublishAPI.pendingAnswersRequests
-import dev.faultyfunctions.soulgraves.api.SoulGraveAPI
+import dev.faultyfunctions.soulgraves.api.SoulGravesAPI
 import dev.faultyfunctions.soulgraves.database.MessageAction.*
 import dev.faultyfunctions.soulgraves.managers.*
 import io.lettuce.core.RedisClient
@@ -11,11 +11,11 @@ import io.lettuce.core.api.StatefulRedisConnection
 import io.lettuce.core.pubsub.RedisPubSubAdapter
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection
 import org.bukkit.Bukkit
+import org.bukkit.Location
 import java.util.*
 import java.util.concurrent.*
 
 class RedisDatabase private constructor() {
-
     private var redisClient: RedisClient? = null
     private var connection: StatefulRedisConnection<String, String>? = null
     private var pubSubConnection: StatefulRedisPubSubConnection<String, String>? = null
@@ -142,7 +142,7 @@ class RedisDatabase private constructor() {
 
                         // if soul list contain Soul
                         Bukkit.getScheduler().runTask(SoulGraves.plugin, Runnable {
-                            val soul = SoulGraveAPI.getSoul(UUID.fromString(makerUUID))
+                            val soul = SoulGravesAPI.getSoul(UUID.fromString(makerUUID))
                             if (soul != null) {
                                 soul.delete()
                                 publish(RedisPacket(SERVER_NAME, API_ANSWER, "$msgUUID|$sender|true"))
@@ -162,7 +162,7 @@ class RedisDatabase private constructor() {
 
                         // if soul list contain Soul
                         Bukkit.getScheduler().runTask(SoulGraves.plugin, Runnable {
-                            val soul = SoulGraveAPI.getSoul(UUID.fromString(makerUUID))
+                            val soul = SoulGravesAPI.getSoul(UUID.fromString(makerUUID))
                             if (soul != null) {
                                 soul.explode()
                                 publish(RedisPacket(SERVER_NAME, API_ANSWER, "$msgUUID|$sender|true"))
@@ -183,7 +183,7 @@ class RedisDatabase private constructor() {
                         val remoteCopySoul = MySQLDatabase.instance.getSoul(UUID.fromString(makerUUID))
                         if (remoteCopySoul != null) {
                             Bukkit.getScheduler().runTask(SoulGraves.plugin, Runnable {
-                                val currentServerSoul = SoulGraveAPI.getSoul(UUID.fromString(makerUUID))
+                                val currentServerSoul = SoulGravesAPI.getSoul(UUID.fromString(makerUUID))
                                 if (currentServerSoul != null) {
                                         currentServerSoul.ownerUUID = remoteCopySoul.ownerUUID
                                         currentServerSoul.inventory = remoteCopySoul.inventory
@@ -264,6 +264,20 @@ class RedisDatabase private constructor() {
                     callbackExecutor!!.execute {
                         val server = packet.payload
                         serverStatus.remove(server)
+                    }
+                }
+
+                // TELEPORT_TO_SOUL
+                // PAYLOAD FORMAT: [PLAYER_UUID][WORLD][X][Y][Z]
+                TELEPORT_TO_SOUL -> {
+                    callbackExecutor!!.execute {
+                        // IF THIS CAME FROM ANOTHER SERVER
+                        if (packet.senderId != SERVER_NAME) {
+                            val (playerUUIDString, worldString, xString, yString, zString) = packet.payload.split("|", limit = 5)
+                            val playerUUID = UUID.fromString(playerUUIDString)
+                            val location = Location(Bukkit.getWorld(worldString), xString.toDouble(), yString.toDouble(), zString.toDouble())
+							SoulGraves.pendingTeleports[playerUUID] = location
+                        }
                     }
                 }
             }

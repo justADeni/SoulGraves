@@ -5,13 +5,9 @@ import dev.faultyfunctions.soulgraves.api.event.SoulSpawnEvent
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 
-class ExcellentEnchantsHook : Listener {
-    companion object {
-        val instance: ExcellentEnchantsHook by lazy { ExcellentEnchantsHook() }
-    }
-
+object ExcellentEnchantsHook : Listener {
     fun init() {
-        SoulGraves.plugin.server.pluginManager.registerEvents(ExcellentEnchantsHook(), SoulGraves.plugin)
+        SoulGraves.plugin.server.pluginManager.registerEvents(ExcellentEnchantsHook, SoulGraves.plugin)
         SoulGraves.plugin.logger.info("[√] ExcellentEnchants hook loaded!")
     }
 

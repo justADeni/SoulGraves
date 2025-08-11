@@ -11,7 +11,7 @@ import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 
-object SoulGraveAPI {
+object SoulGravesAPI {
 
     /**
      * Returns a list of all souls in current server.

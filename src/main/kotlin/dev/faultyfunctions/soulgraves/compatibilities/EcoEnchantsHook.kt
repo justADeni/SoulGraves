@@ -5,13 +5,9 @@ import dev.faultyfunctions.soulgraves.api.event.SoulSpawnEvent
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 
-class EcoEnchantsHook : Listener {
-	companion object {
-		val instance: EcoEnchantsHook by lazy { EcoEnchantsHook() }
-	}
-
+object EcoEnchantsHook : Listener {
 	fun init() {
-		SoulGraves.plugin.server.pluginManager.registerEvents(EcoEnchantsHook(), SoulGraves.plugin)
+		SoulGraves.plugin.server.pluginManager.registerEvents(EcoEnchantsHook, SoulGraves.plugin)
 		SoulGraves.plugin.logger.info("[√] EcoEnchants hook loaded!")
 	}
 

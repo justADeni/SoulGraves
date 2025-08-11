@@ -1,7 +1,7 @@
 package dev.faultyfunctions.soulgraves.tasks
 
 import dev.faultyfunctions.soulgraves.SoulGraves
-import dev.faultyfunctions.soulgraves.api.SoulGraveAPI
+import dev.faultyfunctions.soulgraves.api.SoulGravesAPI
 import dev.faultyfunctions.soulgraves.managers.ConfigManager
 import dev.faultyfunctions.soulgraves.utils.Soul
 import org.bukkit.Bukkit
@@ -27,9 +27,9 @@ class SoulHintParticlesTask(private val soul: Soul) : BukkitRunnable() {
         // MAKE SURE TO RUN BASED ON hintParticlesTrackedSoul SETTING
         var trackedSoul: Soul? = null
         if (ConfigManager.hintParticlesTrackedSoul == "OLDEST") {
-            trackedSoul = SoulGraveAPI.getPlayerSouls(owner.uniqueId).minByOrNull { it.deathTime }
+            trackedSoul = SoulGravesAPI.getPlayerSouls(owner.uniqueId).minByOrNull { it.deathTime }
         } else if (ConfigManager.hintParticlesTrackedSoul == "NEWEST") {
-            trackedSoul = SoulGraveAPI.getPlayerSouls(owner.uniqueId).maxByOrNull { it.deathTime }
+            trackedSoul = SoulGravesAPI.getPlayerSouls(owner.uniqueId).maxByOrNull { it.deathTime }
         }
         if (trackedSoul == null || soul.markerUUID != trackedSoul.markerUUID) return
 

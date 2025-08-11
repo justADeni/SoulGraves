@@ -13,7 +13,9 @@ enum class MessageAction {
 
     API_ANSWER,
     HEARTBEAT,
-    HEARTBEAT_SHUTDOWN
+    HEARTBEAT_SHUTDOWN,
+
+    TELEPORT_TO_SOUL
 }
 
 

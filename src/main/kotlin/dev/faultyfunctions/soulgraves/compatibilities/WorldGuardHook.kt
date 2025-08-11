@@ -11,15 +11,10 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 
 
-class WorldGuardHook : Listener {
-
+object WorldGuardHook : Listener {
     var registry: FlagRegistry = WorldGuard.getInstance().flagRegistry
     var flagRegisteredSuccess = false
-
-    companion object {
-        val instance: WorldGuardHook by lazy { WorldGuardHook() }
-        var soulGravesSpawningFlag: StateFlag? = null
-    }
+    var soulGravesSpawningFlag: StateFlag? = null
 
     fun registerFlags() {
         try {
@@ -44,7 +39,7 @@ class WorldGuardHook : Listener {
             SoulGraves.plugin.logger.warning("WorldGuard has registered the soulgraves-spawning flag!")
             return
         }
-        SoulGraves.plugin.server.pluginManager.registerEvents(WorldGuardHook(), SoulGraves.plugin)
+        SoulGraves.plugin.server.pluginManager.registerEvents(WorldGuardHook, SoulGraves.plugin)
         SoulGraves.plugin.logger.info("[√] WorldGuard Hooked!")
     }
 
