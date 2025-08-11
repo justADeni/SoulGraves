@@ -13,11 +13,12 @@ storage-mode: PDC
 server-name: "lobby"
 
 # Database config for cross-server storage
+# Set useSSL to true if your database supports it
 MySQL:
   jdbc-url: "jdbc:mysql://localhost:3306/minecraft?useSSL=false&autoReconnect=true"
   jdbc-class: "com.mysql.cj.jdbc.Driver"
   properties:
-    user: "root"
+    user: "username"
     password: "password"
 
 Redis:

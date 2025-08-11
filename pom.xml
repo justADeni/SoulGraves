@@ -15,7 +15,7 @@
 		<java.version>21</java.version>
 		<kotlin.version>2.0.20</kotlin.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<beta.version>02</beta.version>
+		<beta.version>03</beta.version>
 	</properties>
 
 	<build>
@@ -210,7 +210,7 @@
 		<dependency>
 			<groupId>com.saicone.rtag</groupId>
 			<artifactId>rtag</artifactId>
-			<version>1.5.8</version>
+			<version>1.5.11</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>

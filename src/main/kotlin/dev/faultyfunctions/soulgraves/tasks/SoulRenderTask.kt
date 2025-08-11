@@ -7,6 +7,7 @@ import org.bukkit.Location
 import org.bukkit.Particle
 import org.bukkit.World
 import org.bukkit.scheduler.BukkitRunnable
+import kotlin.math.min
 import kotlin.math.sin
 
 class SoulRenderTask(val soul: Soul) : BukkitRunnable() {
@@ -42,7 +43,8 @@ class SoulRenderTask(val soul: Soul) : BukkitRunnable() {
 
 	private fun renderPanicState(world: World) {
 		if (soul.timeLeft > 1) {
-			world.spawnParticle(Particle.SCULK_SOUL, particleLocation, soul.timeLeft / 4, 0.01, 0.01, 0.01, 0.1, null, true)
+			val sculkParticleCount = min(soul.timeLeft / 6, 5)
+			world.spawnParticle(Particle.SCULK_SOUL, particleLocation, sculkParticleCount, 0.01, 0.01, 0.01, 0.1, null, true)
 			world.spawnParticle(Particle.END_ROD, particleLocation, 1, 0.01, 0.01, 0.01, 0.01, null, true)
 		}
 	}
