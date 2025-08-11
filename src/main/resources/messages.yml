@@ -1,5 +1,5 @@
 # DO NOT EDIT file-version DIRECTLY
-file-version: 3
+file-version: 4
 
 # Message to send the player when they run the reload commands
 soul-graves-reload: "[<dark_aqua>Soul Graves</dark_aqua>] Config reloaded!"
