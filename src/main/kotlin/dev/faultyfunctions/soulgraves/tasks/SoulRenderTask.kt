@@ -15,7 +15,7 @@ class SoulRenderTask(val soul: Soul) : BukkitRunnable() {
 
 	override fun run() {
 		val world = soul.location.world ?: return
-		if (!world.isChunkLoaded(soul.location.chunk)) return
+		if (!world.isChunkLoaded(soul.location.x.toInt() shr 4, soul.location.z.toInt() shr 4)) return
 
 		particleLocation.world = world
 		particleLocation.x = soul.location.x

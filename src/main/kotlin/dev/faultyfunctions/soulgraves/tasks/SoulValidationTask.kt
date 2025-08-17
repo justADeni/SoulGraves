@@ -12,7 +12,7 @@ class SoulValidationTask(val soul: Soul) : BukkitRunnable() {
             // IF WORLD IS NOT EXIST
             val world = location.world ?: return delete()
             // IF CHUNK IS NOT LOAD, TASK WILL RETURN
-            if (!world.isChunkLoaded(location.chunk) || state == SoulState.EXPLODING) return
+            if (!world.isChunkLoaded(location.x.toInt() shr 4, location.z.toInt() shr 4) || state == SoulState.EXPLODING) return
             // IF MARKER IS NOT EXIST
             markerUUID.let { Bukkit.getEntity(it) } ?: return delete()
         }

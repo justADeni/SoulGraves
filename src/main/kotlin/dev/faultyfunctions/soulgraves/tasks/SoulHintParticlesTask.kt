@@ -42,7 +42,7 @@ class SoulHintParticlesTask(private val soul: Soul) : BukkitRunnable() {
 
     // Check Radius
     private fun handleRadiusFollow(world: World, owner: Player) {
-        if (!world.isChunkLoaded(soul.location.chunk)) return
+        if (!world.isChunkLoaded(soul.location.x.toInt() shr 4, soul.location.z.toInt() shr 4)) return
 
         world.getNearbyEntities(
             soul.location,

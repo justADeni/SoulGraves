@@ -10,41 +10,65 @@
 
 A unique graves plugin where players collect their souls to retrieve their belongings when they die. A soul will spawn at your death location that provides audio and visual feedback to help you locate it. Once you find it you can retrieve your items by walking into your soul. Be careful though, wait too long and your soul will burst dropping all your items!
 
-Special thanks to [Catnies](https://github.com/killertuling) and [ShiroKazane](https://github.com/ShiroKazane) for their contributions to the project!
+Special thanks to [Catnies](https://github.com/Catnies) and [ShiroKazane](https://github.com/ShiroKazane) for their contributions to the project!
 
 ## Features
-- Additional Minecraft death mechanics
-- Back command with economy support
-- Fun particle effects
-- Soul persists through restarts
-- Visual cue to indicate when the soul is about to burst
-- Audible heartbeat to make finding your soul easier
-- Soul Graves will avoid spawning a soul in liquids, the void, and non-solid blocks
-- Optional hint particles to lead players to their soul
-- Players can have a customizable number of souls active at the same time
-- Cross-server support with MySQL + Redis
-- Option to only let owners retrieve their souls
-- Option to toggle if souls drop items or xp when they burst
-- Customizable XP return percentages
-- Customizable messages with MiniMessage support
-- Customizable sounds
-- Custom Event API
+### ⭐ Core Mechanics
+- Soul Graves will spawn a soul when a player dies, storing their belongings.
+- Avoids spawning souls in liquids, the void, or non-solid blocks.
+- Souls persist through server restarts.
+- Customizable number of active souls per player, with an option for unlimited.
+- Ability to restrict soul collection to their owner.
+- Config options to pause the soul countdown timer while the owner is offline.
+- Disable soul spawning in specific worlds.
 
-## Compatible With
-- WorldGuard (soul spawning flag)
-- Towny (keep inventory options)
-- Vane (soulbound enchantment)
-- ExcellentEnchants (soulbound enchantment)
-- EcoEnchants (soulbound enchantment)
+### ✨ Visual & Audio Feedback
+- Visual cue indicates when a soul is about to burst.
+- Players in a configurable radius will hear heartbeat sounds to guide the to nearby souls.
+- Optional and customizable hint particles to lead players directly to their soul.
+- Choose which sounds play for soul collection, soul bursting, and notifying players.
+- Both the soul’s owner and nearby players can be notified when a soul's status changes.
 
-## GIFs
-A stable soul waiting to be collected:
+### 💎 Item & XP Handling
+- Souls can be configured to only drop items, xp, or both when they burst.
+- Set distinct XP return percentages for owners and non-owners separately.
+- Option to either destroy or scatter items/xp when a soul bursts.
 
-![javaw_YOdJmrwlg5](https://github.com/user-attachments/assets/0131abd3-e1da-4db4-ae97-826624ccee8f)
+### 🌐 Cross-Server Support
+- Cross-server support with MySQL and Redis for a seamless experience.
 
-A destabilizing soul that bursts and drops its contents:
+### 🪙 Economy Support
+- Configurable costs for players teleporting to their soul.
 
-![Animation](https://github.com/user-attachments/assets/8ddf0d00-c7b7-4504-8fff-234f4f7af3dc)
+### 🛠️ Customization & Developer API
+- All messages are fully customizable with MiniMessage formatting.
+- Custom API for developers to hook into to customize Soul Graves further.
+
+## Compatibility
+- **WorldGuard**: Flag for disabling soul spawning in specific regions.
+- **Towny**: Supporting their various keep-inventory options.
+- **Soulbound Enchantment Plugins**:
+	- Vane
+	- ExcellentEnchants
+	- EcoEnchants
+
+## Showcase
+<video src="https://github.com/FaultyFunctions/SoulGraves/raw/refs/heads/main/media/stable_soul.mp4" autoplay muted loop></video>
+<center>A stable soul waiting to be collected</center>
+
+---
+<video src="https://github.com/FaultyFunctions/SoulGraves/raw/refs/heads/main/media/unstable_soul.mp4" autoplay muted loop></video>
+<center>A unstable soul that bursts and drops its contents</center>
+
+## Commands & Permissions
+- **/soulgraves** or **/sg**: The main command for Soul Graves. Will give version information to the sender.
+	- Permission: `soulgraves.command`
+- **/soulgraves reload**: Reload the plugin's configuration files.
+	- Permission: `soulgraves.command.reload`
+- **/soulgraves back**: Teleports the sender to their latest soul. Only works in-game.
+	- Permission: `soulgraves.command.back`
+#### Other Permissions
+- `soulgraves.spawn`: Allows a soul to spawn if `permission-required` is true in the config.
 
 ## Configuration
 <details>
@@ -52,7 +76,7 @@ A destabilizing soul that bursts and drops its contents:
 
 ```yml
 # DO NOT EDIT file-version DIRECTLY
-file-version: 2
+file-version: 4
 
 # If set true, players will require "soulgraves.spawn" permission to spawn a soul upon death
 permission-required: false
@@ -63,6 +87,9 @@ time-stable: 240
 # Time in seconds for how long a soul will show the unstable animation for before bursting
 # The total time the soul is available to collect is time-stable + time-unstable
 time-unstable: 60
+
+# How much it costs to teleport to your soul, set to 0.0 to disable
+teleport-cost: 0.0
 
 # Whether to freeze the timer when the owner of the soul is offline
 # This feature cannot detect the online status of players in other subservers on a proxy server
@@ -98,6 +125,14 @@ souls-drop-items: true
 
 # Whether souls will drop XP when they burst
 souls-drop-xp: true
+
+# Whether souls will store items when they are created
+# If both souls-store-items and souls-store-xp are false, souls will not spawn
+souls-store-items: true
+
+# Whether souls will store XP when they are created
+# If both souls-store-items and souls-store-xp are false, souls will not spawn
+souls-store-xp: true
 
 # What sounds to play when a soul is collected
 # The format is 'soundEvent, volume, pitch'
@@ -190,11 +225,12 @@ storage-mode: PDC
 server-name: "lobby"
 
 # Database config for cross-server storage
+# Set useSSL to true if your database supports it
 MySQL:
   jdbc-url: "jdbc:mysql://localhost:3306/minecraft?useSSL=false&autoReconnect=true"
   jdbc-class: "com.mysql.cj.jdbc.Driver"
   properties:
-    user: "root"
+    user: "username"
     password: "password"
 
 Redis:
@@ -208,35 +244,41 @@ Redis:
 
 ```yml
 # DO NOT EDIT file-version DIRECTLY
-file-version: 1
+file-version: 4
 
+# Message to send the player when they run the reload commands
+soul-graves-reload: "[<dark_aqua>Soul Graves</dark_aqua>] Config reloaded!"
 # Message to send to the owner when their soul bursts
-soul-burst: "<dark_aqua>☠ Your soul has burst!"
+soul-burst: "<dark_aqua>☠ Your soul has burst!</dark_aqua>"
 # Message to send to the owner when their soul bursts and souls-drop-items is true
-soul-burst-drop-items: "<red>☀ Any belongings inside have been scattered!"
+soul-burst-drop-items: "<red>☀ Any belongings inside have been scattered!</red>"
 # Message to send to the owner when their soul bursts and souls-drop-items is false
-soul-burst-lose-items: "<red>✖ Any belongings inside have been destroyed!"
+soul-burst-lose-items: "<red>✖ Any belongings inside have been destroyed!</red>"
 # Message to send when a soul bursts nearby
-soul-burst-nearby: "<dark_aqua>☠ A soul has burst nearby!"
+soul-burst-nearby: "<dark_aqua>☠ A soul has burst nearby.</dark_aqua>"
 # Message to send when a soul is collected
-soul-collect: "<green>✦ You've collected the soul's contents!"
+soul-collect: "<green>✦ You've collected the soul's contents!</green>"
 # Message to send to the owner when another player has collected their soul
-soul-collect-other: "<light_purple>⚑ Someone else has collected your soul!"
+soul-collect-other: "<light_purple>⚑ Someone else has collected your soul!</light_purple>"
+# Message to send when spawn a new soul would exceed the player's limit (oldest will explode)
+soul-limit-explode: "<yellow>⚠ Reached soul limit (%max%), your oldest soul has burst!</yellow>"
+# Message to send when a player tries to return to their soul but has no soul
+command-back-no-soul: "<yellow>✖ You don't have a soul to teleport to.</yellow>"
+# Message to send when a player doesn't have enough funds to return to their soul
+command-back-no-funds: "<red>✖ You don't have enough funds to teleport to your soul.</red>"
+# Message to send when a player successfully returns to their soul without a cost
+command-back-success-free: "<gold>✔ You have teleported to your soul.</gold>"
+# Message to send when a player successfully returns to their soul
+command-back-success-paid: "<gold>✔ You have teleported to your soul for %cost% coins.</gold>"
 ```
 
-</details>
-
-<details>
-<summary>permissions</summary>
-
-```yml
-soulgraves.command: Allows for the reload and main command
-soulgraves.spawn: Whether or not a soul grave will spawn for the player
-```
 </details>
 
 ## API
-#### Maven
+
+<details>
+<summary>Maven</summary>
+
 ```xml
 	<repositories>
 		<repository>
@@ -249,10 +291,13 @@ soulgraves.spawn: Whether or not a soul grave will spawn for the player
 	<dependency>
 	    <groupId>com.github.FaultyFunctions</groupId>
 	    <artifactId>SoulGraves</artifactId>
-	    <version>v{VERSION}</version>
+	    <version>TAG</version>
 	</dependency>
 ```
-#### Gradle
+</details>
+<details>
+<summary>Gradle</summary>
+
 ```groovy
 	dependencyResolutionManagement {
 		repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
@@ -264,15 +309,28 @@ soulgraves.spawn: Whether or not a soul grave will spawn for the player
 ```
 ```groovy
 	dependencies {
-	implementation 'com.github.FaultyFunctions:SoulGraves:v{VERSION}'
+	implementation 'com.github.FaultyFunctions:SoulGraves:TAG'
 }
 ```
+
+</details>
+
+Replace `TAG` with the release tag on GitHub of your desired version.
 
 ## Third-Party Addons
 - [SoulGravesPlus](https://github.com/JosTheDude/SoulGravesPlus) by [@JosTheDude](https://github.com/JosTheDude)
 
+## Roadmap
+* [Make a suggestion!](https://github.com/FaultyFunctions/SoulGraves/issues)
+
 ## Acknowledgements
 - [Vanilla Refresh](https://modrinth.com/datapack/vanilla-refresh) - Based on their idea of "Soul Links"
-- [B's Ghost Graves](https://modrinth.com/plugin/bs-ghostgrave) - Similar plugin inspired by Hollow Knight. They shared their source, so I could learn from it, huge thanks!
+- [B's Ghost Graves](https://modrinth.com/plugin/bs-ghostgrave) - Similar plugin inspired by Hollow Knight. They shared their source so I could learn from it, huge thanks!
 - [MorePersistentDataTypes](https://github.com/mfnalex/MorePersistentDataTypes) - Great PDC library
 - [BoostedYAML](https://github.com/dejvokep/boosted-yaml) - YAML configuration library
+- [HikariCP](https://github.com/brettwooldridge/HikariCP) - For handling JDBC connections
+- [Lettuce](https://github.com/redis/lettuce) - Sending/receiving Redis messages
+- [Lamp](https://github.com/Revxrsal/Lamp) - Minecraft command library
+- [rtag](https://github.com/saicone/rtag) - Reading/writing NBT data
+- [adventure](https://github.com/KyoriPowered/adventure) - UI library for Minecraft
+- [bStats](https://github.com/Bastian/bStats) - Plugin tracking metrics

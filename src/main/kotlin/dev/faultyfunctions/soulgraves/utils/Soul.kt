@@ -242,7 +242,7 @@ class Soul private constructor(
 		}
 
 		// MARKER IS EXIST ?
-		if (world.isChunkLoaded(location.chunk)) {
+		if (world.isChunkLoaded(location.x.toInt() shr 4, location.z.toInt() shr 4)) {
 			markerUUID.let { Bukkit.getEntity(it) } ?: return false
 		} else {
 			if (forceLoadChunk) {

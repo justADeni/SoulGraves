@@ -18,7 +18,7 @@ import org.bukkit.scheduler.BukkitRunnable
 class SoulPickupTask(val soul: Soul) : BukkitRunnable() {
 	override fun run() {
 		if (soul.state == SoulState.EXPLODING) return
-		if (soul.location.world?.isChunkLoaded(soul.location.chunk) != true) return
+		if (soul.location.world?.isChunkLoaded(soul.location.x.toInt() shr 4, soul.location.z.toInt() shr 4) != true) return
 
 		soul.location.world?.getNearbyEntities(soul.location, 0.5,0.5,0.5)
 			?.takeIf { Bukkit.getEntity(soul.markerUUID) != null }
