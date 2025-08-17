@@ -53,12 +53,11 @@ Special thanks to [Catnies](https://github.com/Catnies) and [ShiroKazane](https:
 	- EcoEnchants
 
 ## Showcase
-<video src="https://github.com/FaultyFunctions/SoulGraves/raw/refs/heads/main/media/stable_soul.mp4" autoplay muted loop></video>
-<center>A stable soul waiting to be collected</center>
+#### A stable soul waiting to be collected:
+https://github.com/user-attachments/assets/8de28a77-0b7b-4333-af3f-11baab370c6b
 
----
-<video src="https://github.com/FaultyFunctions/SoulGraves/raw/refs/heads/main/media/unstable_soul.mp4" autoplay muted loop></video>
-<center>A unstable soul that bursts and drops its contents</center>
+#### A unstable soul that bursts and drops its contents:
+https://github.com/user-attachments/assets/beaa0011-35df-476a-94f8-8b06da72a618
 
 ## Commands & Permissions
 - **/soulgraves** or **/sg**: The main command for Soul Graves. Will give version information to the sender.
