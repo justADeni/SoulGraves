@@ -318,6 +318,7 @@ Replace `TAG` with the release tag on GitHub of your desired version.
 
 ## Third-Party Addons
 - [SoulGravesPlus](https://github.com/JosTheDude/SoulGravesPlus) by [@JosTheDude](https://github.com/JosTheDude)
+- [SoulGravesBanco](https://github.com/justADeni/SoulGravesBanco) by [@justADeni](https://github.com/justADeni)
 
 ## Roadmap
 * [Make a suggestion!](https://github.com/FaultyFunctions/SoulGraves/issues)
